@@ -107,10 +107,28 @@ export default async function ServiceDetailsPage({
                     </div>
                   </div>
                 )}
+                {service.department_phone && (
+                  <div className="flex items-start gap-2.5">
+                    <Phone className="h-4 w-4 text-[#0f5c5c] mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs text-[#768086]">Department Desk</p>
+                      <p className="text-[#14181a] font-mono">{service.department_phone}</p>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="pt-4 border-t border-[#e6e4dd] flex items-center gap-2 text-xs text-[#4b555b]">
-                <Phone className="h-3.5 w-3.5 text-[#0f5c5c]" />
-                Scheduling: <span className="font-mono text-[#14181a]">+1 (800) 432-5490</span>
+              <div className="pt-4 border-t border-[#e6e4dd] flex flex-col gap-2 text-xs text-[#4b555b]">
+                <div className="flex items-center gap-2">
+                  <Phone className="h-3.5 w-3.5 text-[#0f5c5c]" />
+                  Central Scheduling: <span className="font-mono text-[#14181a]">+1 (800) 432-5490</span>
+                </div>
+                <Link
+                  href={`/appointments/book?service=${service.slug}`}
+                  className="mt-1 w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-[#0f5c5c] text-white font-medium hover:bg-[#0c4a4a] transition-colors"
+                >
+                  <CalendarClock className="h-3.5 w-3.5" />
+                  Book Appointment for this Service
+                </Link>
               </div>
             </div>
           </div>

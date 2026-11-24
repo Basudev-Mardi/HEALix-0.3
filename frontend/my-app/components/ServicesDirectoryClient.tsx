@@ -2,52 +2,144 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { ArrowUpRight, Clock } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Building2,
+  Clock,
+  HeartPulse,
+  Search,
+  Stethoscope,
+  X,
+} from 'lucide-react';
 import type { MedicalService } from '@/lib/types';
 
 export default function ServicesDirectoryClient({ services }: { services: MedicalService[] }) {
+  const [selected, setSelected] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+
   const categories = useMemo(
     () => ['All', ...Array.from(new Set(services.map((s) => s.category)))],
     [services]
   );
-  const [selected, setSelected] = useState('All');
 
-  const filtered =
-    selected === 'All' ? services : services.filter((s) => s.category === selected);
+  const filtered = useMemo(() => {
+    return services.filter((s) => {
+      const matchesCategory = selected === 'All' || s.category === selected;
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        s.name.toLowerCase().includes(q) ||
+        s.short_description.toLowerCase().includes(q) ||
+        s.category.toLowerCase().includes(q) ||
+        (s.department_name && s.department_name.toLowerCase().includes(q)) ||
+        s.key_features.some((f) => f.toLowerCase().includes(q)) ||
+        s.procedures.some((p) => p.toLowerCase().includes(q));
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [services, selected, searchQuery]);
 
   return (
     <div className="space-y-10">
-      <div className="flex flex-wrap items-center gap-2 pb-6 border-b border-[#e6e4dd]">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => setSelected(cat)}
-            className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${
-              selected === cat
-                ? 'bg-[#14181a] text-white'
-                : 'bg-white border border-[#e6e4dd] text-[#4b555b] hover:border-[#14181a]'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+      {/* Distinction & Separation Callout */}
+      <div className="rounded-2xl border border-[#0f5c5c]/20 bg-[#edf5f4]/60 p-6 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div className="flex items-start gap-3.5">
+          <div className="h-10 w-10 rounded-xl bg-[#0f5c5c] text-white flex items-center justify-center shrink-0">
+            <HeartPulse className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-[#14181a]">
+              Medical Programs & Clinical Services
+            </h2>
+            <p className="text-xs sm:text-sm text-[#4b555b] mt-0.5 leading-relaxed">
+              Explore specialized outpatient clinics, inpatient admissions, surgery, emergency trauma care,
+              radiology, pharmacy, and diagnostic programs.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/facilities"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-[#0f5c5c]/30 text-[#0f5c5c] text-xs font-semibold hover:bg-[#0f5c5c] hover:text-white transition-colors shrink-0"
+        >
+          <Building2 className="h-3.5 w-3.5" />
+          Explore Physical Facilities
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
 
+      {/* Search and Category Filter Bar */}
+      <div className="space-y-4">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#768086]" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search service name, procedure, department..."
+            className="w-full pl-10 pr-10 py-2.5 rounded-full border border-[#e6e4dd] bg-white text-sm text-[#14181a] placeholder:text-[#768086] focus:outline-none focus:border-[#0f5c5c] focus:ring-1 focus:ring-[#0f5c5c]"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#768086] hover:text-[#14181a]"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 pb-6 border-b border-[#e6e4dd]">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelected(cat)}
+              className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${
+                selected === cat
+                  ? 'bg-[#14181a] text-white'
+                  : 'bg-white border border-[#e6e4dd] text-[#4b555b] hover:border-[#14181a]'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Results Count */}
+      <div className="flex items-center justify-between text-xs text-[#768086] font-mono">
+        <span>Showing {filtered.length} clinical services</span>
+        {(selected !== 'All' || searchQuery) && (
+          <button
+            type="button"
+            onClick={() => {
+              setSelected('All');
+              setSearchQuery('');
+            }}
+            className="text-[#0f5c5c] hover:underline"
+          >
+            Reset filters
+          </button>
+        )}
+      </div>
+
+      {/* Services Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filtered.map((service) => (
           <Link
             key={service.slug}
             href={`/services/${service.slug}`}
-            className="card-minimal rounded-2xl p-8 flex flex-col justify-between group"
+            className="card-minimal rounded-2xl p-8 flex flex-col justify-between group hover:border-[#0f5c5c]/50 transition-all duration-200"
           >
             <div>
               <div className="flex items-center justify-between gap-3 mb-4">
-                <span className="text-[11px] font-mono uppercase tracking-wider px-3 py-1 rounded-full bg-[#edf5f4] text-[#0f5c5c]">
+                <span className="text-[11px] font-mono uppercase tracking-wider px-3 py-1 rounded-full bg-[#edf5f4] text-[#0f5c5c] font-medium">
                   {service.category}
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-mono text-[#768086]">
-                  <Clock className="h-3.5 w-3.5" />
+                  <Clock className="h-3.5 w-3.5 text-[#0f5c5c]" />
                   {service.duration_estimate}
                 </span>
               </div>
@@ -72,8 +164,11 @@ export default function ServicesDirectoryClient({ services }: { services: Medica
             </div>
 
             <div className="mt-7 pt-4 border-t border-[#e6e4dd] flex items-center justify-between text-xs">
-              <span className="text-[#768086]">{service.department_name}</span>
-              <span className="inline-flex items-center gap-1 font-medium text-[#14181a] group-hover:text-[#0f5c5c]">
+              <span className="text-[#768086] flex items-center gap-1.5">
+                <Stethoscope className="h-3.5 w-3.5 text-[#0f5c5c]" />
+                {service.department_name}
+              </span>
+              <span className="inline-flex items-center gap-1 font-semibold text-[#14181a] group-hover:text-[#0f5c5c] transition-colors">
                 Service details
                 <ArrowUpRight className="h-3.5 w-3.5" />
               </span>
@@ -81,6 +176,25 @@ export default function ServicesDirectoryClient({ services }: { services: Medica
           </Link>
         ))}
       </div>
+
+      {filtered.length === 0 && (
+        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-12 text-center space-y-3">
+          <p className="text-base font-medium text-[#14181a]">No medical services match your search</p>
+          <p className="text-xs text-[#768086]">
+            Try searching by another term or selecting a different clinical category.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setSelected('All');
+              setSearchQuery('');
+            }}
+            className="mt-2 px-4 py-2 rounded-full bg-[#14181a] text-white text-xs font-medium"
+          >
+            Clear all filters
+          </button>
+        </div>
+      )}
     </div>
   );
 }

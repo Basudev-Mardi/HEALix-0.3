@@ -154,6 +154,24 @@ export async function getFacilities(): Promise<Facility[]> {
   return live ?? FALLBACK_FACILITIES;
 }
 
+export async function getFacilityBySlug(slug: string): Promise<(Facility & { otherFacilities?: Facility[] }) | null> {
+  'use cache';
+  cacheLife('minutes');
+  const live = await fetchApi<Facility>(`/facilities/${encodeURIComponent(slug)}`);
+  if (live) {
+    return {
+      ...live,
+      otherFacilities: FALLBACK_FACILITIES.filter((f) => f.slug !== slug).slice(0, 3),
+    };
+  }
+  const fallback = FALLBACK_FACILITIES.find((f) => f.slug === slug || String(f.id) === slug);
+  if (!fallback) return null;
+  return {
+    ...fallback,
+    otherFacilities: FALLBACK_FACILITIES.filter((f) => f.slug !== fallback.slug).slice(0, 3),
+  };
+}
+
 export async function getVisitingHours(): Promise<{
   schedules: VisitingHour[];
   contact: Pick<HospitalInfo, 'phone' | 'emergency_phone' | 'address' | 'email'>;

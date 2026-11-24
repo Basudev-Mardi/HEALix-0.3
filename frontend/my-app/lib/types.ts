@@ -97,12 +97,19 @@ export interface MedicalService {
 
 export interface Facility {
   id: number;
+  slug: string;
   name: string;
   category: string;
   floor_location: string;
   availability: string;
   description: string;
   highlights: string[];
+  contact_phone?: string;
+  contact_email?: string;
+  capacity_or_specs?: string;
+  visitor_policy?: string;
+  guidelines?: string[];
+  access_notes?: string;
 }
 
 export interface InfrastructureItem {

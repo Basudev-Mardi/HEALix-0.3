@@ -331,6 +331,29 @@ router.get(
   })
 );
 
+// Facility details by slug
+router.get(
+  '/facilities/:slug',
+  asyncHandler(async (req, res) => {
+    const { slug } = req.params;
+    try {
+      const result = await query('SELECT * FROM facilities WHERE slug = $1', [slug]);
+      if (result.rows.length > 0) {
+        return res.json({ data: result.rows[0] });
+      }
+    } catch {
+      // If slug column is not present or query fails, try numeric id
+    }
+    if (/^\d+$/.test(slug)) {
+      const idResult = await query('SELECT * FROM facilities WHERE id = $1', [parseInt(slug, 10)]);
+      if (idResult.rows.length > 0) {
+        return res.json({ data: idResult.rows[0] });
+      }
+    }
+    res.status(404).json({ error: 'Facility not found' });
+  })
+);
+
 // Visiting hours & timings
 router.get(
   '/visiting-hours',
