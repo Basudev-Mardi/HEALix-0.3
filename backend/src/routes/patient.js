@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { query } from '../db.js';
+import { pool, query } from '../db.js';
 import {
   hashPassword,
   requirePatientAuth,
@@ -241,7 +241,24 @@ router.get(
   })
 );
 
-// 28. Appointment Details by ID or Booking Reference
+// Ensure audit log table exists
+async function ensureAuditLogTable(client) {
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS appointment_audit_logs (
+      id SERIAL PRIMARY KEY,
+      appointment_id INTEGER REFERENCES appointments(id) ON DELETE CASCADE,
+      booking_reference TEXT NOT NULL,
+      previous_status TEXT,
+      new_status TEXT NOT NULL,
+      changed_by TEXT NOT NULL DEFAULT 'patient',
+      reason TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_appointment_audit_ref ON appointment_audit_logs(booking_reference);
+  `);
+}
+
+// 28. Appointment Details by ID or Booking Reference (with Audit Trail)
 router.get(
   '/appointments/:id',
   asyncHandler(async (req, res) => {
@@ -267,29 +284,133 @@ router.get(
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Appointment not found.' });
     }
-    res.json({ data: result.rows[0] });
+
+    const appt = result.rows[0];
+
+    // Fetch audit history if available
+    let auditLogs = [];
+    try {
+      const logsRes = await query(
+        `SELECT previous_status, new_status, changed_by, reason,
+                TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS timestamp
+         FROM appointment_audit_logs
+         WHERE appointment_id = $1 OR UPPER(booking_reference) = UPPER($2)
+         ORDER BY created_at DESC`,
+        [appt.id, appt.booking_reference]
+      );
+      auditLogs = logsRes.rows;
+    } catch {
+      auditLogs = [];
+    }
+
+    res.json({ data: { ...appt, audit_logs: auditLogs } });
   })
 );
 
+// Workflow D: Appointment Cancellation with Ownership & Eligibility Checks, Audit Logging, and Notifications
 router.patch(
   '/appointments/:id/cancel',
   asyncHandler(async (req, res) => {
     const param = String(req.params.id || '').trim();
     const isNumeric = /^\d+$/.test(param);
+    const { reason = 'Cancelled by patient via portal' } = req.body || {};
 
-    const updated = await query(
-      `UPDATE appointments
-       SET status = 'Cancelled', updated_at = NOW()
-       WHERE LOWER(patient_email) = LOWER($1)
-         AND (${isNumeric ? 'id = $2::int' : 'UPPER(booking_reference) = UPPER($2)'})
-       RETURNING id, booking_reference, status`,
-      [req.patient.email, param]
-    );
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await ensureAuditLogTable(client);
 
-    if (updated.rows.length === 0) {
-      return res.status(404).json({ error: 'Appointment not found.' });
+      // 1. Fetch appointment with row lock and ownership verification
+      const findRes = await client.query(
+        `SELECT a.*,
+                TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS formatted_date,
+                d.name AS doctor_name, d.specialty AS doctor_specialty
+         FROM appointments a
+         JOIN doctors d ON d.slug = a.doctor_slug
+         WHERE LOWER(a.patient_email) = LOWER($1)
+           AND (${isNumeric ? 'a.id = $2::int' : 'UPPER(a.booking_reference) = UPPER($2)'})
+         FOR UPDATE`,
+        [req.patient.email, param]
+      );
+
+      if (findRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({
+          error: 'Appointment not found or does not belong to your patient account.',
+        });
+      }
+
+      const appt = findRes.rows[0];
+
+      // 2. Cancellation eligibility validation
+      if (appt.status === 'Cancelled') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'This appointment has already been cancelled.' });
+      }
+
+      if (appt.status === 'Completed') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Completed consultations cannot be cancelled.' });
+      }
+
+      const todayIso = new Date().toISOString().slice(0, 10);
+      if (appt.formatted_date < todayIso) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          error: 'Past appointments cannot be cancelled online. Please contact patient services.',
+        });
+      }
+
+      // 3. Update appointment status to Cancelled (releases slot automatically)
+      const updateRes = await client.query(
+        `UPDATE appointments
+         SET status = 'Cancelled', updated_at = NOW()
+         WHERE id = $1
+         RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS formatted_date`,
+        [appt.id]
+      );
+
+      // 4. Record action in audit log (Workflow D - Step 10)
+      const actorLabel = `${req.patient.full_name} (Patient MRN: ${req.patient.mrn || 'N/A'})`;
+      await client.query(
+        `INSERT INTO appointment_audit_logs (
+          appointment_id, booking_reference, previous_status, new_status, changed_by, reason
+        ) VALUES ($1, $2, $3, 'Cancelled', $4, $5)`,
+        [appt.id, appt.booking_reference, appt.status, actorLabel, String(reason)]
+      );
+
+      // 5. Create portal notification for patient (Workflow D - Step 9)
+      await client.query(
+        `INSERT INTO portal_notifications (
+          patient_id, category, title, message, action_href, is_read
+        ) VALUES ($1, 'Appointment', $2, $3, $4, FALSE)`,
+        [
+          req.patient.id,
+          `Appointment Cancelled — ${appt.booking_reference}`,
+          `Your appointment with Dr. ${appt.doctor_name} scheduled for ${appt.formatted_date} at ${appt.time_slot} was cancelled. Reason: ${reason}.`,
+          '/patient/appointments',
+        ]
+      );
+
+      await client.query('COMMIT');
+
+      const updatedRow = updateRes.rows[0];
+      res.json({
+        data: {
+          ...updatedRow,
+          appointment_date: updatedRow.formatted_date,
+          doctor_name: appt.doctor_name,
+          doctor_specialty: appt.doctor_specialty,
+          slot_released: true,
+          audit_recorded: true,
+        },
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
     }
-    res.json({ data: updated.rows[0] });
   })
 );
 

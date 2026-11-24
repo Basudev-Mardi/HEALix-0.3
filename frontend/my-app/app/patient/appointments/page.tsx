@@ -124,8 +124,8 @@ export default function PatientAppointmentsPage() {
                       {appt.time_slot}
                     </p>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-[#14181a] group-hover:text-[#0f5c5c]">
-                    Details
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#14181a] group-hover:text-[#0f5c5c]">
+                    {isCancelled ? 'View Summary' : 'Manage / Cancel'}
                     <ArrowUpRight className="h-3.5 w-3.5" />
                   </span>
                 </div>
