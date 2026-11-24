@@ -160,6 +160,59 @@ router.get('/insurance', (_req, res) => {
   res.json({ data: content.insurancePartners || [] });
 });
 
+// Insurance Pre-Authorization & Coverage Verification Enquiry
+router.post(
+  '/insurance/enquiry',
+  asyncHandler(async (req, res) => {
+    const {
+      name,
+      email,
+      phone = '',
+      insurer_name = '',
+      policy_number = '',
+      treatment_type = '',
+      estimated_date = '',
+      message = '',
+    } = req.body || {};
+
+    if (!name?.trim() || !email?.trim()) {
+      return res.status(400).json({ error: 'Name and email are required to submit an insurance enquiry.' });
+    }
+
+    const subject = `Insurance Pre-Auth Enquiry: ${insurer_name || 'General Query'} (Policy #${policy_number || 'N/A'})`;
+    const fullMessage = [
+      `Patient Name: ${name}`,
+      `Insurer / TPA: ${insurer_name || 'Unspecified'}`,
+      `Policy / Member ID: ${policy_number || 'Unspecified'}`,
+      `Proposed Treatment / Department: ${treatment_type || 'General Inpatient'}`,
+      `Estimated Admission Date: ${estimated_date || 'Not specified'}`,
+      `Patient Query / Details: ${message || 'Request for cashless pre-authorization guidance and network verification.'}`,
+    ].join('\n');
+
+    const result = await query(
+      `INSERT INTO contact_inquiries (name, email, phone, department, subject, message)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [
+        name.trim(),
+        email.trim(),
+        phone.trim(),
+        'Insurance & TPA Liaison Desk',
+        subject.trim(),
+        fullMessage.trim(),
+      ]
+    );
+
+    res.status(201).json({
+      data: {
+        message:
+          'Your insurance enquiry has been received by the Healix Insurance Liaison Desk. An officer will review your insurer credentials and respond within 2 to 4 business hours. Please note: Empanelment does not imply automatic coverage; all final claims are subject to your insurer’s pre-authorization approval.',
+        inquiry_id: result.rows[0].id,
+      },
+    });
+  })
+);
+
 // 42. FAQs
 router.get('/faqs', (req, res) => {
   const { category, search } = req.query;

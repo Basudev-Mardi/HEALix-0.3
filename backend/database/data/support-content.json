@@ -694,106 +694,216 @@
       "partner_type": "Insurance",
       "coverage_types": [
         "Inpatient",
-        "Outpatient",
-        "Maternity"
+        "Day Care Surgeries",
+        "Maternity",
+        "Emergency"
       ],
       "cashless": true,
-      "helpline": "+1 (800) 262-2583"
+      "helpline": "+1 (800) 262-2583",
+      "turnaround_time": "45–60 mins",
+      "preauth_required": true,
+      "notes": "Requires 48-hr advance pre-authorization for elective procedures. Subject to individual policy network tier and co-pay clauses."
     },
     {
-      "name": "Aetna",
+      "name": "Aetna Health",
       "partner_type": "Insurance",
       "coverage_types": [
         "Inpatient",
-        "Outpatient",
-        "Diagnostics"
+        "Cardiology",
+        "Oncology",
+        "Outpatient Diagnostics"
       ],
       "cashless": true,
-      "helpline": "+1 (800) 872-3862"
+      "helpline": "+1 (800) 872-3862",
+      "turnaround_time": "45–60 mins",
+      "preauth_required": true,
+      "notes": "Direct electronic settlement via Availity. Pre-existing conditions subject to verified policy waiting period."
     },
     {
       "name": "Cigna Healthcare",
       "partner_type": "Insurance",
       "coverage_types": [
         "Inpatient",
-        "Outpatient",
-        "International"
+        "Surgical Care",
+        "Transplants",
+        "Global Mobility"
       ],
       "cashless": true,
-      "helpline": "+1 (800) 997-1654"
+      "helpline": "+1 (800) 997-1654",
+      "turnaround_time": "60 mins",
+      "preauth_required": true,
+      "notes": "Empaneled for domestic and global health plans. High-cost implants require prior medical necessity documentation."
     },
     {
       "name": "UnitedHealthcare",
       "partner_type": "Insurance",
       "coverage_types": [
         "Inpatient",
-        "Outpatient",
-        "Diagnostics"
+        "Critical Care",
+        "Pediatrics",
+        "Rehabilitation"
       ],
       "cashless": true,
-      "helpline": "+1 (866) 414-1959"
+      "helpline": "+1 (866) 414-1959",
+      "turnaround_time": "45 mins",
+      "preauth_required": true,
+      "notes": "Optum network integration. Digital member ID and photo verification required at admission desk."
     },
     {
       "name": "Humana",
       "partner_type": "Insurance",
       "coverage_types": [
         "Inpatient",
-        "Medicare Advantage"
+        "Medicare Advantage",
+        "Geriatric Care"
       ],
       "cashless": true,
-      "helpline": "+1 (800) 457-4708"
+      "helpline": "+1 (800) 457-4708",
+      "turnaround_time": "60 mins",
+      "preauth_required": true,
+      "notes": "Focused on senior wellness and Medicare Advantage plans. Subject to plan formulary for inpatient non-generic medications."
     },
     {
-      "name": "Medicare",
-      "partner_type": "Government",
+      "name": "Anthem Blue Cross",
+      "partner_type": "Insurance",
       "coverage_types": [
         "Inpatient",
-        "Outpatient",
-        "Preventive"
+        "Emergency",
+        "Orthopedics",
+        "Neurology"
       ],
       "cashless": true,
-      "helpline": "+1 (800) 633-4227"
+      "helpline": "+1 (800) 331-1476",
+      "turnaround_time": "45–60 mins",
+      "preauth_required": true,
+      "notes": "Direct pre-auth available for all commercial and HMO tiers with primary care referral."
+    },
+    {
+      "name": "MedAssist TPA Services",
+      "partner_type": "TPA",
+      "coverage_types": [
+        "Corporate Group Plans",
+        "Pre-Auth Processing",
+        "Escalations"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 555-0142",
+      "turnaround_time": "30–45 mins",
+      "preauth_required": true,
+      "notes": "Dedicated desk at Healix. Processes corporate cashless cards across 40+ employer benefit schemes."
+    },
+    {
+      "name": "CareBridge Claims Administrators",
+      "partner_type": "TPA",
+      "coverage_types": [
+        "Third-Party Adjudication",
+        "TPA Cashless Settlement",
+        "Audit"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 555-0177",
+      "turnaround_time": "45 mins",
+      "preauth_required": true,
+      "notes": "Paperless online portal pre-auth. Emergency authorization desk active 24/7/365."
+    },
+    {
+      "name": "Paramount Healthcare TPA",
+      "partner_type": "TPA",
+      "coverage_types": [
+        "Cashless Hospitalization",
+        "Discharge Audits",
+        "Retail Policies"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 555-0188",
+      "turnaround_time": "45–60 mins",
+      "preauth_required": true,
+      "notes": "Direct liaison officer on ground. Final discharge bill clearance takes approximately 2 hours post-medical release."
+    },
+    {
+      "name": "MediBuddy Health TPA",
+      "partner_type": "TPA",
+      "coverage_types": [
+        "App-Based Pre-Auth",
+        "Corporate Cashless",
+        "E-Card Verification"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 555-0199",
+      "turnaround_time": "30 mins",
+      "preauth_required": true,
+      "notes": "Mobile QR pre-authorization accepted at registration. Instant provisional credit limit sanctioning."
+    },
+    {
+      "name": "Medicare (Part A & B)",
+      "partner_type": "Government",
+      "coverage_types": [
+        "Inpatient Hospital Stay",
+        "Hospice",
+        "Preventive Screenings"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 633-4227",
+      "turnaround_time": "Direct Billing",
+      "preauth_required": false,
+      "notes": "Covers qualified inpatient stays following Part A deductible. Supplement/Medigap plans billed automatically."
     },
     {
       "name": "MassHealth (Medicaid)",
       "partner_type": "Government",
       "coverage_types": [
         "Inpatient",
-        "Outpatient",
+        "Maternal Health",
+        "Emergency",
         "Pediatrics"
       ],
       "cashless": true,
-      "helpline": "+1 (800) 841-2900"
+      "helpline": "+1 (800) 841-2900",
+      "turnaround_time": "Direct Billing",
+      "preauth_required": true,
+      "notes": "Requires active enrollment and valid MassHealth card. Non-emergent admissions require PCP prior referral."
     },
     {
-      "name": "MedAssist TPA Services",
-      "partner_type": "TPA",
+      "name": "Veterans Affairs (VA) Community Care",
+      "partner_type": "Government",
       "coverage_types": [
-        "Claims Processing",
-        "Pre-Authorization"
+        "Specialty Surgery",
+        "Inpatient Care",
+        "Rehabilitation"
       ],
       "cashless": true,
-      "helpline": "+1 (800) 555-0142"
-    },
-    {
-      "name": "CareBridge Claims Administrators",
-      "partner_type": "TPA",
-      "coverage_types": [
-        "Claims Processing",
-        "Corporate Plans"
-      ],
-      "cashless": true,
-      "helpline": "+1 (800) 555-0177"
+      "helpline": "+1 (877) 881-7618",
+      "turnaround_time": "Prior VA Referral",
+      "preauth_required": true,
+      "notes": "Services covered when authorized in advance by the VA Community Care Network (CCN Region 1)."
     },
     {
       "name": "Global Health Assist",
       "partner_type": "International",
       "coverage_types": [
         "International Patients",
-        "Medical Travel"
+        "Medical Travel",
+        "Diplomatic Corps"
       ],
       "cashless": false,
-      "helpline": "+1 (800) 555-0193"
+      "helpline": "+1 (800) 555-0193",
+      "turnaround_time": "Reimbursement Support",
+      "preauth_required": true,
+      "notes": "Comprehensive reimbursement dossiers, certified itemized invoices, and English medical summaries provided."
+    },
+    {
+      "name": "Allianz Worldwide Care",
+      "partner_type": "International",
+      "coverage_types": [
+        "Expatriate Health",
+        "Global Evacuation",
+        "Inpatient Surgery"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 555-0165",
+      "turnaround_time": "2–4 hours",
+      "preauth_required": true,
+      "notes": "Direct guarantee of payment (GOP) accepted. GOP letter must be received before non-emergent surgical admission."
     }
   ],
   "faqs": [
@@ -856,6 +966,36 @@
       "category": "Emergency",
       "question": "Do I need an appointment for emergency care?",
       "answer": "No. Emergency patients are seen based on clinical urgency. Online booking should never be used for urgent or life-threatening symptoms."
+    },
+    {
+      "category": "Billing & Insurance",
+      "question": "Is every treatment or policy automatically covered under cashless hospitalization?",
+      "answer": "No. Empanelment of an insurance provider or TPA does not guarantee automatic coverage for all treatments. Cashless approval is strictly contingent on your policy terms, specific waiting periods (e.g. pre-existing diseases, maternity), disease sub-limits, room category restrictions, co-payments, and pre-authorization approval from your insurer. The hospital does not decide or guarantee claim approval."
+    },
+    {
+      "category": "Billing & Insurance",
+      "question": "What are non-medical / non-payable expenses that insurance does not cover?",
+      "answer": "Non-medical consumables (e.g. patient hygiene kits, disposable gloves, gowns, administrative registration charges, thermometry covers, companion meals, and extra telephone/convenience charges) are standard statutory exclusions across most policies. These must be settled out-of-pocket by the patient at the time of discharge."
+    },
+    {
+      "category": "Billing & Insurance",
+      "question": "What is the difference between Cashless Hospitalization and Reimbursement claims?",
+      "answer": "Under cashless hospitalization with empaneled network insurers, the hospital bills medical expenses directly to the insurer up to sanctioned authorization limits. For non-empaneled insurers or when pre-authorization is withheld, patients settle bills directly with the hospital upon discharge and subsequently submit certified hospital bills, discharge summaries, and diagnostic reports to their insurer for reimbursement within 30 days."
+    },
+    {
+      "category": "Billing & Insurance",
+      "question": "What happens if my pre-authorization request is denied or delayed by the TPA?",
+      "answer": "A denial of cashless pre-authorization by your insurer does not mean denial of medical care. It simply indicates that the insurer requires additional documentation or that the condition falls under a policy exclusion for cashless settlement. In such cases, patients can proceed by paying hospital charges directly and filing a reimbursement claim with full medical dossiers provided by our Insurance Liaison Desk."
+    },
+    {
+      "category": "Billing & Insurance",
+      "question": "How does room rent capping impact my overall claim approval?",
+      "answer": "Many policies limit room eligibility (e.g. 1% of sum insured per day or a specific room tier like Twin Sharing). Opting for a higher category room (like Single Deluxe or Suite) can trigger proportionate deductions across doctor consultations, surgical charges, and nursing fees. Our insurance counselors will explain your room entitlement during pre-admission to avoid unexpected co-payments."
+    },
+    {
+      "category": "Billing & Insurance",
+      "question": "Can I claim expenses for medicines and tests done before and after hospital admission?",
+      "answer": "Most comprehensive policies cover Pre-Hospitalization expenses (usually 30 days prior) and Post-Hospitalization expenses (usually 60–90 days following discharge). Keep all original bills, prescriptions, and payment receipts to file as a supplementary reimbursement claim with your insurer or TPA."
     }
   ],
   "jobs": [

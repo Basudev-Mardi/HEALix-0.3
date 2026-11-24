@@ -264,6 +264,9 @@ export interface InsurancePartner {
   coverage_types: string[];
   cashless: boolean;
   helpline: string;
+  turnaround_time?: string;
+  preauth_required?: boolean;
+  notes?: string;
 }
 
 export interface GeneralFaq {
