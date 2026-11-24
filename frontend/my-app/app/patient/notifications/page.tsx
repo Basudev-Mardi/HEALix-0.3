@@ -62,17 +62,15 @@ export default function NotificationsPage() {
           {items.map((n) => (
             <article
               key={n.id}
-              className={`rounded-2xl border p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4 ${
-                n.is_read
-                  ? 'border-[#e6e4dd] bg-white'
-                  : 'border-[#cde4de] bg-[#edf5f4]/40'
-              }`}
+              className={`rounded-2xl border p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4 ${n.is_read
+                ? 'border-[#e6e4dd] bg-white'
+                : 'border-[#cde4de] bg-[#edf5f4]/40'
+                }`}
             >
               <div className="flex items-start gap-4">
                 <span
-                  className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${
-                    n.is_read ? 'bg-[#f2f1ec] text-[#768086]' : 'bg-[#0f5c5c] text-white'
-                  }`}
+                  className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${n.is_read ? 'bg-[#f2f1ec] text-[#768086]' : 'bg-[#0f5c5c] text-white'
+                    }`}
                 >
                   <Bell className="h-4 w-4" />
                 </span>

@@ -90,9 +90,8 @@ export default function LabReportsPage() {
                       <p className="text-[11px] font-mono text-[#0f5c5c] mt-0.5">{report.status}</p>
                     </div>
                     <ChevronDown
-                      className={`h-4 w-4 text-[#768086] transition-transform ${
-                        isOpen ? 'rotate-180' : ''
-                      }`}
+                      className={`h-4 w-4 text-[#768086] transition-transform ${isOpen ? 'rotate-180' : ''
+                        }`}
                     />
                   </div>
                 </button>

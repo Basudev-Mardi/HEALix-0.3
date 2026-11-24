@@ -41,11 +41,10 @@ export default function MedicalHistoryPage() {
             key={t}
             type="button"
             onClick={() => setSelectedType(t)}
-            className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${
-              selectedType === t
-                ? 'bg-[#14181a] text-white'
-                : 'bg-white border border-[#e6e4dd] text-[#4b555b] hover:border-[#14181a]'
-            }`}
+            className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${selectedType === t
+              ? 'bg-[#14181a] text-white'
+              : 'bg-white border border-[#e6e4dd] text-[#4b555b] hover:border-[#14181a]'
+              }`}
           >
             {t}
           </button>
