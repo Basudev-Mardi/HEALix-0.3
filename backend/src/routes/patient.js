@@ -447,7 +447,7 @@ router.get(
   })
 );
 
-// 31. Laboratory Reports
+// 31. Laboratory Reports (Strictly Gated to Authorized Finalized / Released Reports)
 router.get(
   '/lab-reports',
   asyncHandler(async (req, res) => {
@@ -456,7 +456,7 @@ router.get(
               TO_CHAR(collected_date, 'YYYY-MM-DD') AS collected_date,
               ordered_by, status, summary, results_json
        FROM patient_lab_reports
-       WHERE patient_id = $1
+       WHERE patient_id = $1 AND status IN ('Finalized', 'Released')
        ORDER BY collected_date DESC`,
       [req.patient.id]
     );
@@ -464,7 +464,35 @@ router.get(
   })
 );
 
-// 32. Radiology Reports
+// Single Laboratory Report Details (with Release Verification)
+router.get(
+  '/lab-reports/:id',
+  asyncHandler(async (req, res) => {
+    const param = String(req.params.id || '').trim();
+    const isNumeric = /^\d+$/.test(param);
+
+    const result = await query(
+      `SELECT id, report_code, test_name, category,
+              TO_CHAR(collected_date, 'YYYY-MM-DD') AS collected_date,
+              ordered_by, status, summary, results_json
+       FROM patient_lab_reports
+       WHERE patient_id = $1
+         AND status IN ('Finalized', 'Released')
+         AND (${isNumeric ? 'id = $2::int' : 'UPPER(report_code) = UPPER($2)'})`,
+      [req.patient.id, param]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Laboratory report not found or not yet approved/released for patient access.',
+      });
+    }
+
+    res.json({ data: result.rows[0] });
+  })
+);
+
+// 32. Radiology Reports (Strictly Gated to Authorized Finalized / Released Reports)
 router.get(
   '/radiology-reports',
   asyncHandler(async (req, res) => {
@@ -473,11 +501,142 @@ router.get(
               TO_CHAR(study_date, 'YYYY-MM-DD') AS study_date,
               radiologist_name, status, findings, impression
        FROM patient_radiology_reports
-       WHERE patient_id = $1
+       WHERE patient_id = $1 AND status IN ('Finalized', 'Released')
        ORDER BY study_date DESC`,
       [req.patient.id]
     );
     res.json({ data: result.rows });
+  })
+);
+
+// Single Radiology Report Details (with Release Verification)
+router.get(
+  '/radiology-reports/:id',
+  asyncHandler(async (req, res) => {
+    const param = String(req.params.id || '').trim();
+    const isNumeric = /^\d+$/.test(param);
+
+    const result = await query(
+      `SELECT id, study_code, modality, study_name,
+              TO_CHAR(study_date, 'YYYY-MM-DD') AS study_date,
+              radiologist_name, status, findings, impression
+       FROM patient_radiology_reports
+       WHERE patient_id = $1
+         AND status IN ('Finalized', 'Released')
+         AND (${isNumeric ? 'id = $2::int' : 'UPPER(study_code) = UPPER($2)'})`,
+      [req.patient.id, param]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Radiology report not found or not yet approved/released for patient access.',
+      });
+    }
+
+    res.json({ data: result.rows[0] });
+  })
+);
+
+// Workflow E: Hospital Staff Medical Report Release Simulation
+// Simulates staff recording, clinical verification by authorized clinician, patient release, and notification dispatch
+router.post(
+  '/clinical/simulate-release',
+  asyncHandler(async (req, res) => {
+    const { report_type = 'lab', test_name, category, summary, ordered_by } = req.body || {};
+    const patientId = req.patient.id;
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      if (report_type === 'lab') {
+        const reportCode = `LAB-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+        const testTitle = test_name || 'High-Sensitivity Cardiac Troponin I & hs-CRP';
+        const docName = ordered_by || 'Dr. Aris Thorne, MD';
+        const sampleResults = [
+          { parameter: 'hs-Troponin I', value: '< 2.5', unit: 'ng/L', reference: '< 14.0', flag: 'Normal' },
+          { parameter: 'hs-CRP (Inflammation)', value: '0.8', unit: 'mg/L', reference: '< 1.0', flag: 'Optimal' },
+          { parameter: 'BNP (Cardiac Neurohormone)', value: '38', unit: 'pg/mL', reference: '< 100', flag: 'Normal' },
+        ];
+
+        // Step 1, 2, 3: Staff records, verifies, and marks eligible for patient release
+        const insertRes = await client.query(
+          `INSERT INTO patient_lab_reports (
+            patient_id, report_code, test_name, category, collected_date, ordered_by, status, summary, results_json
+          ) VALUES ($1, $2, $3, $4, CURRENT_DATE, $5, 'Released', $6, $7)
+          RETURNING *`,
+          [
+            patientId,
+            reportCode,
+            testTitle,
+            category || 'Cardiology Biomarkers',
+            docName,
+            summary || 'Cardiac biomarkers demonstrate zero acute myocardial ischemia or systemic vascular inflammation.',
+            JSON.stringify(sampleResults),
+          ]
+        );
+
+        // Step 4: Patient receives notification
+        await client.query(
+          `INSERT INTO portal_notifications (patient_id, category, title, message, action_href, is_read)
+           VALUES ($1, 'Lab Report', $2, $3, $4, FALSE)`,
+          [
+            patientId,
+            `Lab Report Released — ${reportCode}`,
+            `Your ${testTitle} has been verified by ${docName} and released for your access.`,
+            '/patient/lab-reports',
+          ]
+        );
+
+        await client.query('COMMIT');
+        return res.status(201).json({
+          data: insertRes.rows[0],
+          message: 'Report verified and released. Patient notification dispatched.',
+        });
+      } else {
+        const studyCode = `RAD-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+        const studyTitle = test_name || 'High-Resolution Chest CT (HRCT)';
+        const radName = ordered_by || 'Dr. Elena Rostova, MD';
+
+        const insertRes = await client.query(
+          `INSERT INTO patient_radiology_reports (
+            patient_id, study_code, modality, study_name, study_date, radiologist_name, status, findings, impression
+          ) VALUES ($1, $2, $3, $4, CURRENT_DATE, $5, 'Released', $6, $7)
+          RETURNING *`,
+          [
+            patientId,
+            studyCode,
+            'High-Resolution CT',
+            studyTitle,
+            radName,
+            'Clear lung parenchymal architecture without interstitial fibrosis, ground-glass opacities, or pleural effusion. Tracheobronchial tree is patent.',
+            'Normal high-resolution chest computed tomography. Zero active pulmonary pathology identified.',
+          ]
+        );
+
+        await client.query(
+          `INSERT INTO portal_notifications (patient_id, category, title, message, action_href, is_read)
+           VALUES ($1, 'Radiology', $2, $3, $4, FALSE)`,
+          [
+            patientId,
+            `Radiology Study Released — ${studyCode}`,
+            `Your ${studyTitle} has been reviewed by ${radName} and released to your patient records.`,
+            '/patient/radiology-reports',
+          ]
+        );
+
+        await client.query('COMMIT');
+        return res.status(201).json({
+          data: insertRes.rows[0],
+          message: 'Radiology study verified and released. Patient notification dispatched.',
+        });
+      }
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   })
 );
 
