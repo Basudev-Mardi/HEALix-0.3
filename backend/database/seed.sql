@@ -1,6 +1,8 @@
 -- Healix Hospital Management System — Seed Data (Idempotent)
 
 TRUNCATE TABLE
+  appointment_faqs,
+  appointments,
   emergency_protocols,
   visiting_hours,
   gallery_items,
@@ -718,4 +720,93 @@ INSERT INTO emergency_protocols (
   'Rapid breathing, bluish lips, persistent high fever with lethargy, severe allergic reactions (anaphylaxis), or febrile seizures in children.',
   ARRAY['Administer prescribed epinephrine auto-injector immediately for anaphylaxis', 'Keep child calm and upright if experiencing breathing difficulty', 'Bring immunization records and current weight if available', 'Dedicated Pediatric Emergency bays are staffed 24/7'],
   4
+);
+
+
+INSERT INTO appointments (
+  booking_reference, doctor_slug, department_slug, appointment_date, time_slot,
+  visit_type, patient_name, patient_email, patient_phone, patient_dob,
+  patient_gender, reason_for_visit, insurance_provider, status
+) VALUES
+(
+  'HX-2026-1042',
+  'dr-aris-thorne',
+  'cardiology',
+  CURRENT_DATE + INTERVAL '3 days',
+  '10:00 AM',
+  'In-Person Consultation',
+  'Clara Vance',
+  'clara.vance@example.com',
+  '+1 (617) 555-0148',
+  '1984-06-14',
+  'Female',
+  'Annual preventive cardiovascular consultation and lipid review.',
+  'Blue Cross Blue Shield',
+  'Confirmed'
+),
+(
+  'HX-2026-1088',
+  'dr-mei-ling-chen',
+  'neurology',
+  CURRENT_DATE + INTERVAL '5 days',
+  '02:00 PM',
+  'Video Tele-Consult',
+  'Julian Mercer',
+  'julian.mercer@example.com',
+  '+1 (617) 555-0192',
+  '1979-11-02',
+  'Male',
+  'Follow-up review of 3T MRI findings and migraine management plan.',
+  'Aetna Preferred',
+  'Confirmed'
+);
+
+INSERT INTO appointment_faqs (category, question, answer, display_order) VALUES
+(
+  'Booking Process',
+  'How far in advance can I schedule an outpatient consultation?',
+  'Outpatient appointments can be booked up to 60 days in advance online. For urgent clinical concerns within 24 hours, call our triage desk at +1 (800) 432-5490.',
+  1
+),
+(
+  'Booking Process',
+  'Do I need a referral before booking a specialist?',
+  'Most Healix specialists accept direct self-referrals. However, certain HMO insurance plans may require a primary care referral for coverage—check with your insurer prior to your visit.',
+  2
+),
+(
+  'Preparation & Arrival',
+  'What should I bring to my first appointment?',
+  'Please arrive 15 minutes early with a valid government photo ID, your insurance card, a current list of medications, and any relevant imaging CDs or recent lab results.',
+  3
+),
+(
+  'Preparation & Arrival',
+  'Are video tele-consultations available for follow-up visits?',
+  'Yes. Select "Video Tele-Consult" during the slot booking step. A secure encrypted link is sent to your email 30 minutes before your scheduled consultation.',
+  4
+),
+(
+  'Changes & Cancellations',
+  'How do I track or cancel an existing appointment?',
+  'Use the Track Appointment page with your booking reference (e.g., HX-2026-1042) or registered email address to view live status or cancel at no charge up to 4 hours before your slot.',
+  5
+),
+(
+  'Changes & Cancellations',
+  'Is there a fee for rescheduling or cancelling?',
+  'Cancellations made at least 4 hours prior to your appointment carry no fee. You may immediately select a new date and time after cancelling.',
+  6
+),
+(
+  'Billing & Insurance',
+  'Which insurance providers are accepted at Healix?',
+  'Healix Medical Center participates with most major national and regional insurers including Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare, and Medicare.',
+  7
+),
+(
+  'Billing & Insurance',
+  'When is the consultation fee collected?',
+  'Standard co-pays or self-pay consultation fees are settled at check-in on the day of your visit. No upfront payment is required to reserve your slot online.',
+  8
 );

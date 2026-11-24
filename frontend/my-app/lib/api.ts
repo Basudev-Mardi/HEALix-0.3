@@ -1,5 +1,6 @@
 import { cacheLife } from 'next/cache';
 import {
+  FALLBACK_APPOINTMENT_FAQS,
   FALLBACK_DEPARTMENTS,
   FALLBACK_DOCTORS,
   FALLBACK_EMERGENCY_PROTOCOLS,
@@ -11,6 +12,7 @@ import {
   FALLBACK_VISITING_HOURS,
 } from './fallback-data';
 import type {
+  AppointmentFaq,
   Department,
   Doctor,
   EmergencyProtocol,
@@ -198,4 +200,12 @@ export async function getEmergencyInfo(): Promise<{
     department: FALLBACK_DEPARTMENTS.find((d) => d.slug === 'emergency-critical-care') ?? null,
     protocols: FALLBACK_EMERGENCY_PROTOCOLS,
   };
+}
+
+
+export async function getAppointmentFaqs(): Promise<AppointmentFaq[]> {
+  'use cache';
+  cacheLife('minutes');
+  const live = await fetchApi<AppointmentFaq[]>('/appointments/faqs');
+  return live ?? FALLBACK_APPOINTMENT_FAQS;
 }

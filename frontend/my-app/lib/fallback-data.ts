@@ -1,4 +1,5 @@
 import type {
+  AppointmentFaq,
   Department,
   Doctor,
   EmergencyProtocol,
@@ -1084,5 +1085,65 @@ export const FALLBACK_EMERGENCY_PROTOCOLS: EmergencyProtocol[] = [
       'Bring immunization records and current weight if available',
       'Dedicated Pediatric Emergency bays are staffed 24/7',
     ],
+  },
+];
+
+
+export const FALLBACK_APPOINTMENT_FAQS: AppointmentFaq[] = [
+  {
+    id: 1,
+    category: 'Booking Process',
+    question: 'How far in advance can I schedule an outpatient consultation?',
+    answer:
+      'Outpatient appointments can be booked up to 60 days in advance online. For urgent clinical concerns within 24 hours, call our triage desk at +1 (800) 432-5490.',
+  },
+  {
+    id: 2,
+    category: 'Booking Process',
+    question: 'Do I need a referral before booking a specialist?',
+    answer:
+      'Most Healix specialists accept direct self-referrals. However, certain HMO insurance plans may require a primary care referral for coverage—check with your insurer prior to your visit.',
+  },
+  {
+    id: 3,
+    category: 'Preparation & Arrival',
+    question: 'What should I bring to my first appointment?',
+    answer:
+      'Please arrive 15 minutes early with a valid government photo ID, your insurance card, a current list of medications, and any relevant imaging CDs or recent lab results.',
+  },
+  {
+    id: 4,
+    category: 'Preparation & Arrival',
+    question: 'Are video tele-consultations available for follow-up visits?',
+    answer:
+      'Yes. Select "Video Tele-Consult" during the slot booking step. A secure encrypted link is sent to your email 30 minutes before your scheduled consultation.',
+  },
+  {
+    id: 5,
+    category: 'Changes & Cancellations',
+    question: 'How do I track or cancel an existing appointment?',
+    answer:
+      'Use the Track Appointment page with your booking reference (e.g., HX-2026-1042) or registered email address to view live status or cancel at no charge up to 4 hours before your slot.',
+  },
+  {
+    id: 6,
+    category: 'Changes & Cancellations',
+    question: 'Is there a fee for rescheduling or cancelling?',
+    answer:
+      'Cancellations made at least 4 hours prior to your appointment carry no fee. You may immediately select a new date and time after cancelling.',
+  },
+  {
+    id: 7,
+    category: 'Billing & Insurance',
+    question: 'Which insurance providers are accepted at Healix?',
+    answer:
+      'Healix Medical Center participates with most major national and regional insurers including Blue Cross Blue Shield, Aetna, Cigna, UnitedHealthcare, and Medicare.',
+  },
+  {
+    id: 8,
+    category: 'Billing & Insurance',
+    question: 'When is the consultation fee collected?',
+    answer:
+      'Standard co-pays or self-pay consultation fees are settled at check-in on the day of your visit. No upfront payment is required to reserve your slot online.',
   },
 ];

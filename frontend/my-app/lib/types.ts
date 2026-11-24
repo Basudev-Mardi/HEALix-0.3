@@ -152,3 +152,43 @@ export interface HomeData {
   featuredServices: MedicalService[];
   infrastructureHighlights: InfrastructureItem[];
 }
+
+export interface TimeSlot {
+  time: string;
+  available: boolean;
+}
+
+export interface AppointmentRecord {
+  id?: number;
+  booking_reference: string;
+  doctor_slug: string;
+  department_slug: string;
+  appointment_date: string;
+  time_slot: string;
+  visit_type: string;
+  patient_name: string;
+  patient_email: string;
+  patient_phone: string;
+  patient_dob?: string | null;
+  patient_gender?: string | null;
+  reason_for_visit?: string | null;
+  insurance_provider?: string | null;
+  status: string;
+  created_at?: string;
+  doctor_name?: string;
+  doctor_specialty?: string;
+  doctor_qualification?: string;
+  consultation_fee?: string;
+  avatar_initials?: string;
+  accent_tone?: string;
+  department_name?: string;
+  floor_location?: string;
+  phone_ext?: string;
+}
+
+export interface AppointmentFaq {
+  id: number;
+  category: string;
+  question: string;
+  answer: string;
+}

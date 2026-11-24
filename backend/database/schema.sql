@@ -137,6 +137,39 @@ CREATE TABLE IF NOT EXISTS emergency_protocols (
   display_order INTEGER NOT NULL DEFAULT 0
 );
 
+CREATE TABLE IF NOT EXISTS appointments (
+  id SERIAL PRIMARY KEY,
+  booking_reference TEXT UNIQUE NOT NULL,
+  doctor_slug TEXT NOT NULL REFERENCES doctors(slug) ON DELETE RESTRICT,
+  department_slug TEXT NOT NULL REFERENCES departments(slug) ON DELETE RESTRICT,
+  appointment_date DATE NOT NULL,
+  time_slot TEXT NOT NULL,
+  visit_type TEXT NOT NULL DEFAULT 'In-Person Consultation',
+  patient_name TEXT NOT NULL,
+  patient_email TEXT NOT NULL,
+  patient_phone TEXT NOT NULL,
+  patient_dob DATE,
+  patient_gender TEXT,
+  reason_for_visit TEXT,
+  insurance_provider TEXT,
+  status TEXT NOT NULL DEFAULT 'Confirmed',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS appointment_faqs (
+  id SERIAL PRIMARY KEY,
+  category TEXT NOT NULL,
+  question TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  display_order INTEGER NOT NULL DEFAULT 0
+);
+
 CREATE INDEX IF NOT EXISTS idx_doctors_department ON doctors(department_slug);
 CREATE INDEX IF NOT EXISTS idx_services_department ON services(department_slug);
 CREATE INDEX IF NOT EXISTS idx_gallery_category ON gallery_items(category);
+CREATE INDEX IF NOT EXISTS idx_appointments_reference ON appointments(booking_reference);
+CREATE INDEX IF NOT EXISTS idx_appointments_email ON appointments(LOWER(patient_email));
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_active_slot
+  ON appointments(doctor_slug, appointment_date, time_slot)
+  WHERE status <> 'Cancelled';

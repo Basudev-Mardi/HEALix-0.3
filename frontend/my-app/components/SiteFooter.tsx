@@ -112,9 +112,24 @@ export default function SiteFooter() {
           {/* Patient Information */}
           <div className="lg:col-span-3 space-y-3">
             <h3 className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#768086]">
-              Visitor &amp; Emergency
+              Appointments &amp; Visitor
             </h3>
             <ul className="space-y-2.5 text-sm text-[#4b555b]">
+              <li>
+                <Link href="/appointments/doctors" className="hover:text-[#14181a] transition-colors">
+                  Find a Doctor &amp; Book
+                </Link>
+              </li>
+              <li>
+                <Link href="/appointments/track" className="hover:text-[#14181a] transition-colors">
+                  Track Appointment
+                </Link>
+              </li>
+              <li>
+                <Link href="/appointments/help" className="hover:text-[#14181a] transition-colors">
+                  Appointment Help &amp; FAQs
+                </Link>
+              </li>
               <li>
                 <Link href="/visiting-hours" className="hover:text-[#14181a] transition-colors">
                   Hospital Timings &amp; Visiting Hours

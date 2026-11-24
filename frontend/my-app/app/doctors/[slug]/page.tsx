@@ -129,6 +129,12 @@ export default async function DoctorProfilePage({
                 Call Desk: <span className="font-mono text-[#14181a]">+1 (800) 432-5490</span>
                 {doctor.department_phone ? ` (${doctor.department_phone})` : ''}
               </div>
+              <Link
+                href={`/appointments/book?doctor=${doctor.slug}`}
+                className="block text-center w-full mt-2 px-5 py-3 rounded-full bg-[#14181a] text-white text-xs font-medium hover:bg-[#0f5c5c] transition-colors"
+              >
+                Book Consultation with {doctor.name.split(' ').slice(0, 2).join(' ')}
+              </Link>
             </div>
           </div>
         </div>

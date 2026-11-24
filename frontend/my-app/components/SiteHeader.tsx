@@ -11,6 +11,13 @@ const ABOUT_LINKS = [
   { href: '/about/infrastructure', label: 'Infrastructure', desc: 'Operating suites, ICUs & campus design' },
 ];
 
+const APPOINTMENT_LINKS = [
+  { href: '/appointments/doctors', label: 'Find a Doctor', desc: 'Search specialists & book online' },
+  { href: '/appointments/book', label: 'Book Appointment', desc: 'Pick date, format & live time slot' },
+  { href: '/appointments/track', label: 'Track Appointment', desc: 'Check status or cancel a booking' },
+  { href: '/appointments/help', label: 'Appointment Help', desc: 'Booking FAQs, insurance & arrival guide' },
+];
+
 const NAV_LINKS = [
   { href: '/departments', label: 'Departments' },
   { href: '/doctors', label: 'Doctors' },
@@ -24,8 +31,10 @@ export default function SiteHeader() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [apptOpen, setApptOpen] = useState(false);
 
   const isAboutActive = pathname.startsWith('/about');
+  const isApptActive = pathname.startsWith('/appointments');
 
   return (
     <header className="sticky top-0 z-50 bg-[#faf9f6]/90 backdrop-blur-md border-b border-[#e6e4dd]">
@@ -138,15 +147,59 @@ export default function SiteHeader() {
               </Link>
             );
           })}
+
+          {/* Appointments Dropdown */}
+          <div
+            className="relative"
+            onMouseEnter={() => setApptOpen(true)}
+            onMouseLeave={() => setApptOpen(false)}
+          >
+            <button
+              type="button"
+              onClick={() => setApptOpen((prev) => !prev)}
+              className={`inline-flex items-center gap-1 py-2 transition-colors ${
+                isApptActive
+                  ? 'text-[#0f5c5c] font-medium'
+                  : 'text-[#4b555b] hover:text-[#14181a]'
+              }`}
+            >
+              Appointments
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition-transform ${apptOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {apptOpen && (
+              <div className="absolute right-0 top-full pt-2 w-72">
+                <div className="bg-white border border-[#e6e4dd] rounded-xl shadow-lg p-2">
+                  {APPOINTMENT_LINKS.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setApptOpen(false)}
+                      className={`block px-3.5 py-2.5 rounded-lg transition-colors ${
+                        pathname === item.href
+                          ? 'bg-[#edf5f4] text-[#0f5c5c]'
+                          : 'hover:bg-[#faf9f6] text-[#14181a]'
+                      }`}
+                    >
+                      <span className="block text-sm font-medium">{item.label}</span>
+                      <span className="block text-xs text-[#768086] mt-0.5">{item.desc}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* Right Actions */}
         <div className="hidden lg:flex items-center gap-3">
           <Link
-            href="/doctors"
+            href="/appointments/book"
             className="text-xs font-medium px-4 py-2.5 rounded-full border border-[#d5d2c9] text-[#14181a] hover:border-[#14181a] transition-colors"
           >
-            Find a Doctor
+            Book Appointment
           </Link>
           <Link
             href="/emergency"
@@ -207,13 +260,31 @@ export default function SiteHeader() {
             ))}
           </div>
 
+          <div className="border-t border-[#e6e4dd] pt-4 space-y-1">
+            <p className="text-[11px] font-mono uppercase tracking-widest text-[#768086] pb-1">
+              Appointments
+            </p>
+            {APPOINTMENT_LINKS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`block py-2 text-sm ${
+                  pathname === item.href ? 'text-[#0f5c5c] font-medium' : 'text-[#14181a]'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
           <div className="border-t border-[#e6e4dd] pt-4 flex flex-col gap-2.5">
             <Link
-              href="/doctors"
+              href="/appointments/book"
               onClick={() => setMobileOpen(false)}
               className="text-center text-sm font-medium px-4 py-2.5 rounded-full border border-[#d5d2c9] text-[#14181a]"
             >
-              Find a Doctor
+              Book Appointment
             </Link>
             <Link
               href="/emergency"

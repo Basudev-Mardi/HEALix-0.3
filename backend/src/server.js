@@ -10,6 +10,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import publicRoutes from './routes/public.js';
+import appointmentRoutes from './routes/appointments.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
@@ -19,7 +20,7 @@ app.use(helmet());
 app.use(
   cors({
     origin: CORS_ORIGIN.split(',').map((origin) => origin.trim()),
-    methods: ['GET', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
   })
 );
 app.use(express.json());
@@ -33,6 +34,7 @@ app.get('/', (_req, res) => {
   });
 });
 
+app.use('/api/appointments', appointmentRoutes);
 app.use('/api', publicRoutes);
 
 app.use((_req, res) => {
