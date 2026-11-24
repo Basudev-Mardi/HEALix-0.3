@@ -1,8 +1,18 @@
-﻿'use client';
+'use client';
 
 import { useMemo, useState } from 'react';
+import Image from 'next/image';
 import { MapPin } from 'lucide-react';
 import type { GalleryItem } from '@/lib/types';
+
+const GALLERY_IMAGE_MAP: Record<string, string> = {
+  '1': '/images/hospital-exterior.png',
+  '2': '/images/robotic-operating-suite.png',
+  '3': '/images/inpatient-recovery-suite.png',
+  '4': '/images/mri-imaging-suite.png',
+  '5': '/images/emergency-trauma-bay.png',
+  '6': '/images/doctor-consultation.png',
+};
 
 const PALETTE_STYLES: Record<string, { bg: string; accent: string; line: string }> = {
   stone: {
@@ -73,36 +83,39 @@ export default function GalleryGrid({ items }: { items: GalleryItem[] }) {
           const palette = PALETTE_STYLES[item.accent_palette] || PALETTE_STYLES.stone;
           const spanClass =
             item.aspect_ratio === 'wide' && selected === 'All' ? 'md:col-span-2' : '';
+          const realImage = GALLERY_IMAGE_MAP[String(item.id)] || GALLERY_IMAGE_MAP[String((idx % 6) + 1)];
 
           return (
             <article
               key={item.id}
-              className={`card-minimal rounded-2xl overflow-hidden flex flex-col ${spanClass}`}
+              className={`card-minimal rounded-2xl overflow-hidden flex flex-col group ${spanClass}`}
             >
-              {/* Minimalist Architectural Visual Plate */}
-              <div
-                className={`relative h-60 sm:h-64 bg-gradient-to-br ${palette.bg} p-6 flex flex-col justify-between overflow-hidden`}
-              >
-                {/* Subtle architectural grid lines */}
-                <div className="absolute inset-0 opacity-35 pointer-events-none">
-                  <div className={`absolute top-8 right-8 h-32 w-32 rounded-full border ${palette.line}`} />
-                  <div className={`absolute -bottom-10 -left-10 h-44 w-44 rounded-full border ${palette.line}`} />
-                  <div className={`absolute inset-x-6 top-1/2 border-t ${palette.line}`} />
-                </div>
+              {/* Real Medical Image Header */}
+              <div className="relative h-64 sm:h-72 overflow-hidden bg-zinc-900">
+                <Image
+                  src={realImage}
+                  alt={item.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
 
-                <div className="relative flex items-center justify-between">
-                  <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm text-[11px] font-mono uppercase tracking-wider text-[#242A28]">
-                    {item.category}
-                  </span>
-                  <span className={`font-mono text-xs ${palette.accent}`}>
-                    0{idx + 1}
-                  </span>
-                </div>
+                <div className="absolute inset-0 p-6 flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-xs text-[11px] font-mono uppercase tracking-wider text-[#242A28]">
+                      {item.category}
+                    </span>
+                    <span className="font-mono text-xs text-white/90 bg-black/40 px-2 py-0.5 rounded-md backdrop-blur-xs">
+                      0{idx + 1}
+                    </span>
+                  </div>
 
-                <div className="relative">
-                  <p className={`font-editorial text-2xl sm:text-3xl leading-tight ${palette.accent}`}>
-                    {item.title}
-                  </p>
+                  <div>
+                    <h3 className="font-editorial text-2xl sm:text-3xl leading-tight text-white drop-shadow-xs">
+                      {item.title}
+                    </h3>
+                  </div>
                 </div>
               </div>
 

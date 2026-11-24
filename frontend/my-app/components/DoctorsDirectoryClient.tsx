@@ -1,6 +1,7 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import {
   ArrowRight,
@@ -119,6 +120,34 @@ export default function DoctorsDirectoryClient({
 
   return (
     <div className="space-y-8">
+      {/* Real Clinical Consultation Showcase Banner */}
+      <div className="rounded-2xl border border-[#E5E8E6] bg-white overflow-hidden shadow-xs grid grid-cols-1 md:grid-cols-12 items-center">
+        <div className="md:col-span-5 relative h-56 md:h-full min-h-[220px]">
+          <Image
+            src="/images/doctor-consultation.png"
+            alt="Doctor Specialist Consultation at Healix Medical Center"
+            fill
+            sizes="(max-width: 768px) 100vw, 40vw"
+            className="object-cover"
+          />
+        </div>
+        <div className="md:col-span-7 p-6 sm:p-8 space-y-3">
+          <span className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#174C40] bg-[#E6EFE9] px-2.5 py-1 rounded-full font-semibold">
+            Empathetic Specialist Care
+          </span>
+          <h2 className="font-heading text-xl sm:text-2xl font-bold text-[#242A28]">
+            Evidence-Based Care, Calming Consultations
+          </h2>
+          <p className="text-xs sm:text-sm leading-relaxed text-[#4A5350]">
+            Our attending physicians spend dedicated time answering your clinical questions, explaining diagnostics with clarity, and tailoring unhurried treatment pathways.
+          </p>
+          <div className="pt-1 flex items-center gap-4 text-xs font-mono text-[#77817C]">
+            <span>&bull; Unhurried 30-min consultations</span>
+            <span>&bull; Second opinions welcome</span>
+          </div>
+        </div>
+      </div>
+
       {/* Search Bar & Primary Department Pills */}
       <div className="space-y-5 pb-6 border-b border-[#E5E8E6]">
         <div className="flex flex-col md:flex-row items-center gap-4">

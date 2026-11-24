@@ -1,5 +1,6 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   AlertTriangle,
   Ambulance,
@@ -32,9 +33,38 @@ export default async function EmergencyPage() {
         accent="emergency"
       />
 
-      {/* Immediate Hotlines Band */}
+      {/* Immediate Hotlines Band with Real Emergency Bay Photograph */}
       <section className="border-b border-[#f0d5d5] bg-[#fef2f2]">
-        <div className="container-editorial py-10">
+        <div className="container-editorial py-10 space-y-8">
+          <div className="relative h-64 sm:h-80 rounded-2xl overflow-hidden border border-[#f0d5d5] shadow-xs">
+            <Image
+              src="/images/emergency-trauma-bay.png"
+              alt="Healix Level 1 Emergency & Trauma Resuscitation Bay"
+              fill
+              priority
+              sizes="(max-width: 1240px) 100vw, 1240px"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            <div className="absolute bottom-6 left-6 right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 text-white">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-600 text-xs font-mono font-semibold uppercase tracking-wider mb-2">
+                  <Siren className="h-3.5 w-3.5 animate-pulse" />
+                  Level I Adult &amp; Pediatric Trauma Center
+                </span>
+                <h2 className="font-heading text-xl sm:text-2xl font-bold">
+                  Immediate 24/7 Resuscitation &amp; Acute Stroke / Cardiac Intervention
+                </h2>
+                <p className="text-xs sm:text-sm text-zinc-200 mt-1 max-w-2xl">
+                  Equipped with dedicated trauma surgical suites, point-of-care CT diagnostics, and direct rooftop helipad transfer.
+                </p>
+              </div>
+              <div className="shrink-0 font-mono text-xs bg-black/60 backdrop-blur-xs px-3 py-2 rounded-xl border border-white/20">
+                Direct Triage Ramp: North Gate 01
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="rounded-2xl bg-white border border-[#f0d5d5] p-6 space-y-2">
               <p className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[#b91c1c]">

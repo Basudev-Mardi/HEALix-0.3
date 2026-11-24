@@ -1,6 +1,7 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import {
   ArrowRight,
@@ -44,6 +45,34 @@ export default function FacilitiesClient({ facilities }: { facilities: Facility[
 
   return (
     <div className="space-y-10">
+      {/* Real Diagnostic Imaging & 3T MRI Suite Spotlight */}
+      <div className="relative rounded-2xl overflow-hidden border border-[#E5E8E6] bg-zinc-900 h-64 sm:h-80 group">
+        <Image
+          src="/images/mri-imaging-suite.png"
+          alt="Healix Diagnostic Imaging & 3T MRI Suite"
+          fill
+          sizes="(max-width: 1240px) 100vw, 1240px"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+        <div className="absolute bottom-6 left-6 right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4 text-white">
+          <div>
+            <span className="text-[11px] font-mono uppercase tracking-wider bg-[#174C40]/90 px-3 py-1 rounded-full border border-emerald-400/30">
+              Advanced Diagnostic Technology
+            </span>
+            <h2 className="font-heading text-xl sm:text-2xl font-bold mt-2">
+              Diagnostic Imaging &amp; 3T Wide-Bore MRI Suites
+            </h2>
+            <p className="text-xs sm:text-sm text-zinc-200 mt-1 max-w-2xl">
+              High-resolution neuro, cardiac, and musculoskeletal scans with ambient noise cancellation and calming acoustic architecture.
+            </p>
+          </div>
+          <div className="shrink-0 font-mono text-xs bg-black/60 backdrop-blur-xs px-3 py-2 rounded-xl border border-white/20">
+            Radiology Wing &bull; Level B1
+          </div>
+        </div>
+      </div>
+
       {/* Distinction & Separation Callout */}
       <div className="rounded-2xl border border-[#174C40]/20 bg-[#E6EFE9]/60 p-6 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="flex items-start gap-3.5">

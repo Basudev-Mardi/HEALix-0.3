@@ -1,5 +1,6 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Check } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { getInfrastructure } from '@/lib/api';
@@ -26,6 +27,53 @@ export default async function InfrastructurePage() {
       />
 
       <section className="container-editorial py-16 lg:py-20">
+        {/* Real Infrastructure Highlight Showcase */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          <div className="relative h-72 sm:h-80 rounded-2xl overflow-hidden border border-[#E5E8E6] group">
+            <Image
+              src="/images/robotic-operating-suite.png"
+              alt="Healix Hybrid Robotic Operating Suite"
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+            <div className="absolute bottom-6 left-6 right-6 text-white">
+              <span className="text-[11px] font-mono uppercase tracking-wider bg-[#174C40]/90 px-2.5 py-1 rounded-full border border-emerald-400/30">
+                Surgical Precision
+              </span>
+              <h3 className="font-heading text-xl font-semibold mt-2 text-white">
+                Hybrid Robotic Operating Suites
+              </h3>
+              <p className="text-xs text-zinc-200 mt-1">
+                Equipped with sub-millimeter surgical robotics and intraoperative 3D imaging navigation.
+              </p>
+            </div>
+          </div>
+
+          <div className="relative h-72 sm:h-80 rounded-2xl overflow-hidden border border-[#E5E8E6] group">
+            <Image
+              src="/images/inpatient-recovery-suite.png"
+              alt="Healix Private Inpatient Recovery Suite"
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+            <div className="absolute bottom-6 left-6 right-6 text-white">
+              <span className="text-[11px] font-mono uppercase tracking-wider bg-[#287A64]/90 px-2.5 py-1 rounded-full border border-teal-300/30">
+                Acoustic Rest &amp; Healing
+              </span>
+              <h3 className="font-heading text-xl font-semibold mt-2 text-white">
+                Private Inpatient Recovery Suites
+              </h3>
+              <p className="text-xs text-zinc-200 mt-1">
+                Acoustically insulated private suites flooded with natural light overlooking courtyard healing gardens.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {items.map((item) => (
             <article

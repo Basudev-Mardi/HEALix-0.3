@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -123,6 +124,28 @@ export default async function HomePage() {
             {/* Hero Visual Hospital Card & Live Access */}
             <div className="lg:col-span-5">
               <div className="rounded-3xl border border-[#E5E8E6] bg-white p-7 shadow-sm space-y-6 relative overflow-hidden">
+                {/* Real Hospital Exterior Photograph */}
+                <div className="relative h-48 sm:h-52 -mx-7 -mt-7 mb-4 overflow-hidden rounded-t-3xl border-b border-[#E5E8E6]">
+                  <Image
+                    src="/images/hospital-exterior.png"
+                    alt="Healix Medical Center Quaternary Hospital Exterior & Campus"
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 40vw"
+                    className="object-cover transition-transform duration-500 hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white">
+                    <span className="text-[11px] font-mono uppercase tracking-wider bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full border border-white/20">
+                      Metro Medical District, Boston
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-600/90 text-white text-[11px] font-medium backdrop-blur-xs">
+                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                      Open 24/7
+                    </span>
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between border-b border-[#E5E8E6] pb-4">
                   <div>
                     <span className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#77817C] block">
@@ -130,10 +153,6 @@ export default async function HomePage() {
                     </span>
                     <h3 className="font-editorial text-xl text-[#242A28]">Healix Medical Center</h3>
                   </div>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-medium">
-                    <span className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" />
-                    Open 24/7
-                  </span>
                 </div>
 
                 <div className="space-y-4">
