@@ -20,7 +20,11 @@ import { patientApiFetch, saveAuthSession, type PatientUser } from '@/lib/patien
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get('next') || '/patient/dashboard';
+  const nextParam = searchParams.get('next');
+  const nextPath =
+    nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')
+      ? nextParam
+      : '/patient/dashboard';
 
   // Login Mode: 'password' vs 'otp'
   const [loginMode, setLoginMode] = useState<'password' | 'otp'>('password');
@@ -59,7 +63,7 @@ function LoginForm() {
     }
 
     saveAuthSession(res.data.token, res.data.patient);
-    router.push(nextPath.startsWith('/patient') ? nextPath : '/patient/dashboard');
+    router.push(nextPath);
   }
 
   // Handle Send OTP
@@ -112,7 +116,7 @@ function LoginForm() {
     }
 
     saveAuthSession(res.data.token, res.data.patient);
-    router.push(nextPath.startsWith('/patient') ? nextPath : '/patient/dashboard');
+    router.push(nextPath);
   }
 
   function fillDemo() {

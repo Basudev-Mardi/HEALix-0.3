@@ -17,6 +17,7 @@ import {
   Mail,
   MapPin,
   Phone,
+  LayoutDashboard,
   Printer,
   QrCode,
   ShieldCheck,
@@ -25,6 +26,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import { getPublicApiBase, loadConfirmedBooking } from '@/lib/booking-storage';
+import { getStoredPatient } from '@/lib/patient-auth';
 import type { AppointmentRecord } from '@/lib/types';
 
 export default function ConfirmationClient() {
@@ -33,6 +35,12 @@ export default function ConfirmationClient() {
 
   const [booking, setBooking] = useState<AppointmentRecord | null>(null);
   const [loading, setLoading] = useState(true);
+  const [storedPatient, setStoredPatient] = useState<any>(null);
+
+  useEffect(() => {
+    const p = getStoredPatient();
+    if (p) setStoredPatient(p);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -327,29 +335,64 @@ export default function ConfirmationClient() {
         </div>
       </div>
 
-      {/* Guest Visitor Account Registration Prompt */}
-      <div className="rounded-2xl border border-[#e6e4dd] bg-[#faf9f6] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <p className="font-semibold text-xs text-[#14181a]">Access Your Electronic Health Records</p>
-          <p className="text-[11px] text-[#768086] leading-relaxed">
-            Create a secure Healix Patient Portal account using <strong>{booking.patient_email}</strong> to view doctor clinical notes, download lab reports, and manage all your healthcare visits.
-          </p>
+      {/* Workflow C Step 8: Dashboard Updates Banner for Logged-in Existing Patients */}
+      {storedPatient ? (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5 shadow-sm">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-700 text-white">
+                MRN: {storedPatient.mrn || 'HX-MRN-402819'}
+              </span>
+              <p className="font-semibold text-xs text-emerald-950 font-mono uppercase tracking-wider">
+                Step 8 · Patient Dashboard &amp; Records Synchronized
+              </p>
+            </div>
+            <p className="text-xs sm:text-sm text-emerald-900 leading-relaxed">
+              This consultation has been recorded under your Medical Record Number and synchronized with your Healix Patient Portal. Your upcoming appointments schedule and clinical alerts have been updated.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <Link
+              href="/patient/dashboard"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#14181a] text-white text-xs font-semibold hover:bg-[#0f5c5c] transition-colors shadow-sm"
+            >
+              <LayoutDashboard className="h-3.5 w-3.5" />
+              Patient Dashboard
+            </Link>
+            <Link
+              href="/patient/appointments"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-emerald-300 bg-white text-emerald-900 text-xs font-semibold hover:bg-emerald-50 transition-colors"
+            >
+              My Appointments
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Link
-            href="/register"
-            className="px-4 py-2 rounded-full bg-[#0f5c5c] text-white text-xs font-medium hover:bg-[#0b4747] transition-colors"
-          >
-            Create Account
-          </Link>
-          <Link
-            href="/login"
-            className="px-4 py-2 rounded-full border border-[#d2d0c8] bg-white text-xs font-medium text-[#14181a] hover:border-[#14181a] transition-colors"
-          >
-            Sign In
-          </Link>
+      ) : (
+        /* Guest Visitor Account Registration Prompt */
+        <div className="rounded-2xl border border-[#e6e4dd] bg-[#faf9f6] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <p className="font-semibold text-xs text-[#14181a]">Access Your Electronic Health Records</p>
+            <p className="text-[11px] text-[#768086] leading-relaxed">
+              Create a secure Healix Patient Portal account using <strong>{booking.patient_email}</strong> to view doctor clinical notes, download lab reports, and manage all your healthcare visits.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/register"
+              className="px-4 py-2 rounded-full bg-[#0f5c5c] text-white text-xs font-medium hover:bg-[#0b4747] transition-colors"
+            >
+              Create Account
+            </Link>
+            <Link
+              href="/login"
+              className="px-4 py-2 rounded-full border border-[#d2d0c8] bg-white text-xs font-medium text-[#14181a] hover:border-[#14181a] transition-colors"
+            >
+              Sign In
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

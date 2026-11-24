@@ -115,6 +115,7 @@ router.post(
       patient_phone,
       patient_dob = null,
       patient_gender = null,
+      patient_mrn = '',
       reason_for_visit = '',
       insurance_provider = '',
     } = req.body || {};
@@ -219,12 +220,44 @@ router.post(
 
       const appt = insertRes.rows[0];
 
-      // 5. Record initial booking in audit log
+      // 5. Check if patient has a registered account and create dashboard notification
+      const patientAcctRes = await client.query(
+        `SELECT id, mrn, full_name, email FROM patient_accounts
+         WHERE LOWER(email) = LOWER($1) OR (mrn = $2 AND mrn IS NOT NULL)
+         LIMIT 1`,
+        [patient_email.trim(), patient_mrn.trim()]
+      );
+
+      let linkedMrn = null;
+      if (patientAcctRes.rows.length > 0) {
+        const acct = patientAcctRes.rows[0];
+        linkedMrn = acct.mrn;
+        await client.query(
+          `INSERT INTO portal_notifications (
+            patient_id, category, title, message, action_href, is_read
+          ) VALUES ($1, 'Appointment', $2, $3, $4, FALSE)`,
+          [
+            acct.id,
+            `Appointment Confirmed — ${doctor.name}`,
+            `Your ${visit_type} with ${doctor.name} on ${appointment_date} at ${time_slot} is confirmed. Booking Reference: ${reference}.`,
+            '/patient/appointments',
+          ]
+        );
+      }
+
+      // 6. Record initial booking in audit log
       await client.query(
         `INSERT INTO appointment_audit_logs (
           appointment_id, booking_reference, previous_status, new_status, changed_by, reason
-        ) VALUES ($1, $2, NULL, 'Confirmed', $3, 'Initial appointment booking confirmed')`,
-        [appt.id, reference, patient_name.trim()]
+        ) VALUES ($1, $2, NULL, 'Confirmed', $3, $4)`,
+        [
+          appt.id,
+          reference,
+          patient_name.trim() + (linkedMrn ? ` (${linkedMrn})` : ''),
+          linkedMrn
+            ? `Initial appointment booking confirmed by registered patient (${linkedMrn})`
+            : 'Initial appointment booking confirmed',
+        ]
       );
 
       await client.query('COMMIT');
@@ -238,6 +271,7 @@ router.post(
           consultation_fee: doctor.consultation_fee,
           department_name: doctor.department_name,
           floor_location: doctor.floor_location,
+          patient_mrn: linkedMrn,
         },
       });
     } catch (err) {
