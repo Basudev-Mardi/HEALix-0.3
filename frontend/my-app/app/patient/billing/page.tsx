@@ -4,6 +4,11 @@ import { useEffect, useState } from 'react';
 import { CheckCircle2, CreditCard, Loader2 } from 'lucide-react';
 import { patientApiFetch, type BillingItem } from '@/lib/patient-auth';
 
+function formatAmount(val: unknown): string {
+  const num = typeof val === 'number' ? val : parseFloat(String(val ?? 0));
+  return isNaN(num) ? '0.00' : num.toFixed(2);
+}
+
 export default function BillingHistoryPage() {
   const [invoices, setInvoices] = useState<BillingItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,8 +40,8 @@ export default function BillingHistoryPage() {
   }
 
   const totalDue = invoices
-    .filter((i) => i.status !== 'Paid')
-    .reduce((sum, i) => sum + i.patient_responsibility, 0);
+    .filter((i) => String(i.status).toLowerCase() !== 'paid')
+    .reduce((sum, i) => sum + (Number(i.patient_responsibility) || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -51,7 +56,7 @@ export default function BillingHistoryPage() {
         </div>
         <div className="rounded-xl border border-[#e6e4dd] bg-white px-5 py-3 text-right">
           <p className="text-[11px] font-mono uppercase text-[#768086]">Balance Due</p>
-          <p className="font-editorial text-2xl text-[#14181a]">${totalDue.toFixed(2)}</p>
+          <p className="font-editorial text-2xl text-[#14181a]">${formatAmount(totalDue)}</p>
         </div>
       </div>
 
@@ -66,7 +71,7 @@ export default function BillingHistoryPage() {
       ) : (
         <div className="space-y-4">
           {invoices.map((inv) => {
-            const isPaid = inv.status === 'Paid';
+            const isPaid = String(inv.status).toLowerCase() === 'paid';
             return (
               <article
                 key={inv.id}
@@ -84,9 +89,8 @@ export default function BillingHistoryPage() {
                   </div>
 
                   <span
-                    className={`px-3.5 py-1 rounded-full text-xs font-mono ${
-                      isPaid ? 'bg-[#edf5f4] text-[#0f5c5c]' : 'bg-[#fef2f2] text-[#b91c1c]'
-                    }`}
+                    className={`px-3.5 py-1 rounded-full text-xs font-mono ${isPaid ? 'bg-[#edf5f4] text-[#0f5c5c]' : 'bg-[#fef2f2] text-[#b91c1c]'
+                      }`}
                   >
                     {inv.status}
                   </span>
@@ -95,18 +99,18 @@ export default function BillingHistoryPage() {
                 <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[#e6e4dd] text-sm">
                   <div>
                     <p className="text-xs text-[#768086]">Total Billed</p>
-                    <p className="font-mono text-[#14181a]">${inv.amount_total.toFixed(2)}</p>
+                    <p className="font-mono text-[#14181a]">${formatAmount(inv.amount_total)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-[#768086]">Insurance Covered</p>
                     <p className="font-mono text-[#0f5c5c]">
-                      -${inv.insurance_covered.toFixed(2)}
+                      -${formatAmount(inv.insurance_covered)}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-[#768086]">Your Responsibility</p>
                     <p className="font-mono font-semibold text-[#14181a]">
-                      ${inv.patient_responsibility.toFixed(2)}
+                      ${formatAmount(inv.patient_responsibility)}
                     </p>
                   </div>
                 </div>
@@ -115,7 +119,7 @@ export default function BillingHistoryPage() {
                   {isPaid ? (
                     <span className="inline-flex items-center gap-1.5 text-[#0f5c5c]">
                       <CheckCircle2 className="h-4 w-4" />
-                      Paid via {inv.payment_method}
+                      Paid via {inv.payment_method || 'Online Portal'}
                     </span>
                   ) : (
                     <>
@@ -131,7 +135,7 @@ export default function BillingHistoryPage() {
                         ) : (
                           <CreditCard className="h-3.5 w-3.5" />
                         )}
-                        Pay ${inv.patient_responsibility.toFixed(2)}
+                        Pay ${formatAmount(inv.patient_responsibility)}
                       </button>
                     </>
                   )}

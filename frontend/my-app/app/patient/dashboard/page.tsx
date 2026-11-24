@@ -111,7 +111,7 @@ export default function PatientDashboardPage() {
         <Link href="/patient/billing" className="card-minimal rounded-2xl p-5 space-y-2">
           <CreditCard className="h-4 w-4 text-[#0f5c5c]" />
           <p className="font-editorial text-3xl text-[#14181a]">
-            ${data.stats.balance_due.toFixed(2)}
+            ${Number(data.stats.balance_due || 0).toFixed(2)}
           </p>
           <p className="text-xs text-[#768086]">Current Balance</p>
         </Link>
