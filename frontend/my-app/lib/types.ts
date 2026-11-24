@@ -230,6 +230,13 @@ export interface PackageTestGroup {
   items: string[];
 }
 
+export interface PackageEligibility {
+  age_range: string;
+  gender_target: string;
+  recommended_for: string[];
+  contraindications: string[];
+}
+
 export interface HealthPackage {
   slug: string;
   name: string;
@@ -246,6 +253,8 @@ export interface HealthPackage {
   duration: string;
   recommended_frequency: string;
   is_popular?: boolean;
+  eligibility: PackageEligibility;
+  terms_and_conditions: string[];
   otherPackages?: HealthPackage[];
 }
 

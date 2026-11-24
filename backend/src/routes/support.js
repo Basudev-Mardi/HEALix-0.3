@@ -104,6 +104,57 @@ router.get('/packages/:slug', (req, res) => {
   res.json({ data: { ...pkg, otherPackages } });
 });
 
+// Package Booking & Coordinator Enquiry Submission
+router.post(
+  '/packages/enquiry',
+  asyncHandler(async (req, res) => {
+    const {
+      name,
+      email,
+      phone = '',
+      package_slug = '',
+      package_name = '',
+      preferred_date = '',
+      questions = '',
+    } = req.body || {};
+
+    if (!name?.trim() || !email?.trim()) {
+      return res.status(400).json({ error: 'Full name and email are required to submit an enquiry.' });
+    }
+
+    const subject = `Package Enquiry: ${package_name || package_slug || 'Preventive Screening'}`;
+    const message = [
+      `Package: ${package_name || package_slug}`,
+      preferred_date ? `Preferred Date: ${preferred_date}` : null,
+      questions ? `Questions / Clinical Notes: ${questions}` : null,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const result = await query(
+      `INSERT INTO contact_inquiries (name, email, phone, department, subject, message)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [
+        name.trim(),
+        email.trim(),
+        phone.trim(),
+        'Preventive Healthcare',
+        subject.trim(),
+        message.trim() || 'Request for preventive health package scheduling guidance.',
+      ]
+    );
+
+    res.status(201).json({
+      data: {
+        message:
+          'Your package enquiry has been received. A Healix Preventive Healthcare Coordinator will reach out within 2 hours.',
+        inquiry_id: result.rows[0].id,
+      },
+    });
+  })
+);
+
 // 40. Insurance & TPA Partners
 router.get('/insurance', (_req, res) => {
   res.json({ data: content.insurancePartners || [] });

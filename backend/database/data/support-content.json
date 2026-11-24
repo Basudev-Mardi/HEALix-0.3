@@ -10,7 +10,11 @@
       "author_doctor_slug": "dr-aris-thorne",
       "published_date": "2026-11-10",
       "read_minutes": 7,
-      "tags": ["Cholesterol", "Prevention", "Lipid Panel"],
+      "tags": [
+        "Cholesterol",
+        "Prevention",
+        "Lipid Panel"
+      ],
       "key_takeaways": [
         "ApoB counts every atherogenic particle and is often a better risk marker than LDL alone.",
         "Lipoprotein(a) is largely genetic — most adults only need it measured once.",
@@ -51,7 +55,11 @@
       "author_doctor_slug": "dr-mei-ling-chen",
       "published_date": "2026-10-28",
       "read_minutes": 5,
-      "tags": ["Stroke", "Emergency", "BE-FAST"],
+      "tags": [
+        "Stroke",
+        "Emergency",
+        "BE-FAST"
+      ],
       "key_takeaways": [
         "Use BE-FAST: Balance, Eyes, Face, Arms, Speech, Time.",
         "Note the time symptoms started — it guides treatment decisions.",
@@ -91,7 +99,11 @@
       "author_doctor_slug": "dr-marcus-sterling",
       "published_date": "2026-10-14",
       "read_minutes": 6,
-      "tags": ["Joint Replacement", "Surgery", "Rehabilitation"],
+      "tags": [
+        "Joint Replacement",
+        "Surgery",
+        "Rehabilitation"
+      ],
       "key_takeaways": [
         "Strengthening exercises before surgery shorten recovery time.",
         "Prepare your home with clear walkways and a raised seat.",
@@ -130,7 +142,11 @@
       "author_doctor_slug": "dr-priya-natarajan",
       "published_date": "2026-09-30",
       "read_minutes": 8,
-      "tags": ["Screening", "Prevention", "Cancer"],
+      "tags": [
+        "Screening",
+        "Prevention",
+        "Cancer"
+      ],
       "key_takeaways": [
         "Screening schedules depend on age, sex, and family history.",
         "Colorectal screening commonly begins at 45 for average-risk adults.",
@@ -169,7 +185,11 @@
       "author_doctor_slug": "dr-hannah-lindqvist",
       "published_date": "2026-09-12",
       "read_minutes": 5,
-      "tags": ["Children", "Fever", "Parenting"],
+      "tags": [
+        "Children",
+        "Fever",
+        "Parenting"
+      ],
       "key_takeaways": [
         "Any fever in a baby under three months needs prompt medical review.",
         "Watch your child's behaviour and hydration, not only the thermometer.",
@@ -207,7 +227,11 @@
       "author_doctor_slug": "dr-claire-beaumont",
       "published_date": "2026-08-25",
       "read_minutes": 6,
-      "tags": ["Sleep", "Arrhythmia", "Lifestyle"],
+      "tags": [
+        "Sleep",
+        "Arrhythmia",
+        "Lifestyle"
+      ],
       "key_takeaways": [
         "Obstructive sleep apnoea is strongly associated with atrial fibrillation.",
         "Loud snoring with daytime fatigue warrants a sleep assessment.",
@@ -245,14 +269,55 @@
       "price": 149,
       "original_price": 199,
       "ideal_for": "Adults 18–39 seeking an annual baseline",
-      "short_description": "A focused annual check covering blood count, metabolic health, and a physician review.",
-      "overview": "Designed for young adults who want a clear picture of their current health. Results are reviewed in a same-day consultation with a general physician who explains findings and next steps.",
+      "short_description": "A focused annual check covering blood count, metabolic health, and a comprehensive physician review.",
+      "overview": "Designed for young adults who want an accurate, verified picture of their baseline health. Results are reviewed in a same-day consultation with a specialist physician who explains laboratory findings and personalized lifestyle next steps.",
       "tests": [
-        { "group": "Blood Tests", "items": ["Complete Blood Count (CBC)", "Fasting Blood Glucose", "Lipid Profile", "Liver Function Panel", "Kidney Function Panel"] },
-        { "group": "Assessments", "items": ["Blood Pressure & BMI", "Urine Routine Analysis", "Physician Consultation"] }
+        {
+          "group": "Hematology & Metabolic Panels",
+          "items": [
+            "Complete Blood Count (CBC) with 5-part Differential",
+            "Fasting Blood Glucose (FBG)",
+            "Complete Lipid Profile (Total, HDL, LDL, VLDL, Triglycerides)",
+            "Liver Function Panel (ALT, AST, ALP, Total Bilirubin, Albumin)",
+            "Kidney Function Panel (Serum Creatinine, Blood Urea Nitrogen, eGFR)"
+          ]
+        },
+        {
+          "group": "Clinical Assessments & Screening",
+          "items": [
+            "Vital Signs, Blood Pressure & BMI Body Composition",
+            "Automated Urine Routine & Microscopic Examination",
+            "Physical Examination & 1:1 Senior Physician Consultation",
+            "Digital Lifestyle Risk Assessment & Preventive Guidance"
+          ]
+        }
       ],
-      "preparation": ["Fast for 10–12 hours before your appointment (water is allowed).", "Bring a list of current medications.", "Wear comfortable clothing."],
-      "turnaround": "Same day",
+      "preparation": [
+        "Fast for 10–12 hours before your appointment (plain water is permitted and encouraged).",
+        "Avoid high-fat dinners or alcohol 24 hours prior to blood specimen collection.",
+        "Bring your current prescription medications or health supplements for physician review.",
+        "Wear comfortable loose-fitting clothing for physical and blood pressure assessments."
+      ],
+      "eligibility": {
+        "age_range": "18 to 65 years",
+        "gender_target": "All genders",
+        "recommended_for": [
+          "Adults without known chronic disease seeking an annual health baseline",
+          "Pre-employment or university health clearance",
+          "Early detection of silent dyslipidemia, anemia, or metabolic imbalances"
+        ],
+        "contraindications": [
+          "Acute fever, infectious illness, or active diarrhea (reschedule at least 7 days post-recovery for clinical accuracy)"
+        ]
+      },
+      "terms_and_conditions": [
+        "Appointments must be scheduled at least 24 hours in advance to guarantee laboratory readiness.",
+        "Package price includes all listed investigations, phlebotomy, and 1:1 physician consultation.",
+        "Rescheduling is permitted up to 4 hours before the appointment slot with no fee.",
+        "Individual diagnostic tests within the package cannot be substituted, exchanged, or refunded if unavailed.",
+        "Reports are released via the secure Healix patient portal within 8–12 hours of sample collection."
+      ],
+      "turnaround": "Same day (6–8 hours)",
       "duration": "2 hours",
       "recommended_frequency": "Annually",
       "is_popular": false
@@ -265,16 +330,72 @@
       "price": 549,
       "original_price": 690,
       "ideal_for": "Adults 40+ and busy professionals",
-      "short_description": "A comprehensive half-day assessment including cardiac, metabolic, and cancer-risk screening.",
-      "overview": "Our most popular programme brings together laboratory diagnostics, cardiac evaluation, imaging, and specialist consultations in a single coordinated morning, with a personalised health plan delivered at the end of your visit.",
+      "short_description": "A comprehensive half-day assessment including cardiac, metabolic, imaging, and cancer-risk screening.",
+      "overview": "Our flagship preventive programme brings together multi-organ laboratory diagnostics, cardiovascular stress evaluations, abdominal ultrasound, and specialist consultations into a single coordinated morning, culminating in a tailored health roadmap.",
       "tests": [
-        { "group": "Blood Tests", "items": ["CBC & ESR", "HbA1c & Fasting Glucose", "Advanced Lipid Panel with ApoB", "Thyroid Function (TSH, Free T4)", "Vitamin D & B12", "Liver & Kidney Panels"] },
-        { "group": "Cardiac", "items": ["12-Lead ECG", "Echocardiogram", "Treadmill Stress Test"] },
-        { "group": "Imaging", "items": ["Chest X-Ray", "Abdominal Ultrasound"] },
-        { "group": "Consultations", "items": ["Internal Medicine Review", "Nutrition Consultation"] }
+        {
+          "group": "Advanced Laboratory Panels",
+          "items": [
+            "CBC with ESR & Peripheral Blood Smear",
+            "Glycated Hemoglobin (HbA1c) & Fasting Plasma Glucose",
+            "Advanced Lipid Panel with Apolipoprotein B (ApoB) & Lp(a)",
+            "Comprehensive Thyroid Profile (Free T3, Free T4, Ultrasensitive TSH)",
+            "Micronutrient Status: 25-Hydroxy Vitamin D & Vitamin B12",
+            "Complete Liver & Kidney Functional Panels with Electrolytes",
+            "High-Sensitivity C-Reactive Protein (hs-CRP Cardiac Inflammatory Marker)"
+          ]
+        },
+        {
+          "group": "Cardiovascular Diagnostics",
+          "items": [
+            "Resting 12-Lead Electrocardiogram (ECG)",
+            "Transthoracic Echocardiogram (2D Echo with Doppler)",
+            "Computerized Treadmill Stress Test (TMT / Stress ECG)"
+          ]
+        },
+        {
+          "group": "Diagnostic Imaging",
+          "items": [
+            "Digital Chest Radiography (PA View)",
+            "High-Resolution Whole Abdomen & Pelvis Ultrasound"
+          ]
+        },
+        {
+          "group": "Specialist Consultations",
+          "items": [
+            "Internal Medicine Consultant Comprehensive Evaluation",
+            "Clinical Dietitian & Lifestyle Nutrition Consultation",
+            "Complimentary Executive Breakfast in the Healix Private Lounge"
+          ]
+        }
       ],
-      "preparation": ["Fast for 10–12 hours before arrival.", "Avoid caffeine on the morning of the test.", "Bring walking shoes for the stress test."],
-      "turnaround": "Same day (most results)",
+      "preparation": [
+        "Strict fasting for 10–12 hours prior to arrival (water only).",
+        "Do not consume coffee, tea, energy drinks, or tobacco on the morning of testing.",
+        "Bring comfortable running shoes and sportswear for the treadmill stress test.",
+        "Patients taking beta-blockers or cardiac drugs should consult their doctor on whether to hold doses."
+      ],
+      "eligibility": {
+        "age_range": "30+ years (recommended for ages 40–75)",
+        "gender_target": "All genders",
+        "recommended_for": [
+          "Corporate executives, business leaders, and adults facing high-stress occupational environments",
+          "Individuals with family history of early heart disease, stroke, or diabetes",
+          "Adults desiring a thorough multi-system annual medical baseline"
+        ],
+        "contraindications": [
+          "Pregnancy (chest X-ray and certain imaging procedures deferred or lead-shielded upon obstetric clearance)",
+          "Severe acute joint arthritis or inability to walk safely on a treadmill (stress echo substituted upon physician advice)"
+        ]
+      },
+      "terms_and_conditions": [
+        "Comprehensive package includes access to the Healix Executive Diagnostic Lounge with dedicated patient concierge.",
+        "All diagnostic parameters are processed on automated international CAP/NABL-accredited analyzers.",
+        "Free rescheduling is available up to 6 hours prior to your scheduled morning slot.",
+        "Complete digital medical portfolio and specialist sign-off uploaded to your portal within 24 hours.",
+        "In-person or telehealth follow-up review included within 14 days of package completion."
+      ],
+      "turnaround": "Same day (preliminary) / 24 hours (final signed portfolio)",
       "duration": "4–5 hours",
       "recommended_frequency": "Annually",
       "is_popular": true
@@ -285,40 +406,136 @@
       "tier": "Specialty",
       "category": "Cardiac",
       "price": 399,
-      "original_price": null,
+      "original_price": 520,
       "ideal_for": "Adults with family history or cardiac risk factors",
-      "short_description": "Targeted cardiovascular screening including coronary calcium scoring and cardiologist review.",
-      "overview": "A focused evaluation of your heart and blood vessels, combining imaging and biomarkers to estimate long-term cardiovascular risk and guide prevention.",
+      "short_description": "Targeted cardiovascular screening including coronary calcium scoring, echocardiography, and cardiologist review.",
+      "overview": "A focused, evidence-based evaluation of your heart, coronary vasculature, and systemic arterial health, combining advanced imaging with biochemical markers to detect subclinical atherosclerosis long before symptoms appear.",
       "tests": [
-        { "group": "Biomarkers", "items": ["Advanced Lipid Panel with ApoB & Lp(a)", "hs-CRP", "HbA1c"] },
-        { "group": "Cardiac Imaging", "items": ["Coronary Artery Calcium Score (CT)", "Echocardiogram", "12-Lead ECG"] },
-        { "group": "Consultation", "items": ["Cardiologist Review & Risk Plan"] }
+        {
+          "group": "Cardiovascular Biomarkers",
+          "items": [
+            "Advanced Lipid Panel with ApoB & Lipoprotein(a)",
+            "High-Sensitivity Cardiac C-Reactive Protein (hs-CRP)",
+            "Glycated Hemoglobin (HbA1c) & Fasting Insulin Resistance (HOMA-IR)",
+            "Serum Homocysteine & Uric Acid Cardiovascular Risk Markers"
+          ]
+        },
+        {
+          "group": "Non-Invasive Cardiac Imaging",
+          "items": [
+            "Ultra-Low-Dose CT Coronary Artery Calcium (CAC) Scoring",
+            "Color Doppler Echocardiography (Ejection Fraction & Valvular Assessment)",
+            "Standard Resting 12-Lead Electrocardiogram (ECG)",
+            "Carotid Intima-Media Thickness (CIMT) Arterial Wall Ultrasound"
+          ]
+        },
+        {
+          "group": "Physician Review",
+          "items": [
+            "Board-Certified Cardiologist Consultation & 10-Year ASCVD Risk Formulation",
+            "Personalized Heart-Health Medication & Preventive Strategy"
+          ]
+        }
       ],
-      "preparation": ["Fast for 10 hours.", "Avoid caffeine for 12 hours before testing."],
+      "preparation": [
+        "Fast for 10 hours prior to blood draw.",
+        "Avoid all caffeine, decaf coffee, energy drinks, and nicotine for 12 hours prior to CAC CT and ECG.",
+        "Wear comfortable clothing without metallic buttons or snaps on the chest area."
+      ],
+      "eligibility": {
+        "age_range": "35+ years (or 25+ with strong first-degree family history of premature heart attack)",
+        "gender_target": "All genders",
+        "recommended_for": [
+          "Individuals with hypertension, hypercholesterolemia, or history of smoking",
+          "Persons with family history of premature coronary artery disease or sudden cardiac events",
+          "Sedentary individuals preparing to initiate intensive athletic or marathon training"
+        ],
+        "contraindications": [
+          "Acute chest pain, pressure, or shortness of breath (mandates immediate Emergency Department triage, not outpatient screening)",
+          "Pregnancy is a contraindication for CT coronary calcium scoring"
+        ]
+      },
+      "terms_and_conditions": [
+        "CT Calcium scoring is performed on low-dose 128-slice CT equipment minimizing radiation exposure.",
+        "Cardiologist consultation is conducted personally by an attending specialist or above.",
+        "Emergency cancellation is permitted at any time; routine rescheduling requested 12 hours prior.",
+        "Package components are non-transferable and must be completed within a 30-day window from booking."
+      ],
       "turnaround": "24 hours",
       "duration": "3 hours",
-      "recommended_frequency": "Every 2–5 years based on risk",
+      "recommended_frequency": "Every 2–5 years based on calculated ASCVD score",
       "is_popular": true
     },
     {
       "slug": "womens-health-package",
-      "name": "Women's Health Package",
+      "name": "Women's Comprehensive Wellness",
       "tier": "Comprehensive",
       "category": "Women's Health",
       "price": 429,
       "original_price": 520,
-      "ideal_for": "Women 30+",
-      "short_description": "Age-appropriate screening including cervical, breast, bone, and hormonal health.",
-      "overview": "A thoughtfully sequenced package covering the screenings most relevant to women's long-term health, completed in a private, comfortable setting with female clinicians available on request.",
+      "ideal_for": "Women 18+ seeking focused gynecological, hormonal, and breast screening",
+      "short_description": "Age-tailored screening covering cervical cytology, digital breast imaging, bone density, and endocrine health.",
+      "overview": "A thoughtfully sequenced preventive package addressing the health milestones and vulnerabilities unique to women, conducted in a private, comfortable pavilion with female radiologists, sonographers, and gynecologists on request.",
       "tests": [
-        { "group": "Blood Tests", "items": ["CBC", "Thyroid Function", "Iron Studies & Ferritin", "Vitamin D", "Lipid Profile", "HbA1c"] },
-        { "group": "Screening", "items": ["Pap Smear & HPV Test", "Digital Mammography (40+)", "Breast Ultrasound", "Bone Density Scan (DEXA)"] },
-        { "group": "Consultation", "items": ["Gynecology Consultation"] }
+        {
+          "group": "Blood & Hormonal Profile",
+          "items": [
+            "Complete Blood Count (CBC) with Anemia Panel (Ferritin, Serum Iron, TIBC)",
+            "Comprehensive Thyroid Panel (TSH, FT4, Anti-TPO Antibodies)",
+            "Serum Calcium, Phosphorus & 25-OH Vitamin D3",
+            "Fasting Glucose, HbA1c & Fasting Lipid Profile"
+          ]
+        },
+        {
+          "group": "Gynecological & Breast Screening",
+          "items": [
+            "Liquid-Based ThinPrep Pap Smear & High-Risk HPV DNA Co-Testing",
+            "Digital Full-Field Mammography (recommended for women 40+ or clinically indicated)",
+            "High-Resolution Bilateral Breast Ultrasound Scan",
+            "Pelvic Ultrasound (Transabdominal / Transvaginal according to patient preference)"
+          ]
+        },
+        {
+          "group": "Bone & Body Composition",
+          "items": [
+            "Dual-Energy X-Ray Absorptiometry (DEXA) Bone Mineral Density Scan (Hip & Spine)"
+          ]
+        },
+        {
+          "group": "Clinical Consultations",
+          "items": [
+            "Senior Consultant Obstetrician & Gynecologist Consultation",
+            "Breast Self-Examination Guidance & Menopause/Reproductive Health Counseling"
+          ]
+        }
       ],
-      "preparation": ["Schedule outside your menstrual period for cervical screening.", "Avoid deodorant or powder on the day of mammography.", "Fast for 10 hours."],
-      "turnaround": "48 hours",
+      "preparation": [
+        "Schedule appointment 10 to 14 days after the first day of your last menstrual period for optimal Pap cytology.",
+        "Do not apply deodorants, perfumes, antiperspirants, or powders on the underarms or breasts on the morning of mammography.",
+        "Fast for 10 hours for metabolic laboratory tests (water permitted)."
+      ],
+      "eligibility": {
+        "age_range": "18+ years (mammography component tailored for women 40+, or younger with clinical indication)",
+        "gender_target": "Female",
+        "recommended_for": [
+          "Women seeking an annual gynecological and preventive health examination",
+          "Women experiencing hormonal fluctuations, irregular cycles, or peri-menopausal transitions",
+          "Adults with family history of breast, ovarian, or cervical cancer"
+        ],
+        "contraindications": [
+          "Active menstrual bleeding (Pap smear component must be deferred to post-menses window)",
+          "Pregnancy is a strict contraindication for Mammography and DEXA bone density scanning"
+        ]
+      },
+      "terms_and_conditions": [
+        "All gynecological and breast procedures are conducted with certified female chaperones and clinicians.",
+        "Cytopathology results are independently double-read by Senior Consultant Pathologists.",
+        "Free rescheduling up to 6 hours prior to the appointment.",
+        "Follow-up prescription or consultation within 7 days is included if abnormal cytology is identified."
+      ],
+      "turnaround": "48 hours (due to liquid-based cytology and HPV cell culture)",
       "duration": "3–4 hours",
-      "recommended_frequency": "Annually",
+      "recommended_frequency": "Annually (Mammography every 1–2 years per clinical guidelines)",
       "is_popular": false
     },
     {
@@ -328,46 +545,312 @@
       "category": "Healthy Ageing",
       "price": 479,
       "original_price": 580,
-      "ideal_for": "Adults 60+",
-      "short_description": "A holistic review of heart, bone, cognitive, and functional health for healthy ageing.",
-      "overview": "Focused on independence and quality of life, this assessment combines diagnostics with geriatric screening for memory, balance, and medication safety.",
+      "ideal_for": "Adults 60+ seeking healthy ageing, mobility, and cognitive longevity",
+      "short_description": "A holistic review of cardiovascular, bone, cognitive, functional, and sensory health for healthy ageing.",
+      "overview": "Focused on independence, mobility, and preservation of quality of life, this geriatric-led assessment combines gentle diagnostics with screenings for memory, gait stability, sensory acuity, and medication safety.",
       "tests": [
-        { "group": "Blood Tests", "items": ["CBC", "Kidney & Liver Function", "HbA1c", "Lipid Profile", "Vitamin D & B12", "Thyroid Function"] },
-        { "group": "Assessments", "items": ["ECG & Echocardiogram", "Bone Density Scan (DEXA)", "Hearing & Vision Screening", "Cognitive & Fall-Risk Assessment"] },
-        { "group": "Consultation", "items": ["Geriatric Medicine Review", "Medication Reconciliation"] }
+        {
+          "group": "Biochemical & Metabolic Screening",
+          "items": [
+            "CBC, Erythrocyte Sedimentation Rate (ESR), & Serum Electrolytes",
+            "High-Sensitivity Renal Panel (BUN, Creatinine, Cystatin-C, eGFR)",
+            "Liver Function Panel, Fasting Glucose & HbA1c",
+            "Vitamin D, Vitamin B12, Serum Calcium & Alkaline Phosphatase",
+            "Serum Uric Acid & Microalbumin/Creatinine Ratio"
+          ]
+        },
+        {
+          "group": "Cardiopulmonary & Bone Health",
+          "items": [
+            "Resting 12-Lead Electrocardiogram (ECG)",
+            "2D Echocardiogram for Left Ventricular Diastolic Function",
+            "DEXA Bone Mineral Densitometry (Hip & Spine Osteoporosis Evaluation)",
+            "Chest X-Ray (Low-dose digital)"
+          ]
+        },
+        {
+          "group": "Sensory & Geriatric Functional Assessments",
+          "items": [
+            "Digital Audiometry Hearing Screening",
+            "Visual Acuity & Tonometry (Glaucoma / Intraocular Pressure Screen)",
+            "Timed Up and Go (TUG) Gait & Fall-Risk Evaluation",
+            "Mini-Mental State Examination (MMSE) Cognitive Baseline"
+          ]
+        },
+        {
+          "group": "Consultations",
+          "items": [
+            "Geriatric Medicine Consultant Review & Multi-Morbidity Care Plan",
+            "Comprehensive Clinical Pharmacist Medication Reconciliation (Polypharmacy review)"
+          ]
+        }
       ],
-      "preparation": ["Fast for 10 hours.", "Bring all current medications and supplements.", "A family member is welcome to attend."],
+      "preparation": [
+        "Fast for 10 hours before morning appointment (regular sips of water are encouraged).",
+        "Bring all current prescription bottles, over-the-counter medicines, and vitamins in a single bag.",
+        "Wear glasses, hearing aids, and supportive walking shoes on the test day.",
+        "A family member or primary caregiver is warmly invited and encouraged to participate in consultations."
+      ],
+      "eligibility": {
+        "age_range": "60+ years (also suitable for individuals 55+ with chronic multi-system health conditions)",
+        "gender_target": "All genders",
+        "recommended_for": [
+          "Older adults wanting to maintain active physical and cognitive autonomy",
+          "Individuals experiencing balance issues, joint stiffness, or mild memory concerns",
+          "Patients taking four or more concurrent medications seeking an expert safety audit"
+        ],
+        "contraindications": [
+          "Acute confusion, severe acute delirium, or respiratory failure (requires urgent hospital emergency admission, not outpatient checkup)"
+        ]
+      },
+      "terms_and_conditions": [
+        "Wheelchair access, dedicated mobility escorts, and lounge seating are provided throughout the visit.",
+        "Consultations include written summary notes designed in large, legible typography for patients and family.",
+        "Appointments can be rescheduled without any penalty with 2 hours advance notice.",
+        "In-home follow-up telemedicine check-in available upon request."
+      ],
       "turnaround": "48 hours",
-      "duration": "4 hours",
+      "duration": "4 hours (with ample resting breaks between stations)",
       "recommended_frequency": "Annually",
       "is_popular": false
+    },
+    {
+      "slug": "diabetic-metabolic-screening",
+      "name": "Diabetic & Metabolic Care Package",
+      "tier": "Specialty",
+      "category": "Metabolic Health",
+      "price": 299,
+      "original_price": 399,
+      "ideal_for": "Adults with diabetes, pre-diabetes, insulin resistance, or metabolic syndrome",
+      "short_description": "Targeted assessment evaluating glycemic control, kidney filtration, diabetic retinopathy, and neuropathy.",
+      "overview": "A focused preventive evaluation specifically calibrated for individuals managing or at risk for type 1 or type 2 diabetes, detecting microvascular and macrovascular complications at their earliest reversible stages.",
+      "tests": [
+        {
+          "group": "Glycemic & Renal Markers",
+          "items": [
+            "Glycated Hemoglobin (HbA1c) & Estimated Average Glucose (eAG)",
+            "Fasting Plasma Glucose & 2-Hour Postprandial Glucose (PPBG)",
+            "High-Sensitivity Urine Albumin-to-Creatinine Ratio (uACR Microalbuminuria)",
+            "Comprehensive Renal Panel (Serum Creatinine, eGFR, Blood Urea, Electrolytes)",
+            "Atherogenic Lipid Subfraction Panel (Total Cholesterol, HDL, Non-HDL, Triglycerides)"
+          ]
+        },
+        {
+          "group": "Target Organ Complication Screening",
+          "items": [
+            "Digital Non-Mydriatic Fundus Photography (Diabetic Retinopathy Screen)",
+            "Vibration Perception Threshold (VPT) & Biothesiometry (Diabetic Peripheral Neuropathy Screen)",
+            "Ankle-Brachial Pressure Index (ABPI) for Peripheral Arterial Disease",
+            "Resting 12-Lead Electrocardiogram (ECG)"
+          ]
+        },
+        {
+          "group": "Specialist Counseling",
+          "items": [
+            "Consultant Endocrinologist / Diabetologist Review",
+            "Certified Diabetes Educator Nutrition & Glucose Monitoring Counseling"
+          ]
+        }
+      ],
+      "preparation": [
+        "Fast for 10–12 hours for the fasting blood draw.",
+        "Have your scheduled breakfast or post-fast meal following the first draw to prepare for the 2-hour postprandial test.",
+        "Take insulin or oral hypoglycemics as instructed by your coordinator relative to your meal.",
+        "Wear easily removable socks and footwear for the comprehensive foot examination."
+      ],
+      "eligibility": {
+        "age_range": "18+ years",
+        "gender_target": "All genders",
+        "recommended_for": [
+          "Patients with diagnosed Type 1 or Type 2 Diabetes Mellitus",
+          "Individuals with pre-diabetes (HbA1c 5.7%–6.4%) or Polycystic Ovary Syndrome (PCOS)",
+          "Adults with unexplained weight fluctuations, persistent thirst, or family history of diabetes"
+        ],
+        "contraindications": [
+          "Severe diabetic ketoacidosis (DKA) or hyperosmolar hyperglycemic state (requires urgent emergency inpatient stabilization)"
+        ]
+      },
+      "terms_and_conditions": [
+        "Both fasting and postprandial tests are analyzed on precision clinical chemistry systems.",
+        "Includes complimentary diabetic meal during the 2-hour postprandial waiting period.",
+        "Rescheduling permitted up to 4 hours prior without fee.",
+        "Immediate referral to Diabetic Foot & Wound Clinic if peripheral vascular compromise is detected."
+      ],
+      "turnaround": "Same day (6–8 hours)",
+      "duration": "3 hours",
+      "recommended_frequency": "Bi-annually for HbA1c; comprehensive organ screen annually",
+      "is_popular": true
     }
   ],
   "insurancePartners": [
-    { "name": "Blue Cross Blue Shield", "partner_type": "Insurance", "coverage_types": ["Inpatient", "Outpatient", "Maternity"], "cashless": true, "helpline": "+1 (800) 262-2583" },
-    { "name": "Aetna", "partner_type": "Insurance", "coverage_types": ["Inpatient", "Outpatient", "Diagnostics"], "cashless": true, "helpline": "+1 (800) 872-3862" },
-    { "name": "Cigna Healthcare", "partner_type": "Insurance", "coverage_types": ["Inpatient", "Outpatient", "International"], "cashless": true, "helpline": "+1 (800) 997-1654" },
-    { "name": "UnitedHealthcare", "partner_type": "Insurance", "coverage_types": ["Inpatient", "Outpatient", "Diagnostics"], "cashless": true, "helpline": "+1 (866) 414-1959" },
-    { "name": "Humana", "partner_type": "Insurance", "coverage_types": ["Inpatient", "Medicare Advantage"], "cashless": true, "helpline": "+1 (800) 457-4708" },
-    { "name": "Medicare", "partner_type": "Government", "coverage_types": ["Inpatient", "Outpatient", "Preventive"], "cashless": true, "helpline": "+1 (800) 633-4227" },
-    { "name": "MassHealth (Medicaid)", "partner_type": "Government", "coverage_types": ["Inpatient", "Outpatient", "Pediatrics"], "cashless": true, "helpline": "+1 (800) 841-2900" },
-    { "name": "MedAssist TPA Services", "partner_type": "TPA", "coverage_types": ["Claims Processing", "Pre-Authorization"], "cashless": true, "helpline": "+1 (800) 555-0142" },
-    { "name": "CareBridge Claims Administrators", "partner_type": "TPA", "coverage_types": ["Claims Processing", "Corporate Plans"], "cashless": true, "helpline": "+1 (800) 555-0177" },
-    { "name": "Global Health Assist", "partner_type": "International", "coverage_types": ["International Patients", "Medical Travel"], "cashless": false, "helpline": "+1 (800) 555-0193" }
+    {
+      "name": "Blue Cross Blue Shield",
+      "partner_type": "Insurance",
+      "coverage_types": [
+        "Inpatient",
+        "Outpatient",
+        "Maternity"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 262-2583"
+    },
+    {
+      "name": "Aetna",
+      "partner_type": "Insurance",
+      "coverage_types": [
+        "Inpatient",
+        "Outpatient",
+        "Diagnostics"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 872-3862"
+    },
+    {
+      "name": "Cigna Healthcare",
+      "partner_type": "Insurance",
+      "coverage_types": [
+        "Inpatient",
+        "Outpatient",
+        "International"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 997-1654"
+    },
+    {
+      "name": "UnitedHealthcare",
+      "partner_type": "Insurance",
+      "coverage_types": [
+        "Inpatient",
+        "Outpatient",
+        "Diagnostics"
+      ],
+      "cashless": true,
+      "helpline": "+1 (866) 414-1959"
+    },
+    {
+      "name": "Humana",
+      "partner_type": "Insurance",
+      "coverage_types": [
+        "Inpatient",
+        "Medicare Advantage"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 457-4708"
+    },
+    {
+      "name": "Medicare",
+      "partner_type": "Government",
+      "coverage_types": [
+        "Inpatient",
+        "Outpatient",
+        "Preventive"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 633-4227"
+    },
+    {
+      "name": "MassHealth (Medicaid)",
+      "partner_type": "Government",
+      "coverage_types": [
+        "Inpatient",
+        "Outpatient",
+        "Pediatrics"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 841-2900"
+    },
+    {
+      "name": "MedAssist TPA Services",
+      "partner_type": "TPA",
+      "coverage_types": [
+        "Claims Processing",
+        "Pre-Authorization"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 555-0142"
+    },
+    {
+      "name": "CareBridge Claims Administrators",
+      "partner_type": "TPA",
+      "coverage_types": [
+        "Claims Processing",
+        "Corporate Plans"
+      ],
+      "cashless": true,
+      "helpline": "+1 (800) 555-0177"
+    },
+    {
+      "name": "Global Health Assist",
+      "partner_type": "International",
+      "coverage_types": [
+        "International Patients",
+        "Medical Travel"
+      ],
+      "cashless": false,
+      "helpline": "+1 (800) 555-0193"
+    }
   ],
   "faqs": [
-    { "category": "General", "question": "Where is Healix Medical Center located?", "answer": "We are located at 480 Meridian Avenue in the Health Sciences District, Boston, MA 02115. Underground parking and valet service are available at the main entrance." },
-    { "category": "General", "question": "What are the general visiting hours?", "answer": "General inpatient wards welcome visitors daily from 09:00 AM to 08:30 PM. ICU and NICU schedules differ — see our Hospital Timings page for full details." },
-    { "category": "Appointments", "question": "How do I book an appointment?", "answer": "You can book online through Find a Doctor, call our patient access desk at +1 (800) 432-5490, or visit the outpatient reception in person." },
-    { "category": "Appointments", "question": "Can I reschedule or cancel online?", "answer": "Yes. Use Track Appointment with your booking reference, or manage bookings from My Appointments in the patient portal." },
-    { "category": "Billing & Insurance", "question": "Do you offer cashless treatment?", "answer": "Cashless facilities are available for most partner insurers and TPAs, subject to pre-authorization. Our insurance desk will assist you at admission." },
-    { "category": "Billing & Insurance", "question": "Can I get a cost estimate before a procedure?", "answer": "Yes. Contact our billing team with your planned procedure and insurance details, and we will provide a written estimate within two business days." },
-    { "category": "Patient Portal", "question": "How do I access my lab reports online?", "answer": "Register or sign in to the patient portal. Reports are released to your account once they have been reviewed and finalised by a physician." },
-    { "category": "Patient Portal", "question": "I forgot my portal password. What should I do?", "answer": "Use the Forgot Password link on the sign-in page. A secure, time-limited reset link will be issued to your registered email address." },
-    { "category": "Medical Records", "question": "How can I request a copy of my medical records?", "answer": "Submit a request through Contact Us selecting 'Medical Records', or visit the Health Information Management desk on the ground floor with photo ID." },
-    { "category": "Medical Records", "question": "How long are medical records retained?", "answer": "Records are retained in accordance with applicable state and federal regulations, typically for a minimum of ten years after the last encounter." },
-    { "category": "Emergency", "question": "Is the Emergency Department open 24/7?", "answer": "Yes. Our Level I Trauma Center and Emergency Department are open 24 hours a day, 365 days a year. Call +1 (800) 911-4325 or your local emergency number." },
-    { "category": "Emergency", "question": "Do I need an appointment for emergency care?", "answer": "No. Emergency patients are seen based on clinical urgency. Online booking should never be used for urgent or life-threatening symptoms." }
+    {
+      "category": "General",
+      "question": "Where is Healix Medical Center located?",
+      "answer": "We are located at 480 Meridian Avenue in the Health Sciences District, Boston, MA 02115. Underground parking and valet service are available at the main entrance."
+    },
+    {
+      "category": "General",
+      "question": "What are the general visiting hours?",
+      "answer": "General inpatient wards welcome visitors daily from 09:00 AM to 08:30 PM. ICU and NICU schedules differ — see our Hospital Timings page for full details."
+    },
+    {
+      "category": "Appointments",
+      "question": "How do I book an appointment?",
+      "answer": "You can book online through Find a Doctor, call our patient access desk at +1 (800) 432-5490, or visit the outpatient reception in person."
+    },
+    {
+      "category": "Appointments",
+      "question": "Can I reschedule or cancel online?",
+      "answer": "Yes. Use Track Appointment with your booking reference, or manage bookings from My Appointments in the patient portal."
+    },
+    {
+      "category": "Billing & Insurance",
+      "question": "Do you offer cashless treatment?",
+      "answer": "Cashless facilities are available for most partner insurers and TPAs, subject to pre-authorization. Our insurance desk will assist you at admission."
+    },
+    {
+      "category": "Billing & Insurance",
+      "question": "Can I get a cost estimate before a procedure?",
+      "answer": "Yes. Contact our billing team with your planned procedure and insurance details, and we will provide a written estimate within two business days."
+    },
+    {
+      "category": "Patient Portal",
+      "question": "How do I access my lab reports online?",
+      "answer": "Register or sign in to the patient portal. Reports are released to your account once they have been reviewed and finalised by a physician."
+    },
+    {
+      "category": "Patient Portal",
+      "question": "I forgot my portal password. What should I do?",
+      "answer": "Use the Forgot Password link on the sign-in page. A secure, time-limited reset link will be issued to your registered email address."
+    },
+    {
+      "category": "Medical Records",
+      "question": "How can I request a copy of my medical records?",
+      "answer": "Submit a request through Contact Us selecting 'Medical Records', or visit the Health Information Management desk on the ground floor with photo ID."
+    },
+    {
+      "category": "Medical Records",
+      "question": "How long are medical records retained?",
+      "answer": "Records are retained in accordance with applicable state and federal regulations, typically for a minimum of ten years after the last encounter."
+    },
+    {
+      "category": "Emergency",
+      "question": "Is the Emergency Department open 24/7?",
+      "answer": "Yes. Our Level I Trauma Center and Emergency Department are open 24 hours a day, 365 days a year. Call +1 (800) 911-4325 or your local emergency number."
+    },
+    {
+      "category": "Emergency",
+      "question": "Do I need an appointment for emergency care?",
+      "answer": "No. Emergency patients are seen based on clinical urgency. Online booking should never be used for urgent or life-threatening symptoms."
+    }
   ],
   "jobs": [
     {
@@ -379,8 +862,18 @@
       "experience": "2+ years critical care",
       "posted_date": "2026-11-18",
       "summary": "Provide expert, compassionate nursing care to post-surgical and critically ill cardiac patients in our 28-bed Cardiac ICU.",
-      "responsibilities": ["Deliver evidence-based critical care nursing to cardiac patients.", "Monitor hemodynamics and manage advanced cardiac devices.", "Collaborate with intensivists, cardiologists, and surgeons on care plans.", "Educate patients and families on recovery and discharge."],
-      "requirements": ["Active RN license (Massachusetts or compact).", "BLS and ACLS certification; CCRN preferred.", "Minimum two years of ICU experience.", "Strong communication and teamwork skills."]
+      "responsibilities": [
+        "Deliver evidence-based critical care nursing to cardiac patients.",
+        "Monitor hemodynamics and manage advanced cardiac devices.",
+        "Collaborate with intensivists, cardiologists, and surgeons on care plans.",
+        "Educate patients and families on recovery and discharge."
+      ],
+      "requirements": [
+        "Active RN license (Massachusetts or compact).",
+        "BLS and ACLS certification; CCRN preferred.",
+        "Minimum two years of ICU experience.",
+        "Strong communication and teamwork skills."
+      ]
     },
     {
       "slug": "consultant-interventional-radiologist",
@@ -391,8 +884,17 @@
       "experience": "Board certified, 3+ years",
       "posted_date": "2026-11-05",
       "summary": "Join our imaging core to perform image-guided procedures and support multidisciplinary oncology and vascular programmes.",
-      "responsibilities": ["Perform vascular and non-vascular interventional procedures.", "Participate in tumor boards and multidisciplinary conferences.", "Supervise and mentor radiology fellows.", "Contribute to quality and safety initiatives."],
-      "requirements": ["MD/DO with board certification in Diagnostic & Interventional Radiology.", "Eligible for Massachusetts medical license.", "Fellowship training in interventional radiology."]
+      "responsibilities": [
+        "Perform vascular and non-vascular interventional procedures.",
+        "Participate in tumor boards and multidisciplinary conferences.",
+        "Supervise and mentor radiology fellows.",
+        "Contribute to quality and safety initiatives."
+      ],
+      "requirements": [
+        "MD/DO with board certification in Diagnostic & Interventional Radiology.",
+        "Eligible for Massachusetts medical license.",
+        "Fellowship training in interventional radiology."
+      ]
     },
     {
       "slug": "clinical-pharmacist",
@@ -403,8 +905,17 @@
       "experience": "1+ years hospital pharmacy",
       "posted_date": "2026-10-29",
       "summary": "Support safe, effective medication use across inpatient units and our 24/7 clinical pharmacy.",
-      "responsibilities": ["Verify medication orders and perform interaction checks.", "Round with clinical teams and provide drug therapy recommendations.", "Counsel patients at discharge.", "Support antimicrobial stewardship programmes."],
-      "requirements": ["PharmD degree and active pharmacist license.", "Hospital or residency experience preferred.", "Excellent attention to detail."]
+      "responsibilities": [
+        "Verify medication orders and perform interaction checks.",
+        "Round with clinical teams and provide drug therapy recommendations.",
+        "Counsel patients at discharge.",
+        "Support antimicrobial stewardship programmes."
+      ],
+      "requirements": [
+        "PharmD degree and active pharmacist license.",
+        "Hospital or residency experience preferred.",
+        "Excellent attention to detail."
+      ]
     },
     {
       "slug": "patient-experience-coordinator",
@@ -415,8 +926,17 @@
       "experience": "2+ years customer or patient services",
       "posted_date": "2026-10-20",
       "summary": "Champion patient voice by managing feedback, resolving concerns, and partnering with departments on service improvements.",
-      "responsibilities": ["Review and respond to patient feedback and concerns.", "Coordinate service-recovery actions with clinical teams.", "Analyse feedback trends and report insights.", "Support patient rights and advocacy initiatives."],
-      "requirements": ["Bachelor's degree in healthcare administration or related field.", "Exceptional interpersonal and written communication.", "Experience with CRM or feedback systems preferred."]
+      "responsibilities": [
+        "Review and respond to patient feedback and concerns.",
+        "Coordinate service-recovery actions with clinical teams.",
+        "Analyse feedback trends and report insights.",
+        "Support patient rights and advocacy initiatives."
+      ],
+      "requirements": [
+        "Bachelor's degree in healthcare administration or related field.",
+        "Exceptional interpersonal and written communication.",
+        "Experience with CRM or feedback systems preferred."
+      ]
     },
     {
       "slug": "physiotherapist-orthopedic-rehab",
@@ -427,8 +947,16 @@
       "experience": "1+ years musculoskeletal",
       "posted_date": "2026-10-08",
       "summary": "Guide joint-replacement and sports-injury patients through personalised recovery programmes in our hydrotherapy pavilion.",
-      "responsibilities": ["Assess patients and design individual rehabilitation plans.", "Deliver hydrotherapy and gait training sessions.", "Track outcomes and communicate progress with surgeons."],
-      "requirements": ["DPT or equivalent and active PT license.", "Orthopedic or sports rehabilitation experience.", "Aquatic therapy experience is an advantage."]
+      "responsibilities": [
+        "Assess patients and design individual rehabilitation plans.",
+        "Deliver hydrotherapy and gait training sessions.",
+        "Track outcomes and communicate progress with surgeons."
+      ],
+      "requirements": [
+        "DPT or equivalent and active PT license.",
+        "Orthopedic or sports rehabilitation experience.",
+        "Aquatic therapy experience is an advantage."
+      ]
     }
   ]
 }
