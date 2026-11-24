@@ -1,0 +1,9 @@
+# Ensure consistent LF line endings and prevent Git on Windows from rewriting line endings on disk
+* text=auto eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.sql text eol=lf
+*.md text eol=lf
