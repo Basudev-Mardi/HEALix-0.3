@@ -65,6 +65,7 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
   const [patientMode, setPatientMode] = useState<'new' | 'existing'>('new');
   const [existingLookup, setExistingLookup] = useState('');
   const [lookupMessage, setLookupMessage] = useState('');
+  const [loggedInPatient, setLoggedInPatient] = useState<any>(null);
 
   // Form Fields
   const [patientName, setPatientName] = useState('');
@@ -81,6 +82,7 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
   useEffect(() => {
     const patient = getStoredPatient();
     if (patient) {
+      setLoggedInPatient(patient);
       setPatientMode('existing');
       setPatientName(patient.full_name || '');
       setPatientEmail(patient.email || '');
@@ -220,6 +222,55 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
           >
             <span className="font-bold">Error:</span>
             <span>{error}</span>
+          </div>
+        )}
+
+        {/* Guest Visitor Authentication Option: Step 6 Login / Register */}
+        {loggedInPatient ? (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs text-emerald-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span>
+                Authenticated as <strong>{loggedInPatient.full_name}</strong> (MRN: {loggedInPatient.mrn}). Profile details have been auto-populated.
+              </span>
+            </div>
+            <span className="text-[10px] font-mono font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full shrink-0">
+              Account Linked
+            </span>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-[#cde4de] bg-[#edf5f4]/60 p-4 text-xs text-[#0f5c5c] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <UserRound className="h-4 w-4 text-[#0f5c5c] shrink-0" />
+              <div>
+                <span className="font-semibold text-[#14181a] block">Have a registered patient account?</span>
+                <span className="text-[#4b555b] text-[11px]">
+                  Sign in or create an account to link your booking to your electronic medical record and auto-fill details.
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href={`/login?next=${encodeURIComponent(
+                  `/appointments/patient-details?doctor=${bookingContext.doctor?.slug || ''}&date=${bookingContext.date}&slot=${encodeURIComponent(
+                    bookingContext.slot
+                  )}&type=${encodeURIComponent(bookingContext.visitType)}`
+                )}`}
+                className="px-3.5 py-1.5 rounded-full bg-[#14181a] text-white font-medium hover:bg-[#0f5c5c] transition-colors text-[11px]"
+              >
+                Sign In
+              </Link>
+              <Link
+                href={`/register?next=${encodeURIComponent(
+                  `/appointments/patient-details?doctor=${bookingContext.doctor?.slug || ''}&date=${bookingContext.date}&slot=${encodeURIComponent(
+                    bookingContext.slot
+                  )}&type=${encodeURIComponent(bookingContext.visitType)}`
+                )}`}
+                className="px-3.5 py-1.5 rounded-full border border-[#0f5c5c] text-[#0f5c5c] bg-white font-medium hover:bg-[#faf9f6] transition-colors text-[11px]"
+              >
+                Register
+              </Link>
+            </div>
           </div>
         )}
 

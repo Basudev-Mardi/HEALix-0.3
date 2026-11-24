@@ -326,6 +326,30 @@ export default function ConfirmationClient() {
           </div>
         </div>
       </div>
+
+      {/* Guest Visitor Account Registration Prompt */}
+      <div className="rounded-2xl border border-[#e6e4dd] bg-[#faf9f6] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <p className="font-semibold text-xs text-[#14181a]">Access Your Electronic Health Records</p>
+          <p className="text-[11px] text-[#768086] leading-relaxed">
+            Create a secure Healix Patient Portal account using <strong>{booking.patient_email}</strong> to view doctor clinical notes, download lab reports, and manage all your healthcare visits.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href="/register"
+            className="px-4 py-2 rounded-full bg-[#0f5c5c] text-white text-xs font-medium hover:bg-[#0b4747] transition-colors"
+          >
+            Create Account
+          </Link>
+          <Link
+            href="/login"
+            className="px-4 py-2 rounded-full border border-[#d2d0c8] bg-white text-xs font-medium text-[#14181a] hover:border-[#14181a] transition-colors"
+          >
+            Sign In
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
