@@ -34,10 +34,14 @@ export default function SiteFooter() {
                 <Phone className="h-3.5 w-3.5 text-[#0f5c5c] shrink-0" />
                 +1 (800) 432-5490
               </p>
-              <p className="flex items-center gap-2 font-mono text-[#b91c1c]">
-                <Siren className="h-3.5 w-3.5 shrink-0" />
-                Emergency 24/7: +1 (800) 911-4325
-              </p>
+              <a
+                href="tel:8009114325"
+                className="flex items-center gap-2 font-mono font-bold text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg hover:bg-rose-100 transition-colors"
+                title="Call 24/7 Level 1 Trauma Emergency Line"
+              >
+                <Siren className="h-4 w-4 shrink-0 text-rose-600 animate-pulse" />
+                <span>24/7 Emergency: +1 (800) 911-4325</span>
+              </a>
             </div>
           </div>
 

@@ -63,10 +63,14 @@ export default function SiteHeader() {
       <div className="border-b border-[#e6e4dd] bg-[#f2f1ec]/70 text-xs text-[#4b555b]">
         <div className="container-editorial h-9 flex items-center justify-between gap-4">
           <div className="flex items-center gap-5">
-            <span className="inline-flex items-center gap-1.5 font-mono text-[11px] tracking-tight text-[#14181a]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#0f5c5c]" />
-              24/7 Emergency: +1 (800) 911-4325
-            </span>
+            <a
+              href="tel:8009114325"
+              className="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full hover:bg-rose-100 transition-colors"
+              title="Call 24/7 Level 1 Trauma Emergency Line"
+            >
+              <Siren className="h-3 w-3 text-rose-600 animate-pulse" />
+              <span>24/7 Emergency: +1 (800) 911-4325</span>
+            </a>
             <span className="hidden md:inline text-[#768086]">|</span>
             <span className="hidden md:inline-flex items-center gap-1.5">
               <Phone className="h-3 w-3 text-[#768086]" />
@@ -266,6 +270,14 @@ export default function SiteHeader() {
 
         {/* Right Actions */}
         <div className="hidden lg:flex items-center gap-3">
+          <a
+            href="tel:8009114325"
+            className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold px-3 py-2 rounded-full border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors"
+            title="Call 24/7 Trauma Emergency Line"
+          >
+            <Siren className="h-3.5 w-3.5 text-rose-600 animate-pulse" />
+            <span>(800) 911-4325</span>
+          </a>
           <Link
             href="/appointments/book"
             className="text-xs font-medium px-4 py-2.5 rounded-full border border-[#d5d2c9] text-[#14181a] hover:border-[#14181a] transition-colors"
@@ -274,22 +286,32 @@ export default function SiteHeader() {
           </Link>
           <Link
             href="/emergency"
-            className="inline-flex items-center gap-1.5 text-xs font-medium px-4 py-2.5 rounded-full bg-[#14181a] text-white hover:bg-[#0f5c5c] transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-medium px-4 py-2.5 rounded-full bg-rose-700 text-white hover:bg-rose-800 transition-colors shadow-xs"
           >
             <Siren className="h-3.5 w-3.5" />
-            Emergency
+            Emergency Center
           </Link>
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          type="button"
-          onClick={() => setMobileOpen((prev) => !prev)}
-          aria-label="Toggle navigation menu"
-          className="lg:hidden p-2 rounded-lg border border-[#e6e4dd] text-[#14181a]"
-        >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        {/* Mobile Actions: Emergency Call + Menu */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <a
+            href="tel:8009114325"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-600 text-white text-xs font-bold font-mono tracking-tight shadow-xs hover:bg-rose-700 transition-colors"
+            title="Call 24/7 Emergency Line"
+          >
+            <Siren className="h-3.5 w-3.5 animate-pulse" />
+            <span>Emergency</span>
+          </a>
+          <button
+            type="button"
+            onClick={() => setMobileOpen((prev) => !prev)}
+            aria-label="Toggle navigation menu"
+            className="p-2 rounded-lg border border-[#e6e4dd] text-[#14181a]"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Drawer */}
