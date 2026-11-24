@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { pool, query } from '../db.js';
+import { dispatchNotification, NOTIFICATION_EVENTS } from '../utils/notifications.js';
 import {
   hashPassword,
   requirePatientAuth,
@@ -379,18 +380,21 @@ router.patch(
         [appt.id, appt.booking_reference, appt.status, actorLabel, String(reason)]
       );
 
-      // 5. Create portal notification for patient (Workflow D - Step 9)
-      await client.query(
-        `INSERT INTO portal_notifications (
-          patient_id, category, title, message, action_href, is_read
-        ) VALUES ($1, 'Appointment', $2, $3, $4, FALSE)`,
-        [
-          req.patient.id,
-          `Appointment Cancelled — ${appt.booking_reference}`,
-          `Your appointment with Dr. ${appt.doctor_name} scheduled for ${appt.formatted_date} at ${appt.time_slot} was cancelled. Reason: ${reason}.`,
-          '/patient/appointments',
-        ]
-      );
+      // 5. Workflow F: Event: Appointment cancelled -> Notification: Cancellation notice (Email, SMS, In-Portal)
+      await dispatchNotification({
+        client,
+        patientId: req.patient.id,
+        recipientEmail: req.patient.email,
+        recipientPhone: req.patient.phone,
+        eventType: NOTIFICATION_EVENTS.APPOINTMENT_CANCELLED,
+        title: `Appointment Cancelled — ${appt.booking_reference}`,
+        message: `Your appointment with Dr. ${appt.doctor_name} on ${appt.formatted_date} at ${appt.time_slot} was cancelled. Reason: ${reason}. Slot released.`,
+        actionHref: '/patient/appointments',
+        metadata: {
+          booking_reference: appt.booking_reference,
+          reason,
+        },
+      });
 
       await client.query('COMMIT');
 
@@ -576,22 +580,23 @@ router.post(
           ]
         );
 
-        // Step 4: Patient receives notification
-        await client.query(
-          `INSERT INTO portal_notifications (patient_id, category, title, message, action_href, is_read)
-           VALUES ($1, 'Lab Report', $2, $3, $4, FALSE)`,
-          [
-            patientId,
-            `Lab Report Released — ${reportCode}`,
-            `Your ${testTitle} has been verified by ${docName} and released for your access.`,
-            '/patient/lab-reports',
-          ]
-        );
+        // Workflow F: Event: Report released -> Notification: Report available (Email, SMS, In-Portal)
+        await dispatchNotification({
+          client,
+          patientId,
+          recipientEmail: req.patient.email,
+          recipientPhone: req.patient.phone,
+          eventType: NOTIFICATION_EVENTS.REPORT_RELEASED,
+          title: `Diagnostic Report Released — ${reportCode}`,
+          message: `Your ${testTitle} results have been verified by ${docName} and released to your patient portal.`,
+          actionHref: '/patient/lab-reports',
+          metadata: { report_code: reportCode, test_name: testTitle, ordered_by: docName },
+        });
 
         await client.query('COMMIT');
         return res.status(201).json({
           data: insertRes.rows[0],
-          message: 'Report verified and released. Patient notification dispatched.',
+          message: 'Report verified and released. Multi-channel notification dispatched.',
         });
       } else {
         const studyCode = `RAD-2026-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -614,21 +619,23 @@ router.post(
           ]
         );
 
-        await client.query(
-          `INSERT INTO portal_notifications (patient_id, category, title, message, action_href, is_read)
-           VALUES ($1, 'Radiology', $2, $3, $4, FALSE)`,
-          [
-            patientId,
-            `Radiology Study Released — ${studyCode}`,
-            `Your ${studyTitle} has been reviewed by ${radName} and released to your patient records.`,
-            '/patient/radiology-reports',
-          ]
-        );
+        // Workflow F: Event: Report released -> Notification: Report available (Email, SMS, In-Portal)
+        await dispatchNotification({
+          client,
+          patientId,
+          recipientEmail: req.patient.email,
+          recipientPhone: req.patient.phone,
+          eventType: NOTIFICATION_EVENTS.REPORT_RELEASED,
+          title: `Radiology Study Released — ${studyCode}`,
+          message: `Your ${studyTitle} has been verified by ${radName} and released to your electronic medical record.`,
+          actionHref: '/patient/radiology-reports',
+          metadata: { study_code: studyCode, study_name: studyTitle, radiologist_name: radName },
+        });
 
         await client.query('COMMIT');
         return res.status(201).json({
           data: insertRes.rows[0],
-          message: 'Radiology study verified and released. Patient notification dispatched.',
+          message: 'Radiology study verified and released. Multi-channel notification dispatched.',
         });
       }
     } catch (err) {
@@ -682,14 +689,59 @@ router.patch(
 router.get(
   '/notifications',
   asyncHandler(async (req, res) => {
+    await ensureAuditLogTable(pool);
     const result = await query(
-      `SELECT id, category, title, message, action_href, is_read, created_at
-       FROM portal_notifications
-       WHERE patient_id = $1
-       ORDER BY created_at DESC`,
+      `SELECT n.id, n.category, n.title, n.message, n.action_href, n.is_read, n.created_at,
+              COALESCE(d.channels, ARRAY['in_app', 'email', 'sms']) AS channels,
+              COALESCE(d.event_type, 'general') AS event_type
+       FROM portal_notifications n
+       LEFT JOIN notification_dispatches d ON (d.metadata->>'portalNotificationId')::int = n.id
+       WHERE n.patient_id = $1
+       ORDER BY n.created_at DESC`,
       [req.patient.id]
     );
     res.json({ data: result.rows });
+  })
+);
+
+// Workflow F: Event: Appointment approaching -> Notification: Reminder (Email, SMS, WhatsApp, In-Portal)
+router.post(
+  '/notifications/simulate-reminder',
+  asyncHandler(async (req, res) => {
+    // Find next upcoming confirmed appointment
+    const nextApptRes = await query(
+      `SELECT a.*, d.name AS doctor_name, dep.name AS department_name
+       FROM appointments a
+       JOIN doctors d ON d.slug = a.doctor_slug
+       JOIN departments dep ON dep.slug = a.department_slug
+       WHERE LOWER(a.patient_email) = LOWER($1) AND a.status = 'Confirmed'
+       ORDER BY a.appointment_date ASC, a.time_slot ASC
+       LIMIT 1`,
+      [req.patient.email]
+    );
+
+    const appt = nextApptRes.rows[0];
+    const docName = appt?.doctor_name || 'Dr. Aris Thorne';
+    const apptDate = appt ? appt.appointment_date.toISOString().slice(0, 10) : 'Tomorrow';
+    const timeSlot = appt?.time_slot || '10:00 AM';
+    const dept = appt?.department_name || 'Cardiology & Heart Institute';
+    const ref = appt?.booking_reference || 'HX-2026-1042';
+
+    const dispatchResult = await dispatchNotification({
+      patientId: req.patient.id,
+      recipientEmail: req.patient.email,
+      recipientPhone: req.patient.phone,
+      eventType: NOTIFICATION_EVENTS.APPOINTMENT_APPROACHING,
+      title: `Upcoming Appointment Reminder — ${apptDate} at ${timeSlot}`,
+      message: `Reminder: You have an upcoming consultation with ${docName} (${dept}) on ${apptDate} at ${timeSlot}. Booking Ref: ${ref}. Please arrive 15 minutes early with your photo ID and insurance card.`,
+      actionHref: '/patient/appointments',
+      metadata: { booking_reference: ref, appointment_date: apptDate, time_slot: timeSlot },
+    });
+
+    res.status(201).json({
+      data: dispatchResult,
+      message: 'Approaching appointment reminder dispatched across all active channels.',
+    });
   })
 );
 
@@ -721,12 +773,13 @@ router.patch(
   })
 );
 
-// 35. Account Settings
+// 35. Account Settings (Email, SMS, optional WhatsApp, Lab Alerts, Reminders)
 router.get('/settings', (req, res) => {
   res.json({
     data: {
       notify_email: req.patient.notify_email,
       notify_sms: req.patient.notify_sms,
+      notify_whatsapp: Boolean(req.patient.notify_whatsapp),
       notify_lab_results: req.patient.notify_lab_results,
       notify_reminders: req.patient.notify_reminders,
       two_factor_enabled: req.patient.two_factor_enabled,
@@ -740,6 +793,7 @@ router.patch(
     const {
       notify_email,
       notify_sms,
+      notify_whatsapp,
       notify_lab_results,
       notify_reminders,
       two_factor_enabled,
@@ -749,15 +803,17 @@ router.patch(
       `UPDATE patient_accounts
        SET notify_email = COALESCE($1, notify_email),
            notify_sms = COALESCE($2, notify_sms),
-           notify_lab_results = COALESCE($3, notify_lab_results),
-           notify_reminders = COALESCE($4, notify_reminders),
-           two_factor_enabled = COALESCE($5, two_factor_enabled),
+           notify_whatsapp = COALESCE($3, notify_whatsapp),
+           notify_lab_results = COALESCE($4, notify_lab_results),
+           notify_reminders = COALESCE($5, notify_reminders),
+           two_factor_enabled = COALESCE($6, two_factor_enabled),
            updated_at = NOW()
-       WHERE id = $6
-       RETURNING notify_email, notify_sms, notify_lab_results, notify_reminders, two_factor_enabled`,
+       WHERE id = $7
+       RETURNING notify_email, notify_sms, notify_whatsapp, notify_lab_results, notify_reminders, two_factor_enabled`,
       [
         typeof notify_email === 'boolean' ? notify_email : null,
         typeof notify_sms === 'boolean' ? notify_sms : null,
+        typeof notify_whatsapp === 'boolean' ? notify_whatsapp : null,
         typeof notify_lab_results === 'boolean' ? notify_lab_results : null,
         typeof notify_reminders === 'boolean' ? notify_reminders : null,
         typeof two_factor_enabled === 'boolean' ? two_factor_enabled : null,
@@ -792,7 +848,18 @@ router.post(
       req.patient.id,
     ]);
 
-    res.json({ data: { message: 'Password updated successfully.' } });
+    // Workflow F: Event: Password reset / change -> Notification: Security notification (Email & SMS)
+    await dispatchNotification({
+      patientId: req.patient.id,
+      recipientEmail: req.patient.email,
+      recipientPhone: req.patient.phone,
+      eventType: NOTIFICATION_EVENTS.PASSWORD_RESET,
+      title: 'Security Alert: Password Changed',
+      message: 'Your Healix account password was changed from patient portal account settings. If you did not make this change, please contact hospital security immediately.',
+      actionHref: '/patient/settings',
+    });
+
+    res.json({ data: { message: 'Password updated successfully. Security notification dispatched.' } });
   })
 );
 

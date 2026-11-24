@@ -15,6 +15,7 @@ export interface PatientUser {
   allergies: string[];
   notify_email: boolean;
   notify_sms: boolean;
+  notify_whatsapp?: boolean;
   notify_lab_results: boolean;
   notify_reminders: boolean;
   two_factor_enabled: boolean;
@@ -97,6 +98,8 @@ export interface NotificationItem {
   message: string;
   action_href: string;
   is_read: boolean;
+  channels?: string[];
+  event_type?: string;
   created_at: string;
 }
 

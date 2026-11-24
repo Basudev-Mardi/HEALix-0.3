@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import crypto from 'node:crypto';
 import { pool, query } from '../db.js';
+import { dispatchNotification, NOTIFICATION_EVENTS } from '../utils/notifications.js';
 
 const router = Router();
 
@@ -229,21 +230,29 @@ router.post(
       );
 
       let linkedMrn = null;
+      let patientAcct = null;
       if (patientAcctRes.rows.length > 0) {
-        const acct = patientAcctRes.rows[0];
-        linkedMrn = acct.mrn;
-        await client.query(
-          `INSERT INTO portal_notifications (
-            patient_id, category, title, message, action_href, is_read
-          ) VALUES ($1, 'Appointment', $2, $3, $4, FALSE)`,
-          [
-            acct.id,
-            `Appointment Confirmed — ${doctor.name}`,
-            `Your ${visit_type} with ${doctor.name} on ${appointment_date} at ${time_slot} is confirmed. Booking Reference: ${reference}.`,
-            '/patient/appointments',
-          ]
-        );
+        patientAcct = patientAcctRes.rows[0];
+        linkedMrn = patientAcct.mrn;
       }
+
+      // Workflow F: Event: Appointment booked -> Booking confirmation & Event: Appointment confirmed -> Confirmation update
+      await dispatchNotification({
+        client,
+        patientId: patientAcct?.id || null,
+        recipientEmail: patient_email.trim(),
+        recipientPhone: patient_phone.trim(),
+        eventType: NOTIFICATION_EVENTS.APPOINTMENT_CONFIRMED,
+        title: `Appointment Confirmed — Dr. ${doctor.name} (${reference})`,
+        message: `Your ${visit_type} with ${doctor.name} (${doctor.specialty}) on ${appointment_date} at ${time_slot} is confirmed. Clinic Location: ${doctor.floor_location || 'Main Clinic Wing'}. Booking Reference: ${reference}.`,
+        actionHref: '/patient/appointments',
+        metadata: {
+          booking_reference: reference,
+          doctor_name: doctor.name,
+          department_name: doctor.department_name,
+          consultation_fee: doctor.consultation_fee,
+        },
+      });
 
       // 6. Record initial booking in audit log
       await client.query(
@@ -397,6 +406,23 @@ router.patch(
         [existing.id, ref, existing.status, existing.patient_name, String(reason)]
       );
 
+      // Workflow F: Event: Appointment cancelled -> Notification: Cancellation notice (Email, SMS, In-Portal)
+      const patientCheck = await client.query(
+        'SELECT id FROM patient_accounts WHERE LOWER(email) = LOWER($1) LIMIT 1',
+        [existing.patient_email]
+      );
+      await dispatchNotification({
+        client,
+        patientId: patientCheck.rows[0]?.id || null,
+        recipientEmail: existing.patient_email,
+        recipientPhone: existing.patient_phone,
+        eventType: NOTIFICATION_EVENTS.APPOINTMENT_CANCELLED,
+        title: `Appointment Cancelled — ${ref}`,
+        message: `Your appointment (Ref: ${ref}) has been cancelled. In accordance with hospital policy, your consultation slot has been released back to availability.`,
+        actionHref: '/patient/appointments',
+        metadata: { booking_reference: ref, reason },
+      });
+
       await client.query('COMMIT');
 
       const row = updateRes.rows[0];
@@ -499,6 +525,29 @@ router.patch(
           `Rescheduled from ${existing.appointment_date.toISOString().slice(0, 10)} ${existing.time_slot} to ${new_date} ${new_time_slot}. Reason: ${reason}`,
         ]
       );
+
+      // Workflow F: Event: Appointment rescheduled -> Notification: New date/time (Email, SMS, WhatsApp, In-Portal)
+      const patientCheck = await client.query(
+        'SELECT id FROM patient_accounts WHERE LOWER(email) = LOWER($1) LIMIT 1',
+        [existing.patient_email]
+      );
+      await dispatchNotification({
+        client,
+        patientId: patientCheck.rows[0]?.id || null,
+        recipientEmail: existing.patient_email,
+        recipientPhone: existing.patient_phone,
+        eventType: NOTIFICATION_EVENTS.APPOINTMENT_RESCHEDULED,
+        title: `Appointment Rescheduled — ${ref}`,
+        message: `Your consultation has been rescheduled to ${new_date} at ${new_time_slot}. Prior schedule was ${existing.appointment_date.toISOString().slice(0, 10)} (${existing.time_slot}).`,
+        actionHref: '/patient/appointments',
+        metadata: {
+          booking_reference: ref,
+          previous_date: existing.appointment_date.toISOString().slice(0, 10),
+          previous_slot: existing.time_slot,
+          new_date,
+          new_time_slot,
+        },
+      });
 
       await client.query('COMMIT');
 

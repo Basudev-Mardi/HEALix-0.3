@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import crypto from 'node:crypto';
 import { query } from '../db.js';
+import { dispatchNotification, NOTIFICATION_EVENTS } from '../utils/notifications.js';
 import {
   generateMrn,
   generateToken,
@@ -124,6 +125,16 @@ router.post(
        VALUES ($1, $2, NOW() + INTERVAL '10 minutes')`,
       [targetIdentifier, code]
     );
+
+    // Workflow F: Event: Registration -> Notification: Account verification (Email & SMS)
+    await dispatchNotification({
+      recipientEmail: normalizedEmail,
+      recipientPhone: normalizedPhone,
+      eventType: NOTIFICATION_EVENTS.REGISTRATION,
+      title: 'Registration Verification Code',
+      message: `Your Healix account verification code is ${code}. Valid for 10 minutes.`,
+      channelsOverride: ['email', 'sms'],
+    });
 
     res.json({
       data: {
@@ -263,12 +274,16 @@ router.post(
 
     const patient = sanitizePatient(insertRes.rows[0]);
 
-    // Send welcome notification to patient inbox
-    await query(
-      `INSERT INTO portal_notifications (patient_id, category, title, message, action_href)
-       VALUES ($1, 'Account', 'Welcome to Healix Patient Portal', 'Your official Medical Record Number is ' || $2 || '. Your profile and medical history are now active.', '/patient/profile')`,
-      [patient.id, patient.mrn]
-    );
+    // Workflow F: Registration -> Account verification notification (Email, SMS, In-Portal)
+    await dispatchNotification({
+      patientId: patient.id,
+      recipientEmail: patient.email,
+      recipientPhone: patient.phone,
+      eventType: NOTIFICATION_EVENTS.REGISTRATION,
+      title: 'Welcome to Healix — Account Verified',
+      message: `Your account registration is confirmed. Your official Medical Record Number is ${patient.mrn}. Your patient profile and electronic health record access are now active.`,
+      actionHref: '/patient/profile',
+    });
 
     // Create session token (7-day validity)
     const token = generateToken();
@@ -481,12 +496,23 @@ router.post(
 
     let resetToken = null;
     if (userRes.rows.length > 0) {
+      const user = userRes.rows[0];
       resetToken = generateToken(20);
       await query(
         `INSERT INTO password_reset_tokens (patient_id, token, expires_at)
          VALUES ($1, $2, NOW() + INTERVAL '1 hour')`,
-        [userRes.rows[0].id, resetToken]
+        [user.id, resetToken]
       );
+
+      // Workflow F: Password reset -> Security notification (Email & SMS)
+      await dispatchNotification({
+        patientId: user.id,
+        recipientEmail: user.email,
+        eventType: NOTIFICATION_EVENTS.PASSWORD_RESET,
+        title: 'Security Alert: Password Reset Requested',
+        message: 'A password reset was requested for your Healix account. If this was you, please use the reset link. Link expires in 1 hour.',
+        actionHref: `/reset-password?token=${resetToken}`,
+      });
     }
 
     res.json({
@@ -533,6 +559,15 @@ router.post(
     ]);
     await query('UPDATE password_reset_tokens SET used = TRUE WHERE id = $1', [record.id]);
     await query('DELETE FROM patient_sessions WHERE patient_id = $1', [record.patient_id]);
+
+    // Workflow F: Password reset -> Security notification (Password changed confirmation)
+    await dispatchNotification({
+      patientId: record.patient_id,
+      eventType: NOTIFICATION_EVENTS.PASSWORD_RESET,
+      title: 'Security Alert: Password Updated',
+      message: 'Your Healix patient portal password was successfully updated. All other active sessions have been terminated for security.',
+      actionHref: '/login',
+    });
 
     res.json({ data: { message: 'Password updated successfully. You may now sign in with your new password.' } });
   })
