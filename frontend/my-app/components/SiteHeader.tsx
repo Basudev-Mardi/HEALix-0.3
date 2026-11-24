@@ -18,6 +18,16 @@ const APPOINTMENT_LINKS = [
   { href: '/appointments/help', label: 'Appointment Help', desc: 'Booking FAQs, insurance & arrival guide' },
 ];
 
+const SUPPORT_LINKS = [
+  { href: '/health-library', label: 'Health Library', desc: 'Clinical articles & preventive wellness' },
+  { href: '/health-packages', label: 'Health Packages', desc: 'Preventive checkups & executive screenings' },
+  { href: '/insurance', label: 'Insurance & TPA', desc: 'Empaneled cashless insurers & pre-auth' },
+  { href: '/faqs', label: 'FAQs', desc: 'Visiting hours, billing & portal help' },
+  { href: '/contact', label: 'Contact & Directions', desc: 'Campus map, parking & department phone lines' },
+  { href: '/careers', label: 'Careers', desc: 'Clinical fellowships & nursing opportunities' },
+  { href: '/feedback', label: 'Patient Feedback', desc: 'Share observations & quality survey' },
+];
+
 const NAV_LINKS = [
   { href: '/departments', label: 'Departments' },
   { href: '/doctors', label: 'Doctors' },
@@ -32,9 +42,20 @@ export default function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [apptOpen, setApptOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
 
   const isAboutActive = pathname.startsWith('/about');
   const isApptActive = pathname.startsWith('/appointments');
+  const isSupportActive =
+    pathname.startsWith('/health-') ||
+    pathname === '/insurance' ||
+    pathname === '/contact' ||
+    pathname === '/faqs' ||
+    pathname === '/careers' ||
+    pathname === '/feedback' ||
+    pathname === '/privacy-policy' ||
+    pathname === '/terms' ||
+    pathname === '/patient-rights';
 
   return (
     <header className="sticky top-0 z-50 bg-[#faf9f6]/90 backdrop-blur-md border-b border-[#e6e4dd]">
@@ -61,11 +82,10 @@ export default function SiteHeader() {
               Patient Portal
             </Link>
             <Link
-              href="/visiting-hours"
+              href="/insurance"
               className="hidden sm:inline-flex items-center gap-1.5 hover:text-[#14181a] transition-colors"
             >
-              <Clock className="h-3 w-3" />
-              Visiting Hours
+              Cashless TPA
             </Link>
             <Link
               href="/emergency"
@@ -94,7 +114,7 @@ export default function SiteHeader() {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden lg:flex items-center gap-7 text-sm">
+        <nav className="hidden lg:flex items-center gap-6 text-sm">
           {/* About Dropdown */}
           <div
             className="relative"
@@ -154,6 +174,50 @@ export default function SiteHeader() {
               </Link>
             );
           })}
+
+          {/* Support & Resources Dropdown */}
+          <div
+            className="relative"
+            onMouseEnter={() => setSupportOpen(true)}
+            onMouseLeave={() => setSupportOpen(false)}
+          >
+            <button
+              type="button"
+              onClick={() => setSupportOpen((prev) => !prev)}
+              className={`inline-flex items-center gap-1 py-2 transition-colors ${
+                isSupportActive
+                  ? 'text-[#0f5c5c] font-medium'
+                  : 'text-[#4b555b] hover:text-[#14181a]'
+              }`}
+            >
+              Support &amp; Info
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition-transform ${supportOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {supportOpen && (
+              <div className="absolute left-0 top-full pt-2 w-80">
+                <div className="bg-white border border-[#e6e4dd] rounded-xl shadow-lg p-2">
+                  {SUPPORT_LINKS.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setSupportOpen(false)}
+                      className={`block px-3.5 py-2.5 rounded-lg transition-colors ${
+                        pathname === item.href
+                          ? 'bg-[#edf5f4] text-[#0f5c5c]'
+                          : 'hover:bg-[#faf9f6] text-[#14181a]'
+                      }`}
+                    >
+                      <span className="block text-sm font-medium">{item.label}</span>
+                      <span className="block text-xs text-[#768086] mt-0.5">{item.desc}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Appointments Dropdown */}
           <div
@@ -230,7 +294,7 @@ export default function SiteHeader() {
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-[#e6e4dd] bg-[#faf9f6] px-6 py-5 space-y-5">
+        <div className="lg:hidden border-t border-[#e6e4dd] bg-[#faf9f6] px-6 py-5 space-y-5 max-h-[80vh] overflow-y-auto">
           <div className="space-y-1">
             <p className="text-[11px] font-mono uppercase tracking-widest text-[#768086] pb-1">
               About Healix
@@ -269,6 +333,24 @@ export default function SiteHeader() {
 
           <div className="border-t border-[#e6e4dd] pt-4 space-y-1">
             <p className="text-[11px] font-mono uppercase tracking-widest text-[#768086] pb-1">
+              Information &amp; Support
+            </p>
+            {SUPPORT_LINKS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`block py-2 text-sm ${
+                  pathname === item.href ? 'text-[#0f5c5c] font-medium' : 'text-[#14181a]'
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="border-t border-[#e6e4dd] pt-4 space-y-1">
+            <p className="text-[11px] font-mono uppercase tracking-widest text-[#768086] pb-1">
               Appointments
             </p>
             {APPOINTMENT_LINKS.map((item) => (
@@ -285,18 +367,25 @@ export default function SiteHeader() {
             ))}
           </div>
 
-          <div className="border-t border-[#e6e4dd] pt-4 flex flex-col gap-2.5">
+          <div className="border-t border-[#e6e4dd] pt-4 space-y-2.5">
+            <Link
+              href="/patient/dashboard"
+              onClick={() => setMobileOpen(false)}
+              className="block w-full text-center py-2.5 rounded-lg border border-[#0f5c5c] text-[#0f5c5c] text-xs font-medium"
+            >
+              Patient Portal Access
+            </Link>
             <Link
               href="/appointments/book"
               onClick={() => setMobileOpen(false)}
-              className="text-center text-sm font-medium px-4 py-2.5 rounded-full border border-[#d5d2c9] text-[#14181a]"
+              className="block w-full text-center py-2.5 rounded-lg bg-[#0f5c5c] text-white text-xs font-medium"
             >
               Book Appointment
             </Link>
             <Link
               href="/emergency"
               onClick={() => setMobileOpen(false)}
-              className="text-center text-sm font-medium px-4 py-2.5 rounded-full bg-[#b91c1c] text-white"
+              className="block w-full text-center py-2.5 rounded-lg bg-[#b91c1c] text-white text-xs font-medium"
             >
               24/7 Emergency Information
             </Link>

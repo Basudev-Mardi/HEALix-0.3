@@ -184,3 +184,4 @@ export default function PatientShell({ children }: { children: React.ReactNode }
     </div>
   );
 }
+

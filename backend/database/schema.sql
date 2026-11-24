@@ -286,6 +286,33 @@ CREATE TABLE IF NOT EXISTS portal_notifications (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS contact_inquiries (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT DEFAULT '',
+  department TEXT DEFAULT '',
+  subject TEXT NOT NULL,
+  message TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Received',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS patient_feedbacks (
+  id SERIAL PRIMARY KEY,
+  full_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT DEFAULT '',
+  department_visited TEXT DEFAULT '',
+  overall_rating INTEGER NOT NULL CHECK (overall_rating BETWEEN 1 AND 5),
+  doctor_care_rating INTEGER DEFAULT 5,
+  cleanliness_rating INTEGER DEFAULT 5,
+  staff_courtesy_rating INTEGER DEFAULT 5,
+  comments TEXT NOT NULL,
+  would_recommend BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_doctors_department ON doctors(department_slug);
 CREATE INDEX IF NOT EXISTS idx_services_department ON services(department_slug);
 CREATE INDEX IF NOT EXISTS idx_gallery_category ON gallery_items(category);

@@ -192,3 +192,79 @@ export interface AppointmentFaq {
   question: string;
   answer: string;
 }
+
+
+// Section D: Information and Support Interfaces
+
+export interface ArticleSection {
+  heading: string;
+  paragraphs: string[];
+}
+
+export interface HealthArticle {
+  slug: string;
+  title: string;
+  category: string;
+  excerpt: string;
+  author_name: string;
+  author_title: string;
+  author_doctor_slug?: string;
+  published_date: string;
+  read_minutes: number;
+  tags: string[];
+  key_takeaways: string[];
+  body: ArticleSection[];
+  is_featured?: boolean;
+  related?: HealthArticle[];
+}
+
+export interface PackageTestGroup {
+  group: string;
+  items: string[];
+}
+
+export interface HealthPackage {
+  slug: string;
+  name: string;
+  tier: string;
+  category: string;
+  price: number;
+  original_price: number;
+  ideal_for: string;
+  short_description: string;
+  overview: string;
+  tests: PackageTestGroup[];
+  preparation: string[];
+  turnaround: string;
+  duration: string;
+  recommended_frequency: string;
+  is_popular?: boolean;
+  otherPackages?: HealthPackage[];
+}
+
+export interface InsurancePartner {
+  name: string;
+  partner_type: string;
+  coverage_types: string[];
+  cashless: boolean;
+  helpline: string;
+}
+
+export interface GeneralFaq {
+  category: string;
+  question: string;
+  answer: string;
+}
+
+export interface JobOpening {
+  slug: string;
+  title: string;
+  department: string;
+  location: string;
+  employment_type: string;
+  experience: string;
+  posted_date: string;
+  summary: string;
+  responsibilities: string[];
+  requirements: string[];
+}

@@ -5,9 +5,9 @@ export default function SiteFooter() {
   return (
     <footer className="border-t border-[#e6e4dd] bg-[#f2f1ec]/60 mt-24">
       <div className="container-editorial py-16 lg:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10">
           {/* Brand Column */}
-          <div className="lg:col-span-4 space-y-5">
+          <div className="lg:col-span-3 space-y-5">
             <Link href="/" className="inline-flex items-center gap-3">
               <span className="h-8 w-8 rounded-full border border-[#14181a] flex items-center justify-center text-xs font-mono font-semibold">
                 Hx
@@ -21,14 +21,14 @@ export default function SiteFooter() {
                 </span>
               </div>
             </Link>
-            <p className="text-sm leading-relaxed text-[#4b555b] max-w-sm">
+            <p className="text-sm leading-relaxed text-[#4b555b]">
               A 420-bed quaternary care hospital uniting clinical precision, minimally invasive
               surgery, and calm, restorative spaces.
             </p>
             <div className="space-y-2 text-xs text-[#4b555b] pt-1">
               <p className="flex items-start gap-2">
                 <MapPin className="h-3.5 w-3.5 mt-0.5 text-[#0f5c5c] shrink-0" />
-                480 Meridian Avenue, Health Sciences District, Boston, MA 02115
+                100 Healix Boulevard, Metro Medical District, Boston, MA 02115
               </p>
               <p className="flex items-center gap-2 font-mono">
                 <Phone className="h-3.5 w-3.5 text-[#0f5c5c] shrink-0" />
@@ -72,11 +72,16 @@ export default function SiteFooter() {
                   Facilities
                 </Link>
               </li>
+              <li>
+                <Link href="/visiting-hours" className="hover:text-[#14181a] transition-colors">
+                  Visiting Timings
+                </Link>
+              </li>
             </ul>
           </div>
 
           {/* Clinical Care */}
-          <div className="lg:col-span-3 space-y-3">
+          <div className="lg:col-span-2 space-y-3">
             <h3 className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#768086]">
               Clinical Care
             </h3>
@@ -98,36 +103,90 @@ export default function SiteFooter() {
               </li>
               <li>
                 <Link href="/departments/cardiology" className="hover:text-[#14181a] transition-colors">
-                  Cardiology &amp; Heart Institute
+                  Cardiology
                 </Link>
               </li>
               <li>
                 <Link href="/departments/neurology" className="hover:text-[#14181a] transition-colors">
-                  Neurology &amp; Neurosciences
+                  Neurology
+                </Link>
+              </li>
+              <li>
+                <Link href="/emergency" className="text-[#b91c1c] font-medium hover:underline inline-flex items-center gap-1">
+                  Trauma 24/7 <ArrowUpRight className="h-3 w-3" />
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Patient Information */}
+          {/* Information & Support */}
           <div className="lg:col-span-3 space-y-3">
             <h3 className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#768086]">
-              Appointments &amp; Visitor
+              Information &amp; Support
             </h3>
             <ul className="space-y-2.5 text-sm text-[#4b555b]">
               <li>
-                <Link href="/patient/dashboard" className="hover:text-[#14181a] transition-colors">
-                  Patient Portal
+                <Link href="/health-library" className="hover:text-[#14181a] transition-colors">
+                  Health Blog &amp; Library
+                </Link>
+              </li>
+              <li>
+                <Link href="/health-packages" className="hover:text-[#14181a] transition-colors">
+                  Preventive Health Packages
+                </Link>
+              </li>
+              <li>
+                <Link href="/insurance" className="hover:text-[#14181a] transition-colors">
+                  Insurance &amp; Cashless TPA
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-[#14181a] transition-colors">
+                  Contact Us &amp; Directions
+                </Link>
+              </li>
+              <li>
+                <Link href="/faqs" className="hover:text-[#14181a] transition-colors">
+                  Frequently Asked Questions
+                </Link>
+              </li>
+              <li>
+                <Link href="/feedback" className="hover:text-[#14181a] transition-colors">
+                  Patient Experience &amp; Feedback
+                </Link>
+              </li>
+              <li>
+                <Link href="/careers" className="hover:text-[#14181a] transition-colors">
+                  Clinical &amp; Hospital Careers
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Patient Account & Portal */}
+          <div className="lg:col-span-2 space-y-3">
+            <h3 className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#768086]">
+              Patient Portal
+            </h3>
+            <ul className="space-y-2.5 text-sm text-[#4b555b]">
+              <li>
+                <Link href="/patient/dashboard" className="text-[#0f5c5c] font-medium hover:underline">
+                  My Dashboard
                 </Link>
               </li>
               <li>
                 <Link href="/login" className="hover:text-[#14181a] transition-colors">
-                  Patient Sign In / Register
+                  Sign In
                 </Link>
               </li>
               <li>
-                <Link href="/appointments/doctors" className="hover:text-[#14181a] transition-colors">
-                  Find a Doctor &amp; Book
+                <Link href="/register" className="hover:text-[#14181a] transition-colors">
+                  New Registration
+                </Link>
+              </li>
+              <li>
+                <Link href="/appointments/book" className="hover:text-[#14181a] transition-colors">
+                  Book Appointment
                 </Link>
               </li>
               <li>
@@ -137,39 +196,37 @@ export default function SiteFooter() {
               </li>
               <li>
                 <Link href="/appointments/help" className="hover:text-[#14181a] transition-colors">
-                  Appointment Help &amp; FAQs
-                </Link>
-              </li>
-              <li>
-                <Link href="/visiting-hours" className="hover:text-[#14181a] transition-colors">
-                  Hospital Timings &amp; Visiting Hours
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/emergency"
-                  className="inline-flex items-center gap-1 text-[#b91c1c] font-medium hover:underline"
-                >
-                  Emergency &amp; Trauma Information
-                  <ArrowUpRight className="h-3.5 w-3.5" />
+                  Appointment Help
                 </Link>
               </li>
             </ul>
-            <div className="pt-4">
-              <div className="rounded-xl border border-[#e6e4dd] bg-white p-4 space-y-1">
-                <p className="text-[11px] font-mono uppercase tracking-wider text-[#0f5c5c]">
+            <div className="pt-2">
+              <div className="rounded-xl border border-[#e6e4dd] bg-white p-3 space-y-1">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-[#0f5c5c]">
                   Accreditation
                 </p>
-                <p className="text-sm font-medium text-[#14181a]">JCI &amp; NABH Certified</p>
-                <p className="text-xs text-[#768086]">Level I Trauma &amp; Comprehensive Stroke Center</p>
+                <p className="text-xs font-medium text-[#14181a]">JCI &amp; NABH Certified</p>
+                <p className="text-[11px] text-[#768086]">Level I Comprehensive Center</p>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Legal and Compliance Footer */}
         <div className="mt-14 pt-6 border-t border-[#e6e4dd] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-[#768086]">
-          <p>© 2026 Healix Medical Center. All rights reserved.</p>
-          <p className="font-mono text-[11px]">Public Portal · Precision Clinical Care</p>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            <p>© 2026 Healix Medical Center. All rights reserved.</p>
+            <Link href="/privacy-policy" className="hover:text-[#14181a] transition-colors">
+              Privacy Policy &amp; HIPAA
+            </Link>
+            <Link href="/terms" className="hover:text-[#14181a] transition-colors">
+              Terms &amp; Conditions
+            </Link>
+            <Link href="/patient-rights" className="hover:text-[#14181a] transition-colors">
+              Patient Bill of Rights
+            </Link>
+          </div>
+          <p className="font-mono text-[11px]">Public Portal · Section D Complete</p>
         </div>
       </div>
     </footer>
