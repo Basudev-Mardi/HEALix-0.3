@@ -1,0 +1,434 @@
+{
+  "articles": [
+    {
+      "slug": "understanding-your-cholesterol-numbers",
+      "title": "Understanding Your Cholesterol Numbers Beyond LDL",
+      "category": "Heart Health",
+      "excerpt": "LDL is only part of the story. Learn how ApoB, HDL, triglycerides, and Lp(a) together shape your long-term cardiovascular risk.",
+      "author_name": "Dr. Aris Thorne",
+      "author_title": "Chair, Cardiology & Heart Institute",
+      "author_doctor_slug": "dr-aris-thorne",
+      "published_date": "2026-11-10",
+      "read_minutes": 7,
+      "tags": ["Cholesterol", "Prevention", "Lipid Panel"],
+      "key_takeaways": [
+        "ApoB counts every atherogenic particle and is often a better risk marker than LDL alone.",
+        "Lipoprotein(a) is largely genetic — most adults only need it measured once.",
+        "Lifestyle changes and, when indicated, medication can meaningfully lower risk at any age."
+      ],
+      "body": [
+        {
+          "heading": "Why a single number can mislead",
+          "paragraphs": [
+            "For decades, LDL cholesterol has been the headline figure on a lipid report. It remains important, but two people with identical LDL values can carry very different numbers of cholesterol-carrying particles in their blood.",
+            "Apolipoprotein B (ApoB) sits on every potentially plaque-forming particle, so measuring it gives a direct count. Many cardiology guidelines now recommend ApoB as a complementary marker, especially for people with diabetes, high triglycerides, or metabolic syndrome."
+          ]
+        },
+        {
+          "heading": "The markers worth knowing",
+          "paragraphs": [
+            "HDL cholesterol reflects particles that help transport cholesterol away from the arteries. Triglycerides respond strongly to refined carbohydrates, alcohol, and physical activity. Lipoprotein(a), or Lp(a), is inherited and can raise risk even when every other number looks optimal.",
+            "Your physician interprets these values together with blood pressure, family history, smoking status, and imaging such as a coronary calcium score."
+          ]
+        },
+        {
+          "heading": "Turning results into action",
+          "paragraphs": [
+            "Regular movement, a fibre-rich Mediterranean-style diet, quality sleep, and avoiding tobacco improve nearly every lipid marker. When risk remains elevated, statins and newer therapies are well studied and effective.",
+            "If you have not had a full lipid panel in the past few years, discuss it at your next consultation or consider a preventive cardiac screening."
+          ]
+        }
+      ],
+      "is_featured": true
+    },
+    {
+      "slug": "recognising-stroke-be-fast",
+      "title": "Recognising a Stroke: Why Every Minute Matters",
+      "category": "Neurology",
+      "excerpt": "The BE-FAST checklist helps anyone spot stroke symptoms early. Fast recognition is the single biggest factor in recovery.",
+      "author_name": "Dr. Mei-Ling Chen",
+      "author_title": "Chief of Neurosciences",
+      "author_doctor_slug": "dr-mei-ling-chen",
+      "published_date": "2026-10-28",
+      "read_minutes": 5,
+      "tags": ["Stroke", "Emergency", "BE-FAST"],
+      "key_takeaways": [
+        "Use BE-FAST: Balance, Eyes, Face, Arms, Speech, Time.",
+        "Note the time symptoms started — it guides treatment decisions.",
+        "Always call emergency services rather than driving to hospital."
+      ],
+      "body": [
+        {
+          "heading": "Know the signs",
+          "paragraphs": [
+            "A stroke occurs when blood flow to part of the brain is blocked or a vessel bleeds. Brain cells begin to die within minutes, which is why speed of treatment determines how much function can be preserved.",
+            "BE-FAST stands for sudden loss of Balance, Eye or vision changes, Face drooping, Arm or leg weakness, Speech difficulty, and Time to call emergency services."
+          ]
+        },
+        {
+          "heading": "What happens at the hospital",
+          "paragraphs": [
+            "At a comprehensive stroke centre, an arriving patient receives rapid brain imaging to determine whether the stroke is caused by a clot or a bleed. Clot-dissolving medication or mechanical thrombectomy may be offered within specific time windows.",
+            "Paramedic pre-notification allows the stroke team to be waiting at the door, cutting precious minutes from treatment."
+          ]
+        },
+        {
+          "heading": "Reducing your risk",
+          "paragraphs": [
+            "Controlling blood pressure is the most powerful step in stroke prevention. Managing atrial fibrillation, diabetes, and cholesterol, staying active, and avoiding smoking further reduce risk."
+          ]
+        }
+      ],
+      "is_featured": true
+    },
+    {
+      "slug": "preparing-for-joint-replacement",
+      "title": "Preparing for Knee or Hip Replacement Surgery",
+      "category": "Orthopedics",
+      "excerpt": "Prehabilitation, home preparation, and realistic expectations can make recovery from joint replacement faster and smoother.",
+      "author_name": "Dr. Marcus Sterling",
+      "author_title": "Director of Joint Reconstruction",
+      "author_doctor_slug": "dr-marcus-sterling",
+      "published_date": "2026-10-14",
+      "read_minutes": 6,
+      "tags": ["Joint Replacement", "Surgery", "Rehabilitation"],
+      "key_takeaways": [
+        "Strengthening exercises before surgery shorten recovery time.",
+        "Prepare your home with clear walkways and a raised seat.",
+        "Most patients walk with support on the day of surgery."
+      ],
+      "body": [
+        {
+          "heading": "Start with prehabilitation",
+          "paragraphs": [
+            "Patients who build quadriceps, hip, and core strength in the weeks before surgery typically regain independence sooner. A physiotherapist can design a safe programme tailored to your joint.",
+            "Optimising weight, blood sugar, and stopping smoking also lowers the risk of wound and implant complications."
+          ]
+        },
+        {
+          "heading": "Getting your home ready",
+          "paragraphs": [
+            "Remove loose rugs, arrange frequently used items at waist height, and consider a shower chair and raised toilet seat. Plan for someone to help with meals and transport for the first two weeks."
+          ]
+        },
+        {
+          "heading": "What recovery looks like",
+          "paragraphs": [
+            "With modern anaesthesia and rapid-recovery protocols, many patients stand and walk within hours. Most return to light daily activities within six weeks, with continued improvement for several months."
+          ]
+        }
+      ],
+      "is_featured": false
+    },
+    {
+      "slug": "cancer-screening-guide-by-age",
+      "title": "A Practical Guide to Cancer Screening by Age",
+      "category": "Oncology",
+      "excerpt": "Screening detects many cancers before symptoms appear. Here is a clear overview of which tests are commonly recommended and when.",
+      "author_name": "Dr. Priya Natarajan",
+      "author_title": "Director, Precision Oncology",
+      "author_doctor_slug": "dr-priya-natarajan",
+      "published_date": "2026-09-30",
+      "read_minutes": 8,
+      "tags": ["Screening", "Prevention", "Cancer"],
+      "key_takeaways": [
+        "Screening schedules depend on age, sex, and family history.",
+        "Colorectal screening commonly begins at 45 for average-risk adults.",
+        "A strong family history may mean starting earlier — discuss it with your doctor."
+      ],
+      "body": [
+        {
+          "heading": "Why screening works",
+          "paragraphs": [
+            "Many cancers are most treatable when found early. Screening tests look for cancer or pre-cancerous changes in people who feel well, allowing intervention before disease progresses."
+          ]
+        },
+        {
+          "heading": "Commonly recommended tests",
+          "paragraphs": [
+            "Cervical screening with Pap and HPV testing typically begins in the twenties. Breast imaging is commonly offered from the forties. Colorectal screening — through colonoscopy or stool-based tests — is commonly recommended from age 45. Low-dose CT lung screening may be advised for adults with a significant smoking history.",
+            "Recommendations vary between guidelines and individuals, so your physician will personalise a schedule for you."
+          ]
+        },
+        {
+          "heading": "Family history and genetics",
+          "paragraphs": [
+            "If close relatives were diagnosed at a young age, genetic counselling and earlier or more frequent screening may be appropriate."
+          ]
+        }
+      ],
+      "is_featured": true
+    },
+    {
+      "slug": "childhood-fever-when-to-worry",
+      "title": "Childhood Fever: When to Manage at Home and When to Worry",
+      "category": "Pediatrics",
+      "excerpt": "Fever is usually the body fighting infection. Learn the warning signs that mean your child should be seen urgently.",
+      "author_name": "Dr. Hannah Lindqvist",
+      "author_title": "Chief of Pediatrics & NICU",
+      "author_doctor_slug": "dr-hannah-lindqvist",
+      "published_date": "2026-09-12",
+      "read_minutes": 5,
+      "tags": ["Children", "Fever", "Parenting"],
+      "key_takeaways": [
+        "Any fever in a baby under three months needs prompt medical review.",
+        "Watch your child's behaviour and hydration, not only the thermometer.",
+        "Seek urgent care for breathing difficulty, a non-blanching rash, or unusual drowsiness."
+      ],
+      "body": [
+        {
+          "heading": "Fever is a symptom, not an illness",
+          "paragraphs": [
+            "Most fevers in children are caused by common viral infections and resolve within a few days. Keeping your child comfortable and well hydrated is usually the priority."
+          ]
+        },
+        {
+          "heading": "Warning signs",
+          "paragraphs": [
+            "Seek urgent medical attention if your child is under three months old with a fever, has difficulty breathing, a rash that does not fade when pressed, a stiff neck, is unusually drowsy or difficult to wake, or shows signs of dehydration such as very few wet nappies."
+          ]
+        },
+        {
+          "heading": "Comfort care at home",
+          "paragraphs": [
+            "Offer frequent fluids, dress your child in light clothing, and use age-appropriate fever medicine only as directed on the label or by your clinician."
+          ]
+        }
+      ],
+      "is_featured": false
+    },
+    {
+      "slug": "sleep-and-heart-rhythm",
+      "title": "How Sleep Quality Affects Your Heart Rhythm",
+      "category": "Heart Health",
+      "excerpt": "Poor sleep and untreated sleep apnoea are linked to atrial fibrillation. Better rest can support a healthier heart rhythm.",
+      "author_name": "Dr. Claire Beaumont",
+      "author_title": "Senior Cardiac Electrophysiologist",
+      "author_doctor_slug": "dr-claire-beaumont",
+      "published_date": "2026-08-25",
+      "read_minutes": 6,
+      "tags": ["Sleep", "Arrhythmia", "Lifestyle"],
+      "key_takeaways": [
+        "Obstructive sleep apnoea is strongly associated with atrial fibrillation.",
+        "Loud snoring with daytime fatigue warrants a sleep assessment.",
+        "Consistent sleep timing supports both heart and metabolic health."
+      ],
+      "body": [
+        {
+          "heading": "The sleep–rhythm connection",
+          "paragraphs": [
+            "During sleep apnoea, repeated pauses in breathing cause oxygen drops and surges in adrenaline. Over time, this strain can remodel the heart's upper chambers and trigger irregular rhythms such as atrial fibrillation."
+          ]
+        },
+        {
+          "heading": "Signs worth discussing",
+          "paragraphs": [
+            "Loud snoring, witnessed breathing pauses, morning headaches, and persistent daytime sleepiness are common clues. A home or laboratory sleep study can confirm the diagnosis."
+          ]
+        },
+        {
+          "heading": "Practical steps",
+          "paragraphs": [
+            "Aim for seven to nine hours with consistent sleep and wake times, limit alcohol close to bedtime, and treat diagnosed sleep apnoea. Many patients report fewer palpitations once sleep improves."
+          ]
+        }
+      ],
+      "is_featured": false
+    }
+  ],
+  "packages": [
+    {
+      "slug": "essential-wellness-check",
+      "name": "Essential Wellness Check",
+      "tier": "Essential",
+      "category": "General Wellness",
+      "price": 149,
+      "original_price": 199,
+      "ideal_for": "Adults 18–39 seeking an annual baseline",
+      "short_description": "A focused annual check covering blood count, metabolic health, and a physician review.",
+      "overview": "Designed for young adults who want a clear picture of their current health. Results are reviewed in a same-day consultation with a general physician who explains findings and next steps.",
+      "tests": [
+        { "group": "Blood Tests", "items": ["Complete Blood Count (CBC)", "Fasting Blood Glucose", "Lipid Profile", "Liver Function Panel", "Kidney Function Panel"] },
+        { "group": "Assessments", "items": ["Blood Pressure & BMI", "Urine Routine Analysis", "Physician Consultation"] }
+      ],
+      "preparation": ["Fast for 10–12 hours before your appointment (water is allowed).", "Bring a list of current medications.", "Wear comfortable clothing."],
+      "turnaround": "Same day",
+      "duration": "2 hours",
+      "recommended_frequency": "Annually",
+      "is_popular": false
+    },
+    {
+      "slug": "executive-health-assessment",
+      "name": "Executive Health Assessment",
+      "tier": "Comprehensive",
+      "category": "General Wellness",
+      "price": 549,
+      "original_price": 690,
+      "ideal_for": "Adults 40+ and busy professionals",
+      "short_description": "A comprehensive half-day assessment including cardiac, metabolic, and cancer-risk screening.",
+      "overview": "Our most popular programme brings together laboratory diagnostics, cardiac evaluation, imaging, and specialist consultations in a single coordinated morning, with a personalised health plan delivered at the end of your visit.",
+      "tests": [
+        { "group": "Blood Tests", "items": ["CBC & ESR", "HbA1c & Fasting Glucose", "Advanced Lipid Panel with ApoB", "Thyroid Function (TSH, Free T4)", "Vitamin D & B12", "Liver & Kidney Panels"] },
+        { "group": "Cardiac", "items": ["12-Lead ECG", "Echocardiogram", "Treadmill Stress Test"] },
+        { "group": "Imaging", "items": ["Chest X-Ray", "Abdominal Ultrasound"] },
+        { "group": "Consultations", "items": ["Internal Medicine Review", "Nutrition Consultation"] }
+      ],
+      "preparation": ["Fast for 10–12 hours before arrival.", "Avoid caffeine on the morning of the test.", "Bring walking shoes for the stress test."],
+      "turnaround": "Same day (most results)",
+      "duration": "4–5 hours",
+      "recommended_frequency": "Annually",
+      "is_popular": true
+    },
+    {
+      "slug": "heart-health-screening",
+      "name": "Preventive Heart Screening",
+      "tier": "Specialty",
+      "category": "Cardiac",
+      "price": 399,
+      "original_price": null,
+      "ideal_for": "Adults with family history or cardiac risk factors",
+      "short_description": "Targeted cardiovascular screening including coronary calcium scoring and cardiologist review.",
+      "overview": "A focused evaluation of your heart and blood vessels, combining imaging and biomarkers to estimate long-term cardiovascular risk and guide prevention.",
+      "tests": [
+        { "group": "Biomarkers", "items": ["Advanced Lipid Panel with ApoB & Lp(a)", "hs-CRP", "HbA1c"] },
+        { "group": "Cardiac Imaging", "items": ["Coronary Artery Calcium Score (CT)", "Echocardiogram", "12-Lead ECG"] },
+        { "group": "Consultation", "items": ["Cardiologist Review & Risk Plan"] }
+      ],
+      "preparation": ["Fast for 10 hours.", "Avoid caffeine for 12 hours before testing."],
+      "turnaround": "24 hours",
+      "duration": "3 hours",
+      "recommended_frequency": "Every 2–5 years based on risk",
+      "is_popular": true
+    },
+    {
+      "slug": "womens-health-package",
+      "name": "Women's Health Package",
+      "tier": "Comprehensive",
+      "category": "Women's Health",
+      "price": 429,
+      "original_price": 520,
+      "ideal_for": "Women 30+",
+      "short_description": "Age-appropriate screening including cervical, breast, bone, and hormonal health.",
+      "overview": "A thoughtfully sequenced package covering the screenings most relevant to women's long-term health, completed in a private, comfortable setting with female clinicians available on request.",
+      "tests": [
+        { "group": "Blood Tests", "items": ["CBC", "Thyroid Function", "Iron Studies & Ferritin", "Vitamin D", "Lipid Profile", "HbA1c"] },
+        { "group": "Screening", "items": ["Pap Smear & HPV Test", "Digital Mammography (40+)", "Breast Ultrasound", "Bone Density Scan (DEXA)"] },
+        { "group": "Consultation", "items": ["Gynecology Consultation"] }
+      ],
+      "preparation": ["Schedule outside your menstrual period for cervical screening.", "Avoid deodorant or powder on the day of mammography.", "Fast for 10 hours."],
+      "turnaround": "48 hours",
+      "duration": "3–4 hours",
+      "recommended_frequency": "Annually",
+      "is_popular": false
+    },
+    {
+      "slug": "senior-care-assessment",
+      "name": "Senior Care Assessment",
+      "tier": "Comprehensive",
+      "category": "Healthy Ageing",
+      "price": 479,
+      "original_price": 580,
+      "ideal_for": "Adults 60+",
+      "short_description": "A holistic review of heart, bone, cognitive, and functional health for healthy ageing.",
+      "overview": "Focused on independence and quality of life, this assessment combines diagnostics with geriatric screening for memory, balance, and medication safety.",
+      "tests": [
+        { "group": "Blood Tests", "items": ["CBC", "Kidney & Liver Function", "HbA1c", "Lipid Profile", "Vitamin D & B12", "Thyroid Function"] },
+        { "group": "Assessments", "items": ["ECG & Echocardiogram", "Bone Density Scan (DEXA)", "Hearing & Vision Screening", "Cognitive & Fall-Risk Assessment"] },
+        { "group": "Consultation", "items": ["Geriatric Medicine Review", "Medication Reconciliation"] }
+      ],
+      "preparation": ["Fast for 10 hours.", "Bring all current medications and supplements.", "A family member is welcome to attend."],
+      "turnaround": "48 hours",
+      "duration": "4 hours",
+      "recommended_frequency": "Annually",
+      "is_popular": false
+    }
+  ],
+  "insurancePartners": [
+    { "name": "Blue Cross Blue Shield", "partner_type": "Insurance", "coverage_types": ["Inpatient", "Outpatient", "Maternity"], "cashless": true, "helpline": "+1 (800) 262-2583" },
+    { "name": "Aetna", "partner_type": "Insurance", "coverage_types": ["Inpatient", "Outpatient", "Diagnostics"], "cashless": true, "helpline": "+1 (800) 872-3862" },
+    { "name": "Cigna Healthcare", "partner_type": "Insurance", "coverage_types": ["Inpatient", "Outpatient", "International"], "cashless": true, "helpline": "+1 (800) 997-1654" },
+    { "name": "UnitedHealthcare", "partner_type": "Insurance", "coverage_types": ["Inpatient", "Outpatient", "Diagnostics"], "cashless": true, "helpline": "+1 (866) 414-1959" },
+    { "name": "Humana", "partner_type": "Insurance", "coverage_types": ["Inpatient", "Medicare Advantage"], "cashless": true, "helpline": "+1 (800) 457-4708" },
+    { "name": "Medicare", "partner_type": "Government", "coverage_types": ["Inpatient", "Outpatient", "Preventive"], "cashless": true, "helpline": "+1 (800) 633-4227" },
+    { "name": "MassHealth (Medicaid)", "partner_type": "Government", "coverage_types": ["Inpatient", "Outpatient", "Pediatrics"], "cashless": true, "helpline": "+1 (800) 841-2900" },
+    { "name": "MedAssist TPA Services", "partner_type": "TPA", "coverage_types": ["Claims Processing", "Pre-Authorization"], "cashless": true, "helpline": "+1 (800) 555-0142" },
+    { "name": "CareBridge Claims Administrators", "partner_type": "TPA", "coverage_types": ["Claims Processing", "Corporate Plans"], "cashless": true, "helpline": "+1 (800) 555-0177" },
+    { "name": "Global Health Assist", "partner_type": "International", "coverage_types": ["International Patients", "Medical Travel"], "cashless": false, "helpline": "+1 (800) 555-0193" }
+  ],
+  "faqs": [
+    { "category": "General", "question": "Where is Healix Medical Center located?", "answer": "We are located at 480 Meridian Avenue in the Health Sciences District, Boston, MA 02115. Underground parking and valet service are available at the main entrance." },
+    { "category": "General", "question": "What are the general visiting hours?", "answer": "General inpatient wards welcome visitors daily from 09:00 AM to 08:30 PM. ICU and NICU schedules differ — see our Hospital Timings page for full details." },
+    { "category": "Appointments", "question": "How do I book an appointment?", "answer": "You can book online through Find a Doctor, call our patient access desk at +1 (800) 432-5490, or visit the outpatient reception in person." },
+    { "category": "Appointments", "question": "Can I reschedule or cancel online?", "answer": "Yes. Use Track Appointment with your booking reference, or manage bookings from My Appointments in the patient portal." },
+    { "category": "Billing & Insurance", "question": "Do you offer cashless treatment?", "answer": "Cashless facilities are available for most partner insurers and TPAs, subject to pre-authorization. Our insurance desk will assist you at admission." },
+    { "category": "Billing & Insurance", "question": "Can I get a cost estimate before a procedure?", "answer": "Yes. Contact our billing team with your planned procedure and insurance details, and we will provide a written estimate within two business days." },
+    { "category": "Patient Portal", "question": "How do I access my lab reports online?", "answer": "Register or sign in to the patient portal. Reports are released to your account once they have been reviewed and finalised by a physician." },
+    { "category": "Patient Portal", "question": "I forgot my portal password. What should I do?", "answer": "Use the Forgot Password link on the sign-in page. A secure, time-limited reset link will be issued to your registered email address." },
+    { "category": "Medical Records", "question": "How can I request a copy of my medical records?", "answer": "Submit a request through Contact Us selecting 'Medical Records', or visit the Health Information Management desk on the ground floor with photo ID." },
+    { "category": "Medical Records", "question": "How long are medical records retained?", "answer": "Records are retained in accordance with applicable state and federal regulations, typically for a minimum of ten years after the last encounter." },
+    { "category": "Emergency", "question": "Is the Emergency Department open 24/7?", "answer": "Yes. Our Level I Trauma Center and Emergency Department are open 24 hours a day, 365 days a year. Call +1 (800) 911-4325 or your local emergency number." },
+    { "category": "Emergency", "question": "Do I need an appointment for emergency care?", "answer": "No. Emergency patients are seen based on clinical urgency. Online booking should never be used for urgent or life-threatening symptoms." }
+  ],
+  "jobs": [
+    {
+      "slug": "registered-nurse-cardiac-icu",
+      "title": "Registered Nurse — Cardiac ICU",
+      "department": "Nursing",
+      "location": "Boston, MA (On-site)",
+      "employment_type": "Full-time",
+      "experience": "2+ years critical care",
+      "posted_date": "2026-11-18",
+      "summary": "Provide expert, compassionate nursing care to post-surgical and critically ill cardiac patients in our 28-bed Cardiac ICU.",
+      "responsibilities": ["Deliver evidence-based critical care nursing to cardiac patients.", "Monitor hemodynamics and manage advanced cardiac devices.", "Collaborate with intensivists, cardiologists, and surgeons on care plans.", "Educate patients and families on recovery and discharge."],
+      "requirements": ["Active RN license (Massachusetts or compact).", "BLS and ACLS certification; CCRN preferred.", "Minimum two years of ICU experience.", "Strong communication and teamwork skills."]
+    },
+    {
+      "slug": "consultant-interventional-radiologist",
+      "title": "Consultant Interventional Radiologist",
+      "department": "Radiology & Imaging",
+      "location": "Boston, MA (On-site)",
+      "employment_type": "Full-time",
+      "experience": "Board certified, 3+ years",
+      "posted_date": "2026-11-05",
+      "summary": "Join our imaging core to perform image-guided procedures and support multidisciplinary oncology and vascular programmes.",
+      "responsibilities": ["Perform vascular and non-vascular interventional procedures.", "Participate in tumor boards and multidisciplinary conferences.", "Supervise and mentor radiology fellows.", "Contribute to quality and safety initiatives."],
+      "requirements": ["MD/DO with board certification in Diagnostic & Interventional Radiology.", "Eligible for Massachusetts medical license.", "Fellowship training in interventional radiology."]
+    },
+    {
+      "slug": "clinical-pharmacist",
+      "title": "Clinical Pharmacist",
+      "department": "Pharmacy",
+      "location": "Boston, MA (On-site, rotating shifts)",
+      "employment_type": "Full-time",
+      "experience": "1+ years hospital pharmacy",
+      "posted_date": "2026-10-29",
+      "summary": "Support safe, effective medication use across inpatient units and our 24/7 clinical pharmacy.",
+      "responsibilities": ["Verify medication orders and perform interaction checks.", "Round with clinical teams and provide drug therapy recommendations.", "Counsel patients at discharge.", "Support antimicrobial stewardship programmes."],
+      "requirements": ["PharmD degree and active pharmacist license.", "Hospital or residency experience preferred.", "Excellent attention to detail."]
+    },
+    {
+      "slug": "patient-experience-coordinator",
+      "title": "Patient Experience Coordinator",
+      "department": "Patient Services",
+      "location": "Boston, MA (Hybrid)",
+      "employment_type": "Full-time",
+      "experience": "2+ years customer or patient services",
+      "posted_date": "2026-10-20",
+      "summary": "Champion patient voice by managing feedback, resolving concerns, and partnering with departments on service improvements.",
+      "responsibilities": ["Review and respond to patient feedback and concerns.", "Coordinate service-recovery actions with clinical teams.", "Analyse feedback trends and report insights.", "Support patient rights and advocacy initiatives."],
+      "requirements": ["Bachelor's degree in healthcare administration or related field.", "Exceptional interpersonal and written communication.", "Experience with CRM or feedback systems preferred."]
+    },
+    {
+      "slug": "physiotherapist-orthopedic-rehab",
+      "title": "Physiotherapist — Orthopedic Rehabilitation",
+      "department": "Rehabilitation",
+      "location": "Boston, MA (On-site)",
+      "employment_type": "Part-time",
+      "experience": "1+ years musculoskeletal",
+      "posted_date": "2026-10-08",
+      "summary": "Guide joint-replacement and sports-injury patients through personalised recovery programmes in our hydrotherapy pavilion.",
+      "responsibilities": ["Assess patients and design individual rehabilitation plans.", "Deliver hydrotherapy and gait training sessions.", "Track outcomes and communicate progress with surgeons."],
+      "requirements": ["DPT or equivalent and active PT license.", "Orthopedic or sports rehabilitation experience.", "Aquatic therapy experience is an advantage."]
+    }
+  ]
+}
