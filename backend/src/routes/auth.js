@@ -35,10 +35,111 @@ async function ensureOtpTable() {
   }
 }
 
-// 1. Patient Registration
+// 0. Pre-Registration Validation & OTP Dispatch (Workflow B, Step 3 & 4)
+router.post(
+  '/register/send-otp',
+  asyncHandler(async (req, res) => {
+    await ensureOtpTable();
+    const {
+      full_name,
+      email,
+      phone,
+      date_of_birth,
+      password,
+      confirm_password,
+      consent_privacy_terms,
+    } = req.body || {};
+
+    // 1. Validate required fields
+    if (!full_name?.trim() || !email?.trim() || !phone?.trim() || !password) {
+      return res.status(400).json({
+        error: 'Full legal name, email address, mobile number, and password are required.',
+      });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({
+        error: 'Password must be at least 8 characters long.',
+      });
+    }
+
+    if (confirm_password && password !== confirm_password) {
+      return res.status(400).json({
+        error: 'Passwords do not match.',
+      });
+    }
+
+    if (consent_privacy_terms !== true && consent_privacy_terms !== 'true') {
+      return res.status(400).json({
+        error: 'Consent to the Healix Health Information Privacy Policy and Patient Rights is required to register.',
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = phone.trim();
+
+    // 2. Check duplicate email
+    const emailCheck = await query('SELECT id FROM patient_accounts WHERE LOWER(email) = $1', [
+      normalizedEmail,
+    ]);
+    if (emailCheck.rows.length > 0) {
+      return res.status(409).json({
+        error: 'An account with this email address is already registered. Please sign in or recover your password.',
+      });
+    }
+
+    // 3. Check duplicate mobile number
+    const phoneCheck = await query(
+      'SELECT id FROM patient_accounts WHERE phone = $1 AND phone <> \'\'',
+      [normalizedPhone]
+    );
+    if (phoneCheck.rows.length > 0) {
+      return res.status(409).json({
+        error: 'An account with this mobile number is already registered. Please sign in or use mobile OTP.',
+      });
+    }
+
+    // 4. Check potential duplicate demographic record (matching Full Name + Date of Birth)
+    if (date_of_birth && full_name) {
+      const demographicCheck = await query(
+        `SELECT id, mrn FROM patient_accounts
+         WHERE LOWER(full_name) = LOWER($1) AND date_of_birth = $2::date`,
+        [full_name.trim(), date_of_birth]
+      );
+      if (demographicCheck.rows.length > 0) {
+        return res.status(409).json({
+          error:
+            'A medical patient record with identical full name and date of birth is already registered. Please sign in or contact patient administration to link your medical records.',
+        });
+      }
+    }
+
+    // 5. Generate and store OTP code (valid for 10 minutes)
+    const code = crypto.randomInt(100000, 999999).toString();
+    const targetIdentifier = normalizedPhone;
+
+    await query('UPDATE patient_otp_verifications SET used = TRUE WHERE identifier = $1', [targetIdentifier]);
+    await query(
+      `INSERT INTO patient_otp_verifications (identifier, otp_code, expires_at)
+       VALUES ($1, $2, NOW() + INTERVAL '10 minutes')`,
+      [targetIdentifier, code]
+    );
+
+    res.json({
+      data: {
+        message: `A 6-digit verification code has been dispatched to ${normalizedPhone}.`,
+        target: normalizedPhone,
+        demo_otp: code,
+      },
+    });
+  })
+);
+
+// 1. Patient Registration (Workflow B, Steps 5 & 6)
 router.post(
   '/register',
   asyncHandler(async (req, res) => {
+    await ensureOtpTable();
     const {
       full_name,
       email,
@@ -49,6 +150,7 @@ router.post(
       gender = '',
       address = '',
       consent_privacy_terms = false,
+      otp_code = '',
       // Note: any client-supplied role or mrn is strictly ignored and discarded server-side
     } = req.body || {};
 
@@ -79,6 +181,26 @@ router.post(
 
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedPhone = phone.trim();
+
+    // Verify OTP code if supplied
+    if (otp_code?.trim()) {
+      const code = otp_code.trim();
+      const otpRes = await query(
+        `SELECT * FROM patient_otp_verifications
+         WHERE (identifier = $1 OR identifier = $2) AND otp_code = $3 AND used = FALSE AND expires_at > NOW()
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [normalizedPhone, normalizedEmail, code]
+      );
+
+      if (otpRes.rows.length === 0) {
+        return res.status(400).json({
+          error: 'Invalid or expired verification code. Please check your code or request a new one.',
+        });
+      }
+
+      await query('UPDATE patient_otp_verifications SET used = TRUE WHERE id = $1', [otpRes.rows[0].id]);
+    }
 
     // Check duplicate email
     const emailCheck = await query('SELECT id FROM patient_accounts WHERE LOWER(email) = $1', [
@@ -118,7 +240,7 @@ router.post(
       }
     }
 
-    // Server-side assignment of patient identity & credentials
+    // Server-side assignment of patient identity & credentials (MRN)
     const mrn = generateMrn();
     const passwordHash = hashPassword(password);
 
