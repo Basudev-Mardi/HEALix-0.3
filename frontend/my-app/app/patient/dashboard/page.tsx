@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -78,8 +78,8 @@ export default function PatientDashboardPage() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-[#e6e4dd] bg-white p-12 text-center text-sm text-[#768086]">
-        <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-[#0f5c5c] border-t-transparent mb-3" />
+      <div className="rounded-2xl border border-[#E5E8E6] bg-white p-12 text-center text-sm text-[#77817C]">
+        <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-[#174C40] border-t-transparent mb-3" />
         <p>Loading your health overview...</p>
       </div>
     );
@@ -109,21 +109,21 @@ export default function PatientDashboardPage() {
   return (
     <div className="space-y-8">
       {/* 1. Welcome Message & Identification Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#e6e4dd] pb-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#E5E8E6] pb-6">
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#edf5f4] text-[#0f5c5c] font-mono text-xs font-semibold">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E6EFE9] text-[#174C40] font-mono text-xs font-semibold">
               <ShieldCheck className="h-3.5 w-3.5" />
               MRN: {patient.mrn}
             </span>
-            <span className="text-xs text-[#768086] hidden sm:inline">
+            <span className="text-xs text-[#77817C] hidden sm:inline">
               Verified Healthcare Profile
             </span>
           </div>
-          <h1 className="font-editorial text-3xl sm:text-4xl text-[#14181a] mt-2">
+          <h1 className="font-editorial text-3xl sm:text-4xl text-[#242A28] mt-2">
             Welcome back, {firstName}
           </h1>
-          <p className="text-sm text-[#768086] mt-1">
+          <p className="text-sm text-[#77817C] mt-1">
             Access your authorized medical records, upcoming consultations, test results, and prescriptions.
           </p>
         </div>
@@ -131,31 +131,31 @@ export default function PatientDashboardPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/appointments/doctors"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#14181a] text-white text-xs font-medium hover:bg-[#0f5c5c] transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#242A28] text-white text-xs font-medium hover:bg-[#174C40] transition-colors"
           >
             <Plus className="h-3.5 w-3.5" />
             Book Consultation
           </Link>
           <Link
             href="/patient/profile"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-[#d2d0c8] bg-white text-[#14181a] text-xs font-medium hover:border-[#0f5c5c] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-[#d2d0c8] bg-white text-[#242A28] text-xs font-medium hover:border-[#174C40] transition-colors"
           >
-            <UserRound className="h-3.5 w-3.5 text-[#0f5c5c]" />
+            <UserRound className="h-3.5 w-3.5 text-[#174C40]" />
             My Profile
           </Link>
         </div>
       </div>
 
       {/* 2. Patient Profile Summary Card */}
-      <div className="rounded-2xl border border-[#e6e4dd] bg-white p-5 sm:p-6 shadow-xs">
-        <div className="flex items-center justify-between border-b border-[#e6e4dd] pb-3 mb-4">
+      <div className="rounded-2xl border border-[#E5E8E6] bg-white p-5 sm:p-6 shadow-xs">
+        <div className="flex items-center justify-between border-b border-[#E5E8E6] pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <UserRound className="h-4 w-4 text-[#0f5c5c]" />
-            <h2 className="font-editorial text-lg text-[#14181a]">Patient Profile Summary</h2>
+            <UserRound className="h-4 w-4 text-[#174C40]" />
+            <h2 className="font-editorial text-lg text-[#242A28]">Patient Profile Summary</h2>
           </div>
           <Link
             href="/patient/profile"
-            className="text-xs font-medium text-[#0f5c5c] hover:underline inline-flex items-center gap-1"
+            className="text-xs font-medium text-[#174C40] hover:underline inline-flex items-center gap-1"
           >
             Edit Demographics
             <ArrowUpRight className="h-3 w-3" />
@@ -164,36 +164,36 @@ export default function PatientDashboardPage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-xs">
           <div className="space-y-1">
-            <span className="text-[#768086] uppercase tracking-wider text-[10px] font-mono">Patient Name</span>
-            <p className="font-semibold text-[#14181a] truncate">{patient.full_name}</p>
+            <span className="text-[#77817C] uppercase tracking-wider text-[10px] font-mono">Patient Name</span>
+            <p className="font-semibold text-[#242A28] truncate">{patient.full_name}</p>
           </div>
           <div className="space-y-1">
-            <span className="text-[#768086] uppercase tracking-wider text-[10px] font-mono">MRN (ID Number)</span>
-            <p className="font-mono font-bold text-[#0f5c5c]">{patient.mrn}</p>
+            <span className="text-[#77817C] uppercase tracking-wider text-[10px] font-mono">MRN (ID Number)</span>
+            <p className="font-mono font-bold text-[#174C40]">{patient.mrn}</p>
           </div>
           <div className="space-y-1">
-            <span className="text-[#768086] uppercase tracking-wider text-[10px] font-mono">Blood Group</span>
-            <p className="font-semibold text-[#14181a]">{patient.blood_group || 'Not recorded'}</p>
+            <span className="text-[#77817C] uppercase tracking-wider text-[10px] font-mono">Blood Group</span>
+            <p className="font-semibold text-[#242A28]">{patient.blood_group || 'Not recorded'}</p>
           </div>
           <div className="space-y-1">
-            <span className="text-[#768086] uppercase tracking-wider text-[10px] font-mono">Age / DOB</span>
-            <p className="font-semibold text-[#14181a]">
+            <span className="text-[#77817C] uppercase tracking-wider text-[10px] font-mono">Age / DOB</span>
+            <p className="font-semibold text-[#242A28]">
               {calculateAge(patient.date_of_birth)}
-              {patient.date_of_birth && <span className="text-[#768086] font-normal text-[11px] block">{patient.date_of_birth}</span>}
+              {patient.date_of_birth && <span className="text-[#77817C] font-normal text-[11px] block">{patient.date_of_birth}</span>}
             </p>
           </div>
           <div className="space-y-1">
-            <span className="text-[#768086] uppercase tracking-wider text-[10px] font-mono">Emergency Contact</span>
-            <p className="font-semibold text-[#14181a] truncate">{patient.emergency_contact_name || 'None listed'}</p>
+            <span className="text-[#77817C] uppercase tracking-wider text-[10px] font-mono">Emergency Contact</span>
+            <p className="font-semibold text-[#242A28] truncate">{patient.emergency_contact_name || 'None listed'}</p>
             {patient.emergency_contact_phone && (
-              <p className="text-[11px] text-[#768086] font-mono">{patient.emergency_contact_phone}</p>
+              <p className="text-[11px] text-[#77817C] font-mono">{patient.emergency_contact_phone}</p>
             )}
           </div>
           <div className="space-y-1">
-            <span className="text-[#768086] uppercase tracking-wider text-[10px] font-mono">Primary Insurance</span>
-            <p className="font-semibold text-[#14181a] truncate">{patient.insurance_provider || 'Self-Pay'}</p>
+            <span className="text-[#77817C] uppercase tracking-wider text-[10px] font-mono">Primary Insurance</span>
+            <p className="font-semibold text-[#242A28] truncate">{patient.insurance_provider || 'Self-Pay'}</p>
             {patient.insurance_policy_no && (
-              <p className="text-[11px] text-[#768086] font-mono truncate">#{patient.insurance_policy_no}</p>
+              <p className="text-[11px] text-[#77817C] font-mono truncate">#{patient.insurance_policy_no}</p>
             )}
           </div>
         </div>
@@ -201,134 +201,134 @@ export default function PatientDashboardPage() {
 
       {/* 3. Quick Actions Matrix */}
       <div className="space-y-2">
-        <h3 className="text-xs font-mono uppercase tracking-[0.14em] text-[#768086]">Quick Actions</h3>
+        <h3 className="text-xs font-mono uppercase tracking-[0.14em] text-[#77817C]">Quick Actions</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <Link
             href="/appointments/doctors"
-            className="group flex flex-col items-center justify-center p-3.5 rounded-xl border border-[#e6e4dd] bg-white hover:border-[#0f5c5c] hover:bg-[#edf5f4]/40 transition-all text-center"
+            className="group flex flex-col items-center justify-center p-3.5 rounded-xl border border-[#E5E8E6] bg-white hover:border-[#174C40] hover:bg-[#E6EFE9]/40 transition-all text-center"
           >
-            <div className="h-9 w-9 rounded-full bg-[#edf5f4] text-[#0f5c5c] flex items-center justify-center group-hover:scale-110 transition-transform mb-2">
+            <div className="h-9 w-9 rounded-full bg-[#E6EFE9] text-[#174C40] flex items-center justify-center group-hover:scale-110 transition-transform mb-2">
               <Plus className="h-4 w-4" />
             </div>
-            <span className="text-xs font-medium text-[#14181a]">Book Consultation</span>
+            <span className="text-xs font-medium text-[#242A28]">Book Consultation</span>
           </Link>
 
           <Link
             href="/patient/prescriptions"
-            className="group flex flex-col items-center justify-center p-3.5 rounded-xl border border-[#e6e4dd] bg-white hover:border-[#0f5c5c] hover:bg-[#edf5f4]/40 transition-all text-center"
+            className="group flex flex-col items-center justify-center p-3.5 rounded-xl border border-[#E5E8E6] bg-white hover:border-[#174C40] hover:bg-[#E6EFE9]/40 transition-all text-center"
           >
-            <div className="h-9 w-9 rounded-full bg-[#edf5f4] text-[#0f5c5c] flex items-center justify-center group-hover:scale-110 transition-transform mb-2">
+            <div className="h-9 w-9 rounded-full bg-[#E6EFE9] text-[#174C40] flex items-center justify-center group-hover:scale-110 transition-transform mb-2">
               <Pill className="h-4 w-4" />
             </div>
-            <span className="text-xs font-medium text-[#14181a]">Prescriptions</span>
+            <span className="text-xs font-medium text-[#242A28]">Prescriptions</span>
           </Link>
 
           <Link
             href="/patient/lab-reports"
-            className="group flex flex-col items-center justify-center p-3.5 rounded-xl border border-[#e6e4dd] bg-white hover:border-[#0f5c5c] hover:bg-[#edf5f4]/40 transition-all text-center"
+            className="group flex flex-col items-center justify-center p-3.5 rounded-xl border border-[#E5E8E6] bg-white hover:border-[#174C40] hover:bg-[#E6EFE9]/40 transition-all text-center"
           >
-            <div className="h-9 w-9 rounded-full bg-[#edf5f4] text-[#0f5c5c] flex items-center justify-center group-hover:scale-110 transition-transform mb-2">
+            <div className="h-9 w-9 rounded-full bg-[#E6EFE9] text-[#174C40] flex items-center justify-center group-hover:scale-110 transition-transform mb-2">
               <FlaskConical className="h-4 w-4" />
             </div>
-            <span className="text-xs font-medium text-[#14181a]">Lab Results</span>
+            <span className="text-xs font-medium text-[#242A28]">Lab Results</span>
           </Link>
 
           <Link
             href="/patient/radiology-reports"
-            className="group flex flex-col items-center justify-center p-3.5 rounded-xl border border-[#e6e4dd] bg-white hover:border-[#0f5c5c] hover:bg-[#edf5f4]/40 transition-all text-center"
+            className="group flex flex-col items-center justify-center p-3.5 rounded-xl border border-[#E5E8E6] bg-white hover:border-[#174C40] hover:bg-[#E6EFE9]/40 transition-all text-center"
           >
-            <div className="h-9 w-9 rounded-full bg-[#edf5f4] text-[#0f5c5c] flex items-center justify-center group-hover:scale-110 transition-transform mb-2">
+            <div className="h-9 w-9 rounded-full bg-[#E6EFE9] text-[#174C40] flex items-center justify-center group-hover:scale-110 transition-transform mb-2">
               <ScanLine className="h-4 w-4" />
             </div>
-            <span className="text-xs font-medium text-[#14181a]">Radiology Imaging</span>
+            <span className="text-xs font-medium text-[#242A28]">Radiology Imaging</span>
           </Link>
 
           <Link
             href="/patient/billing"
-            className="group flex flex-col items-center justify-center p-3.5 rounded-xl border border-[#e6e4dd] bg-white hover:border-[#0f5c5c] hover:bg-[#edf5f4]/40 transition-all text-center"
+            className="group flex flex-col items-center justify-center p-3.5 rounded-xl border border-[#E5E8E6] bg-white hover:border-[#174C40] hover:bg-[#E6EFE9]/40 transition-all text-center"
           >
-            <div className="h-9 w-9 rounded-full bg-[#edf5f4] text-[#0f5c5c] flex items-center justify-center group-hover:scale-110 transition-transform mb-2">
+            <div className="h-9 w-9 rounded-full bg-[#E6EFE9] text-[#174C40] flex items-center justify-center group-hover:scale-110 transition-transform mb-2">
               <CreditCard className="h-4 w-4" />
             </div>
-            <span className="text-xs font-medium text-[#14181a]">Pay Invoices</span>
+            <span className="text-xs font-medium text-[#242A28]">Pay Invoices</span>
           </Link>
 
           <Link
             href="/patient/medical-history"
-            className="group flex flex-col items-center justify-center p-3.5 rounded-xl border border-[#e6e4dd] bg-white hover:border-[#0f5c5c] hover:bg-[#edf5f4]/40 transition-all text-center"
+            className="group flex flex-col items-center justify-center p-3.5 rounded-xl border border-[#E5E8E6] bg-white hover:border-[#174C40] hover:bg-[#E6EFE9]/40 transition-all text-center"
           >
-            <div className="h-9 w-9 rounded-full bg-[#edf5f4] text-[#0f5c5c] flex items-center justify-center group-hover:scale-110 transition-transform mb-2">
+            <div className="h-9 w-9 rounded-full bg-[#E6EFE9] text-[#174C40] flex items-center justify-center group-hover:scale-110 transition-transform mb-2">
               <FileHeart className="h-4 w-4" />
             </div>
-            <span className="text-xs font-medium text-[#14181a]">Medical History</span>
+            <span className="text-xs font-medium text-[#242A28]">Medical History</span>
           </Link>
         </div>
       </div>
 
       {/* 4. Key Health Statistics Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <Link href="/patient/appointments" className="card-minimal rounded-2xl p-5 space-y-2 hover:border-[#0f5c5c] transition-colors">
+        <Link href="/patient/appointments" className="card-minimal rounded-2xl p-5 space-y-2 hover:border-[#174C40] transition-colors">
           <div className="flex items-center justify-between">
-            <CalendarDays className="h-4 w-4 text-[#0f5c5c]" />
-            <span className="text-[10px] font-mono text-[#768086]">Active</span>
+            <CalendarDays className="h-4 w-4 text-[#174C40]" />
+            <span className="text-[10px] font-mono text-[#77817C]">Active</span>
           </div>
-          <p className="font-editorial text-3xl text-[#14181a]">
+          <p className="font-editorial text-3xl text-[#242A28]">
             {stats.upcoming_appointments}
           </p>
-          <p className="text-xs text-[#768086]">Upcoming Visits</p>
+          <p className="text-xs text-[#77817C]">Upcoming Visits</p>
         </Link>
 
-        <Link href="/patient/prescriptions" className="card-minimal rounded-2xl p-5 space-y-2 hover:border-[#0f5c5c] transition-colors">
+        <Link href="/patient/prescriptions" className="card-minimal rounded-2xl p-5 space-y-2 hover:border-[#174C40] transition-colors">
           <div className="flex items-center justify-between">
-            <Pill className="h-4 w-4 text-[#0f5c5c]" />
-            <span className="text-[10px] font-mono text-[#768086]">Active</span>
+            <Pill className="h-4 w-4 text-[#174C40]" />
+            <span className="text-[10px] font-mono text-[#77817C]">Active</span>
           </div>
-          <p className="font-editorial text-3xl text-[#14181a]">
+          <p className="font-editorial text-3xl text-[#242A28]">
             {stats.active_prescriptions}
           </p>
-          <p className="text-xs text-[#768086]">Active Prescriptions</p>
+          <p className="text-xs text-[#77817C]">Active Prescriptions</p>
         </Link>
 
-        <Link href="/patient/lab-reports" className="card-minimal rounded-2xl p-5 space-y-2 hover:border-[#0f5c5c] transition-colors">
+        <Link href="/patient/lab-reports" className="card-minimal rounded-2xl p-5 space-y-2 hover:border-[#174C40] transition-colors">
           <div className="flex items-center justify-between">
-            <FlaskConical className="h-4 w-4 text-[#0f5c5c]" />
-            <span className="text-[10px] font-mono text-[#0f5c5c]">Released</span>
+            <FlaskConical className="h-4 w-4 text-[#174C40]" />
+            <span className="text-[10px] font-mono text-[#174C40]">Released</span>
           </div>
-          <p className="font-editorial text-3xl text-[#14181a]">{stats.lab_reports_count}</p>
-          <p className="text-xs text-[#768086]">Released Lab Reports</p>
+          <p className="font-editorial text-3xl text-[#242A28]">{stats.lab_reports_count}</p>
+          <p className="text-xs text-[#77817C]">Released Lab Reports</p>
         </Link>
 
-        <Link href="/patient/radiology-reports" className="card-minimal rounded-2xl p-5 space-y-2 hover:border-[#0f5c5c] transition-colors">
+        <Link href="/patient/radiology-reports" className="card-minimal rounded-2xl p-5 space-y-2 hover:border-[#174C40] transition-colors">
           <div className="flex items-center justify-between">
-            <ScanLine className="h-4 w-4 text-[#0f5c5c]" />
-            <span className="text-[10px] font-mono text-[#0f5c5c]">Released</span>
+            <ScanLine className="h-4 w-4 text-[#174C40]" />
+            <span className="text-[10px] font-mono text-[#174C40]">Released</span>
           </div>
-          <p className="font-editorial text-3xl text-[#14181a]">{stats.radiology_reports_count ?? 0}</p>
-          <p className="text-xs text-[#768086]">Radiology Studies</p>
+          <p className="font-editorial text-3xl text-[#242A28]">{stats.radiology_reports_count ?? 0}</p>
+          <p className="text-xs text-[#77817C]">Radiology Studies</p>
         </Link>
 
-        <Link href="/patient/billing" className="card-minimal rounded-2xl p-5 space-y-2 hover:border-[#0f5c5c] transition-colors col-span-2 sm:col-span-1">
+        <Link href="/patient/billing" className="card-minimal rounded-2xl p-5 space-y-2 hover:border-[#174C40] transition-colors col-span-2 sm:col-span-1">
           <div className="flex items-center justify-between">
-            <CreditCard className="h-4 w-4 text-[#0f5c5c]" />
+            <CreditCard className="h-4 w-4 text-[#174C40]" />
             <span className="text-[10px] font-mono text-amber-700">Due</span>
           </div>
-          <p className="font-editorial text-3xl text-[#14181a]">
+          <p className="font-editorial text-3xl text-[#242A28]">
             ${Number(stats.balance_due || 0).toFixed(2)}
           </p>
-          <p className="text-xs text-[#768086]">Pending Balance</p>
+          <p className="text-xs text-[#77817C]">Pending Balance</p>
         </Link>
       </div>
 
       {/* 5. Upcoming Appointment Highlight Card */}
-      <div className="rounded-2xl border border-[#e6e4dd] bg-white p-6 sm:p-7 space-y-5">
+      <div className="rounded-2xl border border-[#E5E8E6] bg-white p-6 sm:p-7 space-y-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CalendarDays className="h-5 w-5 text-[#0f5c5c]" />
-            <h2 className="font-editorial text-2xl text-[#14181a]">Upcoming Consultation</h2>
+            <CalendarDays className="h-5 w-5 text-[#174C40]" />
+            <h2 className="font-editorial text-2xl text-[#242A28]">Upcoming Consultation</h2>
           </div>
           <Link
             href="/patient/appointments"
-            className="text-xs font-medium text-[#0f5c5c] hover:underline inline-flex items-center gap-1"
+            className="text-xs font-medium text-[#174C40] hover:underline inline-flex items-center gap-1"
           >
             Manage appointments
             <ArrowUpRight className="h-3.5 w-3.5" />
@@ -336,22 +336,22 @@ export default function PatientDashboardPage() {
         </div>
 
         {!nextAppt ? (
-          <div className="rounded-xl border border-dashed border-[#d2d0c8] bg-[#faf9f6] p-8 text-center space-y-3">
-            <CalendarDays className="h-8 w-8 text-[#768086] mx-auto opacity-60" />
-            <p className="text-sm font-medium text-[#14181a]">No upcoming consultations scheduled</p>
-            <p className="text-xs text-[#768086] max-w-md mx-auto">
+          <div className="rounded-xl border border-dashed border-[#d2d0c8] bg-[#FAFAF7] p-8 text-center space-y-3">
+            <CalendarDays className="h-8 w-8 text-[#77817C] mx-auto opacity-60" />
+            <p className="text-sm font-medium text-[#242A28]">No upcoming consultations scheduled</p>
+            <p className="text-xs text-[#77817C] max-w-md mx-auto">
               Schedule an in-person OPD consultation or follow-up with our verified specialists.
             </p>
             <Link
               href="/appointments/doctors"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0f5c5c] text-white text-xs font-medium hover:bg-[#0a4242] transition-colors mt-2"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#174C40] text-white text-xs font-medium hover:bg-[#0a4242] transition-colors mt-2"
             >
               <Plus className="h-3 w-3" />
               Book New Appointment
             </Link>
           </div>
         ) : (
-          <div className="rounded-xl border border-[#0f5c5c]/30 bg-[#edf5f4]/30 p-5 space-y-4">
+          <div className="rounded-xl border border-[#174C40]/30 bg-[#E6EFE9]/30 p-5 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
                 <DoctorAvatar
@@ -361,41 +361,41 @@ export default function PatientDashboardPage() {
                 />
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-base font-semibold text-[#14181a]">{nextAppt.doctor_name}</p>
+                    <p className="text-base font-semibold text-[#242A28]">{nextAppt.doctor_name}</p>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-100 text-emerald-800">
                       Confirmed
                     </span>
                   </div>
-                  <p className="text-xs text-[#4b555b] mt-0.5">
+                  <p className="text-xs text-[#4A5350] mt-0.5">
                     {nextAppt.doctor_specialty || nextAppt.department_name} · {nextAppt.visit_type}
                   </p>
                 </div>
               </div>
 
-              <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-3 sm:pt-0 border-[#e6e4dd]">
-                <div className="flex items-center gap-1.5 text-xs font-mono font-medium text-[#14181a]">
-                  <Clock className="h-3.5 w-3.5 text-[#0f5c5c]" />
+              <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-3 sm:pt-0 border-[#E5E8E6]">
+                <div className="flex items-center gap-1.5 text-xs font-mono font-medium text-[#242A28]">
+                  <Clock className="h-3.5 w-3.5 text-[#174C40]" />
                   <span>{nextAppt.appointment_date} · {nextAppt.time_slot}</span>
                 </div>
-                <p className="font-mono text-[11px] text-[#0f5c5c] mt-0.5">
+                <p className="font-mono text-[11px] text-[#174C40] mt-0.5">
                   Ref: {nextAppt.booking_reference}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#d2d0c8]/60 text-xs text-[#4b555b]">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#d2d0c8]/60 text-xs text-[#4A5350]">
               <div className="flex items-center gap-2">
-                <MapPin className="h-3.5 w-3.5 text-[#768086]" />
+                <MapPin className="h-3.5 w-3.5 text-[#77817C]" />
                 <span>{nextAppt.floor_location || 'Main Hospital Campus'}</span>
                 {nextAppt.reason_for_visit && (
-                  <span className="text-[#768086] truncate max-w-xs">
+                  <span className="text-[#77817C] truncate max-w-xs">
                     · Reason: {nextAppt.reason_for_visit}
                   </span>
                 )}
               </div>
               <Link
                 href={`/patient/appointments/${nextAppt.id ?? nextAppt.booking_reference}`}
-                className="text-xs font-medium text-[#0f5c5c] hover:underline inline-flex items-center gap-1"
+                className="text-xs font-medium text-[#174C40] hover:underline inline-flex items-center gap-1"
               >
                 View appointment details
                 <ArrowRight className="h-3 w-3" />
@@ -406,15 +406,15 @@ export default function PatientDashboardPage() {
       </div>
 
       {/* 6. Recent Appointment History */}
-      <div className="rounded-2xl border border-[#e6e4dd] bg-white p-6 sm:p-7 space-y-4">
+      <div className="rounded-2xl border border-[#E5E8E6] bg-white p-6 sm:p-7 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <History className="h-4 w-4 text-[#0f5c5c]" />
-            <h2 className="font-editorial text-xl text-[#14181a]">Recent Appointment History</h2>
+            <History className="h-4 w-4 text-[#174C40]" />
+            <h2 className="font-editorial text-xl text-[#242A28]">Recent Appointment History</h2>
           </div>
           <Link
             href="/patient/appointments"
-            className="text-xs font-medium text-[#0f5c5c] hover:underline inline-flex items-center gap-1"
+            className="text-xs font-medium text-[#174C40] hover:underline inline-flex items-center gap-1"
           >
             Full history
             <ArrowUpRight className="h-3 w-3" />
@@ -422,13 +422,13 @@ export default function PatientDashboardPage() {
         </div>
 
         {historyList.length === 0 ? (
-          <p className="text-xs text-[#768086] py-2">No prior consultations recorded on your file.</p>
+          <p className="text-xs text-[#77817C] py-2">No prior consultations recorded on your file.</p>
         ) : (
           <div className="space-y-2.5">
             {historyList.map((appt) => (
               <div
                 key={appt.booking_reference}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-xl border border-[#e6e4dd] hover:bg-[#faf9f6] transition-colors text-xs"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-xl border border-[#E5E8E6] hover:bg-[#FAFAF7] transition-colors text-xs"
               >
                 <div className="flex items-center gap-3">
                   <DoctorAvatar
@@ -437,16 +437,16 @@ export default function PatientDashboardPage() {
                     size="sm"
                   />
                   <div>
-                    <p className="font-semibold text-[#14181a]">{appt.doctor_name}</p>
-                    <p className="text-[#768086] text-[11px]">
+                    <p className="font-semibold text-[#242A28]">{appt.doctor_name}</p>
+                    <p className="text-[#77817C] text-[11px]">
                       {appt.department_name} · {appt.visit_type}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center justify-between sm:justify-end gap-3 text-right">
                   <div>
-                    <p className="font-mono text-[#14181a]">{appt.appointment_date}</p>
-                    <span className="font-mono text-[10px] text-[#768086]">{appt.booking_reference}</span>
+                    <p className="font-mono text-[#242A28]">{appt.appointment_date}</p>
+                    <span className="font-mono text-[10px] text-[#77817C]">{appt.booking_reference}</span>
                   </div>
                   <span
                     className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
@@ -469,36 +469,36 @@ export default function PatientDashboardPage() {
       {/* 7 & 8: Active Prescriptions & Released Lab Reports */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Active Prescriptions */}
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-6 space-y-4">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Pill className="h-4 w-4 text-[#0f5c5c]" />
-              <h2 className="font-editorial text-xl text-[#14181a]">Recent Prescriptions</h2>
+              <Pill className="h-4 w-4 text-[#174C40]" />
+              <h2 className="font-editorial text-xl text-[#242A28]">Recent Prescriptions</h2>
             </div>
-            <Link href="/patient/prescriptions" className="text-xs text-[#0f5c5c] hover:underline">
+            <Link href="/patient/prescriptions" className="text-xs text-[#174C40] hover:underline">
               View all
             </Link>
           </div>
 
           {prescriptionsList.length === 0 ? (
-            <p className="text-xs text-[#768086] py-3">No active prescriptions currently on file.</p>
+            <p className="text-xs text-[#77817C] py-3">No active prescriptions currently on file.</p>
           ) : (
             <div className="space-y-3">
               {prescriptionsList.map((rx) => (
                 <div
                   key={rx.id}
-                  className="rounded-xl border border-[#e6e4dd] p-3.5 space-y-1.5 hover:border-[#0f5c5c] transition-colors"
+                  className="rounded-xl border border-[#E5E8E6] p-3.5 space-y-1.5 hover:border-[#174C40] transition-colors"
                 >
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-[#14181a]">{rx.medication_name}</p>
+                    <p className="text-sm font-semibold text-[#242A28]">{rx.medication_name}</p>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
                       {rx.status}
                     </span>
                   </div>
-                  <p className="text-xs text-[#4b555b]">
+                  <p className="text-xs text-[#4A5350]">
                     {rx.dosage} · {rx.frequency} {rx.duration && `(${rx.duration})`}
                   </p>
-                  <div className="flex items-center justify-between text-[11px] text-[#768086] pt-1 border-t border-[#e6e4dd]">
+                  <div className="flex items-center justify-between text-[11px] text-[#77817C] pt-1 border-t border-[#E5E8E6]">
                     <span>Dr. {rx.prescribed_by}</span>
                     <span className="font-mono">Refills: {rx.refills_remaining}</span>
                   </div>
@@ -509,28 +509,28 @@ export default function PatientDashboardPage() {
         </div>
 
         {/* Released Laboratory Reports */}
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-6 space-y-4">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FlaskConical className="h-4 w-4 text-[#0f5c5c]" />
-              <h2 className="font-editorial text-xl text-[#14181a]">Latest Laboratory Reports</h2>
+              <FlaskConical className="h-4 w-4 text-[#174C40]" />
+              <h2 className="font-editorial text-xl text-[#242A28]">Latest Laboratory Reports</h2>
             </div>
-            <Link href="/patient/lab-reports" className="text-xs text-[#0f5c5c] hover:underline">
+            <Link href="/patient/lab-reports" className="text-xs text-[#174C40] hover:underline">
               View all
             </Link>
           </div>
 
           {labsList.length === 0 ? (
-            <p className="text-xs text-[#768086] py-3">No laboratory reports released yet.</p>
+            <p className="text-xs text-[#77817C] py-3">No laboratory reports released yet.</p>
           ) : (
             <div className="space-y-3">
               {labsList.map((lab) => (
                 <Link
                   key={lab.id}
                   href="/patient/lab-reports"
-                  className="block rounded-xl border border-[#e6e4dd] p-3.5 hover:border-[#0f5c5c] transition-colors space-y-1"
+                  className="block rounded-xl border border-[#E5E8E6] p-3.5 hover:border-[#174C40] transition-colors space-y-1"
                 >
-                  <div className="flex items-center justify-between text-[11px] font-mono text-[#768086]">
+                  <div className="flex items-center justify-between text-[11px] font-mono text-[#77817C]">
                     <span>{lab.report_code}</span>
                     <div className="flex items-center gap-1.5">
                       <span>{lab.collected_date}</span>
@@ -539,12 +539,12 @@ export default function PatientDashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <p className="text-sm font-semibold text-[#14181a]">{lab.test_name}</p>
+                  <p className="text-sm font-semibold text-[#242A28]">{lab.test_name}</p>
                   {lab.summary && (
-                    <p className="text-xs text-[#4b555b] line-clamp-1">{lab.summary}</p>
+                    <p className="text-xs text-[#4A5350] line-clamp-1">{lab.summary}</p>
                   )}
                   {lab.ordered_by && (
-                    <p className="text-[11px] text-[#768086]">Ordered by Dr. {lab.ordered_by}</p>
+                    <p className="text-[11px] text-[#77817C]">Ordered by Dr. {lab.ordered_by}</p>
                   )}
                 </Link>
               ))}
@@ -556,40 +556,40 @@ export default function PatientDashboardPage() {
       {/* 8 & 9: Released Radiology & Pending Bills */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Radiology Reports */}
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-6 space-y-4">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ScanLine className="h-4 w-4 text-[#0f5c5c]" />
-              <h2 className="font-editorial text-xl text-[#14181a]">Recent Radiology Reports</h2>
+              <ScanLine className="h-4 w-4 text-[#174C40]" />
+              <h2 className="font-editorial text-xl text-[#242A28]">Recent Radiology Reports</h2>
             </div>
-            <Link href="/patient/radiology-reports" className="text-xs text-[#0f5c5c] hover:underline">
+            <Link href="/patient/radiology-reports" className="text-xs text-[#174C40] hover:underline">
               View all
             </Link>
           </div>
 
           {radiologyList.length === 0 ? (
-            <p className="text-xs text-[#768086] py-3">No imaging studies released yet.</p>
+            <p className="text-xs text-[#77817C] py-3">No imaging studies released yet.</p>
           ) : (
             <div className="space-y-3">
               {radiologyList.map((rad) => (
                 <Link
                   key={rad.id}
                   href="/patient/radiology-reports"
-                  className="block rounded-xl border border-[#e6e4dd] p-3.5 hover:border-[#0f5c5c] transition-colors space-y-1.5"
+                  className="block rounded-xl border border-[#E5E8E6] p-3.5 hover:border-[#174C40] transition-colors space-y-1.5"
                 >
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-mono px-2 py-0.5 rounded bg-[#edf5f4] text-[#0f5c5c] font-semibold text-[10px]">
+                    <span className="font-mono px-2 py-0.5 rounded bg-[#E6EFE9] text-[#174C40] font-semibold text-[10px]">
                       {rad.modality}
                     </span>
-                    <span className="font-mono text-[#768086]">{rad.study_date}</span>
+                    <span className="font-mono text-[#77817C]">{rad.study_date}</span>
                   </div>
-                  <p className="text-sm font-semibold text-[#14181a]">{rad.study_name}</p>
+                  <p className="text-sm font-semibold text-[#242A28]">{rad.study_name}</p>
                   {rad.impression && (
-                    <p className="text-xs text-[#4b555b] line-clamp-1 italic">
+                    <p className="text-xs text-[#4A5350] line-clamp-1 italic">
                       &quot;{rad.impression}&quot;
                     </p>
                   )}
-                  <p className="text-[11px] text-[#768086]">
+                  <p className="text-[11px] text-[#77817C]">
                     Radiologist: Dr. {rad.radiologist_name} · Ref: {rad.study_code}
                   </p>
                 </Link>
@@ -599,21 +599,21 @@ export default function PatientDashboardPage() {
         </div>
 
         {/* Pending Bills */}
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-6 space-y-4">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-[#0f5c5c]" />
-              <h2 className="font-editorial text-xl text-[#14181a]">Pending Invoices & Bills</h2>
+              <CreditCard className="h-4 w-4 text-[#174C40]" />
+              <h2 className="font-editorial text-xl text-[#242A28]">Pending Invoices & Bills</h2>
             </div>
-            <Link href="/patient/billing" className="text-xs text-[#0f5c5c] hover:underline">
+            <Link href="/patient/billing" className="text-xs text-[#174C40] hover:underline">
               Billing statement
             </Link>
           </div>
 
           {billsList.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[#d2d0c8] p-6 text-center text-xs text-[#768086] space-y-1">
+            <div className="rounded-xl border border-dashed border-[#d2d0c8] p-6 text-center text-xs text-[#77817C] space-y-1">
               <CheckCircle2 className="h-5 w-5 text-emerald-600 mx-auto" />
-              <p className="font-medium text-[#14181a]">All accounts are settled</p>
+              <p className="font-medium text-[#242A28]">All accounts are settled</p>
               <p>You have no pending invoices or outstanding hospital charges.</p>
             </div>
           ) : (
@@ -621,17 +621,17 @@ export default function PatientDashboardPage() {
               {billsList.map((bill) => (
                 <div
                   key={bill.id}
-                  className="rounded-xl border border-[#e6e4dd] p-3.5 space-y-2 hover:border-[#0f5c5c] transition-colors"
+                  className="rounded-xl border border-[#E5E8E6] p-3.5 space-y-2 hover:border-[#174C40] transition-colors"
                 >
                   <div className="flex items-center justify-between text-xs">
                     <div>
-                      <p className="font-semibold text-[#14181a]">{bill.service_description}</p>
-                      <p className="text-[11px] text-[#768086]">
+                      <p className="font-semibold text-[#242A28]">{bill.service_description}</p>
+                      <p className="text-[11px] text-[#77817C]">
                         {bill.department_name} · Invoice #{bill.invoice_number}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-mono text-sm font-bold text-[#14181a]">
+                      <p className="font-mono text-sm font-bold text-[#242A28]">
                         ${Number(bill.patient_responsibility).toFixed(2)}
                       </p>
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-50 text-amber-800">
@@ -639,10 +639,10 @@ export default function PatientDashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="pt-2 border-t border-[#e6e4dd] flex items-center justify-end">
+                  <div className="pt-2 border-t border-[#E5E8E6] flex items-center justify-end">
                     <Link
                       href="/patient/billing"
-                      className="px-3 py-1 rounded-full bg-[#0f5c5c] text-white text-[11px] font-medium hover:bg-[#0a4242] transition-colors"
+                      className="px-3 py-1 rounded-full bg-[#174C40] text-white text-[11px] font-medium hover:bg-[#0a4242] transition-colors"
                     >
                       Pay Now
                     </Link>
@@ -655,19 +655,19 @@ export default function PatientDashboardPage() {
       </div>
 
       {/* 10. Notifications & Account Alerts */}
-      <div className="rounded-2xl border border-[#e6e4dd] bg-white p-6 sm:p-7 space-y-4">
+      <div className="rounded-2xl border border-[#E5E8E6] bg-white p-6 sm:p-7 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Bell className="h-4 w-4 text-[#0f5c5c]" />
-            <h2 className="font-editorial text-xl text-[#14181a]">Notifications & Alerts</h2>
+            <Bell className="h-4 w-4 text-[#174C40]" />
+            <h2 className="font-editorial text-xl text-[#242A28]">Notifications & Alerts</h2>
           </div>
-          <Link href="/patient/notifications" className="text-xs text-[#0f5c5c] hover:underline">
+          <Link href="/patient/notifications" className="text-xs text-[#174C40] hover:underline">
             View all alerts
           </Link>
         </div>
 
         {notifsList.length === 0 ? (
-          <p className="text-xs text-[#768086] py-2">No unread notifications at this time.</p>
+          <p className="text-xs text-[#77817C] py-2">No unread notifications at this time.</p>
         ) : (
           <div className="space-y-2.5">
             {notifsList.map((n) => (
@@ -675,26 +675,26 @@ export default function PatientDashboardPage() {
                 key={n.id}
                 className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border p-3.5 transition-colors ${
                   n.is_read
-                    ? 'border-[#e6e4dd] bg-white'
-                    : 'border-[#cde4de] bg-[#edf5f4]/50'
+                    ? 'border-[#E5E8E6] bg-white'
+                    : 'border-[#cde4de] bg-[#E6EFE9]/50'
                 }`}
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] uppercase tracking-wider text-[#0f5c5c]">
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-[#174C40]">
                       {n.category}
                     </span>
                     {!n.is_read && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#0f5c5c]" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#174C40]" />
                     )}
                   </div>
-                  <p className="text-xs font-semibold text-[#14181a] mt-0.5">{n.title}</p>
-                  <p className="text-xs text-[#4b555b] mt-0.5">{n.message}</p>
+                  <p className="text-xs font-semibold text-[#242A28] mt-0.5">{n.title}</p>
+                  <p className="text-xs text-[#4A5350] mt-0.5">{n.message}</p>
                 </div>
                 {n.action_href && (
                   <Link
                     href={n.action_href}
-                    className="text-xs font-medium text-[#0f5c5c] hover:underline self-end sm:self-auto shrink-0 inline-flex items-center gap-1"
+                    className="text-xs font-medium text-[#174C40] hover:underline self-end sm:self-auto shrink-0 inline-flex items-center gap-1"
                   >
                     Open
                     <ArrowRight className="h-3 w-3" />
@@ -707,10 +707,10 @@ export default function PatientDashboardPage() {
       </div>
 
       {/* 11. Clinical Release Disclaimer */}
-      <div className="rounded-2xl border border-[#d2d0c8] bg-[#faf9f6] p-5 sm:p-6 text-xs text-[#768086] flex flex-col sm:flex-row sm:items-center gap-4">
-        <ShieldCheck className="h-6 w-6 text-[#0f5c5c] shrink-0" />
+      <div className="rounded-2xl border border-[#d2d0c8] bg-[#FAFAF7] p-5 sm:p-6 text-xs text-[#77817C] flex flex-col sm:flex-row sm:items-center gap-4">
+        <ShieldCheck className="h-6 w-6 text-[#174C40] shrink-0" />
         <div>
-          <p className="font-semibold text-[#14181a]">Authorized Clinical Data Release Notice</p>
+          <p className="font-semibold text-[#242A28]">Authorized Clinical Data Release Notice</p>
           <p className="mt-0.5 leading-relaxed">
             All medical records, diagnostic laboratory results, prescriptions, and radiology imaging reports displayed on this portal have been validated, authorized, and formally released for patient access by licensed Healix healthcare practitioners. If you require records that have not yet been released, please contact Health Information Management.
           </p>

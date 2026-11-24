@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import { MapPin } from 'lucide-react';
@@ -22,7 +22,7 @@ const PALETTE_STYLES: Record<string, { bg: string; accent: string; line: string 
   },
   cool: {
     bg: 'from-[#e4eff0] via-[#eff6f6] to-[#d5e7e8]',
-    accent: 'text-[#0f5c5c]',
+    accent: 'text-[#174C40]',
     line: 'border-[#c2dcdc]',
   },
   sage: {
@@ -58,8 +58,8 @@ export default function GalleryGrid({ items }: { items: GalleryItem[] }) {
             onClick={() => setSelected(cat)}
             className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${
               selected === cat
-                ? 'bg-[#14181a] text-white'
-                : 'bg-white border border-[#e6e4dd] text-[#4b555b] hover:border-[#14181a] hover:text-[#14181a]'
+                ? 'bg-[#242A28] text-white'
+                : 'bg-white border border-[#E5E8E6] text-[#4A5350] hover:border-[#242A28] hover:text-[#242A28]'
             }`}
           >
             {cat}
@@ -91,7 +91,7 @@ export default function GalleryGrid({ items }: { items: GalleryItem[] }) {
                 </div>
 
                 <div className="relative flex items-center justify-between">
-                  <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm text-[11px] font-mono uppercase tracking-wider text-[#14181a]">
+                  <span className="px-3 py-1 rounded-full bg-white/80 backdrop-blur-sm text-[11px] font-mono uppercase tracking-wider text-[#242A28]">
                     {item.category}
                   </span>
                   <span className={`font-mono text-xs ${palette.accent}`}>
@@ -107,9 +107,9 @@ export default function GalleryGrid({ items }: { items: GalleryItem[] }) {
               </div>
 
               <div className="p-6 flex-1 flex flex-col justify-between bg-white">
-                <p className="text-sm leading-relaxed text-[#4b555b]">{item.description}</p>
-                <p className="mt-5 pt-4 border-t border-[#e6e4dd] flex items-center gap-1.5 text-xs text-[#768086]">
-                  <MapPin className="h-3.5 w-3.5 text-[#0f5c5c]" />
+                <p className="text-sm leading-relaxed text-[#4A5350]">{item.description}</p>
+                <p className="mt-5 pt-4 border-t border-[#E5E8E6] flex items-center gap-1.5 text-xs text-[#77817C]">
+                  <MapPin className="h-3.5 w-3.5 text-[#174C40]" />
                   {item.location}
                 </p>
               </div>

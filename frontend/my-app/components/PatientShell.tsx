@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -84,7 +84,7 @@ export default function PatientShell({ children }: { children: React.ReactNode }
   if (checking) {
     return (
       <div className="container-editorial py-20">
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-10 text-sm text-[#768086]">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-10 text-sm text-[#77817C]">
           Verifying your patient session...
         </div>
       </div>
@@ -94,16 +94,16 @@ export default function PatientShell({ children }: { children: React.ReactNode }
   if (!patient) {
     return (
       <div className="container-editorial py-20">
-        <div className="max-w-lg mx-auto rounded-2xl border border-[#e6e4dd] bg-white p-10 text-center space-y-5">
-          <span className="h-12 w-12 rounded-full bg-[#edf5f4] text-[#0f5c5c] mx-auto flex items-center justify-center">
+        <div className="max-w-lg mx-auto rounded-2xl border border-[#E5E8E6] bg-white p-10 text-center space-y-5">
+          <span className="h-12 w-12 rounded-full bg-[#E6EFE9] text-[#174C40] mx-auto flex items-center justify-center">
             <Lock className="h-5 w-5" />
           </span>
           <div className="space-y-2">
-            <p className="text-xs font-mono uppercase tracking-[0.14em] text-[#0f5c5c]">
+            <p className="text-xs font-mono uppercase tracking-[0.14em] text-[#174C40]">
               Patient Portal
             </p>
-            <h1 className="font-editorial text-3xl text-[#14181a]">Sign in to access your records</h1>
-            <p className="text-sm text-[#4b555b]">
+            <h1 className="font-editorial text-3xl text-[#242A28]">Sign in to access your records</h1>
+            <p className="text-sm text-[#4A5350]">
               View appointments, lab &amp; radiology reports, prescriptions, and billing statements
               in your private Healix account.
             </p>
@@ -111,13 +111,13 @@ export default function PatientShell({ children }: { children: React.ReactNode }
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Link
               href={`/login?next=${encodeURIComponent(pathname)}`}
-              className="px-6 py-3 rounded-full bg-[#14181a] text-white text-xs font-medium hover:bg-[#0f5c5c] transition-colors"
+              className="px-6 py-3 rounded-full bg-[#242A28] text-white text-xs font-medium hover:bg-[#174C40] transition-colors"
             >
               Patient Sign In
             </Link>
             <Link
               href="/register"
-              className="px-6 py-3 rounded-full border border-[#d5d2c9] text-xs font-medium text-[#14181a] hover:border-[#14181a] transition-colors"
+              className="px-6 py-3 rounded-full border border-[#77817C] text-xs font-medium text-[#242A28] hover:border-[#242A28] transition-colors"
             >
               Create Account
             </Link>
@@ -132,17 +132,17 @@ export default function PatientShell({ children }: { children: React.ReactNode }
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Sidebar */}
         <aside className="lg:col-span-3 lg:sticky lg:top-32 space-y-4">
-          <div className="rounded-2xl border border-[#e6e4dd] bg-white p-5 space-y-1">
-            <p className="text-[11px] font-mono uppercase tracking-wider text-[#0f5c5c]">
+          <div className="rounded-2xl border border-[#E5E8E6] bg-white p-5 space-y-1">
+            <p className="text-[11px] font-mono uppercase tracking-wider text-[#174C40]">
               {patient.mrn}
             </p>
-            <p className="text-base font-semibold text-[#14181a] truncate">{patient.full_name}</p>
-            <p className="text-xs text-[#768086] truncate">{patient.email}</p>
+            <p className="text-base font-semibold text-[#242A28] truncate">{patient.full_name}</p>
+            <p className="text-xs text-[#77817C] truncate">{patient.email}</p>
           </div>
 
           <nav
             aria-label="Patient portal navigation"
-            className="rounded-2xl border border-[#e6e4dd] bg-white p-2 space-y-0.5"
+            className="rounded-2xl border border-[#E5E8E6] bg-white p-2 space-y-0.5"
           >
             {PORTAL_NAV.map((item) => {
               const Icon = item.icon;
@@ -154,8 +154,8 @@ export default function PatientShell({ children }: { children: React.ReactNode }
                   key={item.href}
                   href={item.href}
                   className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-colors ${active
-                    ? 'bg-[#edf5f4] text-[#0f5c5c] font-medium'
-                    : 'text-[#4b555b] hover:bg-[#faf9f6] hover:text-[#14181a]'
+                    ? 'bg-[#E6EFE9] text-[#174C40] font-medium'
+                    : 'text-[#4A5350] hover:bg-[#FAFAF7] hover:text-[#242A28]'
                     }`}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
@@ -164,7 +164,7 @@ export default function PatientShell({ children }: { children: React.ReactNode }
               );
             })}
 
-            <div className="pt-2 mt-2 border-t border-[#e6e4dd]">
+            <div className="pt-2 mt-2 border-t border-[#E5E8E6]">
               <button
                 type="button"
                 onClick={handleLogout}

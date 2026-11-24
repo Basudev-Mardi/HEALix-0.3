@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -41,25 +41,25 @@ function ResetPasswordForm() {
   return (
     <div className="max-w-md mx-auto">
       <div className="space-y-3 mb-8">
-        <p className="text-xs font-mono uppercase tracking-[0.16em] text-[#0f5c5c]">
+        <p className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40]">
           Security Reset
         </p>
-        <h1 className="font-editorial text-4xl text-[#14181a]">Set a new password</h1>
-        <p className="text-sm text-[#4b555b]">
+        <h1 className="font-editorial text-4xl text-[#242A28]">Set a new password</h1>
+        <p className="text-sm text-[#4A5350]">
           Choose a strong password of at least 8 characters for your Healix patient portal.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 sm:p-9">
+      <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 sm:p-9">
         {success ? (
           <div className="space-y-5">
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="h-5 w-5 text-[#0f5c5c] shrink-0 mt-0.5" />
-              <p className="text-sm text-[#14181a]">{success}</p>
+              <CheckCircle2 className="h-5 w-5 text-[#174C40] shrink-0 mt-0.5" />
+              <p className="text-sm text-[#242A28]">{success}</p>
             </div>
             <Link
               href="/login"
-              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#14181a] text-white text-sm font-medium hover:bg-[#0f5c5c] transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#242A28] text-white text-sm font-medium hover:bg-[#174C40] transition-colors"
             >
               Sign In Now
               <ArrowRight className="h-4 w-4" />
@@ -77,7 +77,7 @@ function ResetPasswordForm() {
             )}
 
             <div>
-              <label htmlFor="reset-token" className="block text-xs font-medium text-[#14181a] mb-1.5">
+              <label htmlFor="reset-token" className="block text-xs font-medium text-[#242A28] mb-1.5">
                 Reset Token
               </label>
               <input
@@ -87,12 +87,12 @@ function ResetPasswordForm() {
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
                 placeholder="Paste your reset token"
-                className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] font-mono text-xs text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+                className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] font-mono text-xs text-[#242A28] focus:outline-none focus:border-[#174C40]"
               />
             </div>
 
             <div>
-              <label htmlFor="reset-pass" className="block text-xs font-medium text-[#14181a] mb-1.5">
+              <label htmlFor="reset-pass" className="block text-xs font-medium text-[#242A28] mb-1.5">
                 New Password
               </label>
               <input
@@ -103,12 +103,12 @@ function ResetPasswordForm() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Minimum 8 characters"
-                className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+                className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
               />
             </div>
 
             <div>
-              <label htmlFor="reset-confirm" className="block text-xs font-medium text-[#14181a] mb-1.5">
+              <label htmlFor="reset-confirm" className="block text-xs font-medium text-[#242A28] mb-1.5">
                 Confirm New Password
               </label>
               <input
@@ -119,14 +119,14 @@ function ResetPasswordForm() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Re-enter new password"
-                className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+                className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
               />
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#14181a] text-white text-sm font-medium hover:bg-[#0f5c5c] disabled:opacity-60 transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#242A28] text-white text-sm font-medium hover:bg-[#174C40] disabled:opacity-60 transition-colors"
             >
               {submitting ? (
                 <>
@@ -149,7 +149,7 @@ export default function ResetPasswordPage() {
     <section className="container-editorial py-16 lg:py-20">
       <Suspense
         fallback={
-          <div className="max-w-md mx-auto rounded-2xl border border-[#e6e4dd] bg-white p-10 text-sm text-[#768086]">
+          <div className="max-w-md mx-auto rounded-2xl border border-[#E5E8E6] bg-white p-10 text-sm text-[#77817C]">
             Loading password reset form...
           </div>
         }

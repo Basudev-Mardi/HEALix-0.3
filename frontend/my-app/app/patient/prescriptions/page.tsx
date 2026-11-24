@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { Calendar, Pill, RefreshCw, Stethoscope } from 'lucide-react';
@@ -18,18 +18,18 @@ export default function PrescriptionsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-mono uppercase tracking-[0.14em] text-[#0f5c5c]">
+        <p className="text-xs font-mono uppercase tracking-[0.14em] text-[#174C40]">
           Medications &amp; Refills
         </p>
-        <h1 className="font-editorial text-3xl sm:text-4xl text-[#14181a] mt-1">Prescriptions</h1>
+        <h1 className="font-editorial text-3xl sm:text-4xl text-[#242A28] mt-1">Prescriptions</h1>
       </div>
 
       {loading ? (
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-10 text-sm text-[#768086]">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-10 text-sm text-[#77817C]">
           Loading prescriptions...
         </div>
       ) : items.length === 0 ? (
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-10 text-sm text-[#768086]">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-10 text-sm text-[#77817C]">
           No prescriptions on file.
         </div>
       ) : (
@@ -37,17 +37,17 @@ export default function PrescriptionsPage() {
           {items.map((rx) => (
             <article
               key={rx.id}
-              className="rounded-2xl border border-[#e6e4dd] bg-white p-6 flex flex-col justify-between space-y-5"
+              className="rounded-2xl border border-[#E5E8E6] bg-white p-6 flex flex-col justify-between space-y-5"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="h-9 w-9 rounded-xl bg-[#edf5f4] text-[#0f5c5c] flex items-center justify-center">
+                  <span className="h-9 w-9 rounded-xl bg-[#E6EFE9] text-[#174C40] flex items-center justify-center">
                     <Pill className="h-4 w-4" />
                   </span>
                   <span
                     className={`px-3 py-1 rounded-full text-[11px] font-mono ${rx.status === 'Active'
-                      ? 'bg-[#edf5f4] text-[#0f5c5c]'
-                      : 'bg-[#f2f1ec] text-[#768086]'
+                      ? 'bg-[#E6EFE9] text-[#174C40]'
+                      : 'bg-[#E6EFE9] text-[#77817C]'
                       }`}
                   >
                     {rx.status}
@@ -55,19 +55,19 @@ export default function PrescriptionsPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-semibold text-[#14181a]">{rx.medication_name}</h2>
-                  <p className="text-xs font-mono text-[#0f5c5c] mt-0.5">
+                  <h2 className="text-lg font-semibold text-[#242A28]">{rx.medication_name}</h2>
+                  <p className="text-xs font-mono text-[#174C40] mt-0.5">
                     {rx.dosage} · {rx.frequency}
                   </p>
                 </div>
 
-                <p className="text-sm text-[#4b555b] leading-relaxed">{rx.instructions}</p>
+                <p className="text-sm text-[#4A5350] leading-relaxed">{rx.instructions}</p>
               </div>
 
-              <div className="pt-4 border-t border-[#e6e4dd] space-y-2 text-xs text-[#768086]">
+              <div className="pt-4 border-t border-[#E5E8E6] space-y-2 text-xs text-[#77817C]">
                 <div className="flex items-center justify-between">
                   <span className="inline-flex items-center gap-1.5">
-                    <Stethoscope className="h-3.5 w-3.5 text-[#0f5c5c]" />
+                    <Stethoscope className="h-3.5 w-3.5 text-[#174C40]" />
                     {rx.prescribed_by}
                   </span>
                   <span className="inline-flex items-center gap-1 font-mono">
@@ -75,9 +75,9 @@ export default function PrescriptionsPage() {
                     {rx.prescribed_date}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-[#14181a]">
+                <div className="flex items-center justify-between text-[#242A28]">
                   <span>Duration: {rx.duration}</span>
-                  <span className="inline-flex items-center gap-1 font-mono text-[#0f5c5c]">
+                  <span className="inline-flex items-center gap-1 font-mono text-[#174C40]">
                     <RefreshCw className="h-3 w-3" />
                     {rx.refills_remaining} refills left
                   </span>

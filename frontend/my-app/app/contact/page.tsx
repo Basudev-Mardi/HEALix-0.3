@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+﻿import { Metadata } from 'next';
 import Link from 'next/link';
 import ContactFaqAccordion from '@/components/ContactFaqAccordion';
 import ContactFormClient from '@/components/ContactFormClient';
@@ -165,7 +165,7 @@ export default function ContactPage() {
 
               <div className="space-y-3 text-xs">
                 <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[#E6E4DD] space-y-1">
-                  <div className="flex items-center justify-between font-semibold text-[#14181a]">
+                  <div className="flex items-center justify-between font-semibold text-[#242A28]">
                     <span>General Inpatient Wards</span>
                     <span className="font-mono text-[#0F5C5C]">09:00 AM – 08:30 PM</span>
                   </div>
@@ -173,7 +173,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[#E6E4DD] space-y-1">
-                  <div className="flex items-center justify-between font-semibold text-[#14181a]">
+                  <div className="flex items-center justify-between font-semibold text-[#242A28]">
                     <span>Intensive Care (ICU / CCU / NICU)</span>
                     <span className="font-mono text-[#0F5C5C]">11:00 AM &amp; 05:00 PM</span>
                   </div>
@@ -181,7 +181,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[#E6E4DD] space-y-1">
-                  <div className="flex items-center justify-between font-semibold text-[#14181a]">
+                  <div className="flex items-center justify-between font-semibold text-[#242A28]">
                     <span>Outpatient Consultations (OPD)</span>
                     <span className="font-mono text-[#0F5C5C]">08:00 AM – 08:00 PM</span>
                   </div>
@@ -191,12 +191,12 @@ export default function ContactPage() {
             </div>
 
             {/* Patient Feedback & Ombudsman Advocacy Card */}
-            <div className="rounded-2xl border border-teal-200 bg-[#edf5f4]/40 p-6 space-y-3">
-              <div className="flex items-center gap-2 text-[#0f5c5c] font-semibold text-xs">
+            <div className="rounded-2xl border border-teal-200 bg-[#E6EFE9]/40 p-6 space-y-3">
+              <div className="flex items-center gap-2 text-[#174C40] font-semibold text-xs">
                 <HeartHandshake className="h-4 w-4" />
                 <span>Patient Experience &amp; Feedback</span>
               </div>
-              <h4 className="font-editorial text-lg text-[#14181a]">
+              <h4 className="font-editorial text-lg text-[#242A28]">
                 Share Your Experience or Submit a Grievance
               </h4>
               <p className="text-xs text-neutral-600 leading-relaxed">
@@ -205,14 +205,14 @@ export default function ContactPage() {
               <div className="pt-2 flex items-center gap-3">
                 <Link
                   href="/feedback"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#14181a] text-white text-xs font-medium hover:bg-[#0f5c5c] transition-colors"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#242A28] text-white text-xs font-medium hover:bg-[#174C40] transition-colors"
                 >
                   Patient Feedback Form
                   <ArrowRight className="h-3 w-3" />
                 </Link>
                 <Link
                   href="/patient-rights"
-                  className="text-xs text-[#0f5c5c] hover:underline font-medium"
+                  className="text-xs text-[#174C40] hover:underline font-medium"
                 >
                   Patient Rights
                 </Link>
@@ -241,7 +241,7 @@ export default function ContactPage() {
               <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#0F5C5C]">
                 <Navigation className="w-5 h-5" />
               </div>
-              <h3 className="font-editorial text-lg text-[#14181a]">Driving &amp; Highway Access</h3>
+              <h3 className="font-editorial text-lg text-[#242A28]">Driving &amp; Highway Access</h3>
               <ul className="text-xs text-neutral-600 space-y-2 leading-relaxed">
                 <li>
                   <strong className="text-neutral-900 block">From I-90 (Mass Pike):</strong>
@@ -259,7 +259,7 @@ export default function ContactPage() {
               <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#0F5C5C]">
                 <Train className="w-5 h-5" />
               </div>
-              <h3 className="font-editorial text-lg text-[#14181a]">Subway &amp; Bus Transit</h3>
+              <h3 className="font-editorial text-lg text-[#242A28]">Subway &amp; Bus Transit</h3>
               <ul className="text-xs text-neutral-600 space-y-2 leading-relaxed">
                 <li>
                   <strong className="text-neutral-900 block">Metro Subway (Line 3):</strong>
@@ -277,7 +277,7 @@ export default function ContactPage() {
               <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#0F5C5C]">
                 <Car className="w-5 h-5" />
               </div>
-              <h3 className="font-editorial text-lg text-[#14181a]">Parking &amp; Valet Services</h3>
+              <h3 className="font-editorial text-lg text-[#242A28]">Parking &amp; Valet Services</h3>
               <ul className="text-xs text-neutral-600 space-y-2 leading-relaxed">
                 <li>
                   <strong className="text-neutral-900 block">Sub-Level Garage (Gate 2):</strong>

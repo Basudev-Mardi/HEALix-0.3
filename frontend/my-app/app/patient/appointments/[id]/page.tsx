@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -115,7 +115,7 @@ export default function PatientAppointmentDetailPage() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-[#e6e4dd] bg-white p-10 text-sm text-[#768086]">
+      <div className="rounded-2xl border border-[#E5E8E6] bg-white p-10 text-sm text-[#77817C]">
         Loading appointment details...
       </div>
     );
@@ -123,11 +123,11 @@ export default function PatientAppointmentDetailPage() {
 
   if (!appt) {
     return (
-      <div className="rounded-2xl border border-[#e6e4dd] bg-white p-10 space-y-4">
-        <p className="text-base font-medium text-[#14181a]">Appointment not found.</p>
+      <div className="rounded-2xl border border-[#E5E8E6] bg-white p-10 space-y-4">
+        <p className="text-base font-medium text-[#242A28]">Appointment not found.</p>
         <Link
           href="/patient/appointments"
-          className="inline-flex items-center gap-1.5 text-xs text-[#0f5c5c] hover:underline"
+          className="inline-flex items-center gap-1.5 text-xs text-[#174C40] hover:underline"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to My Appointments
@@ -144,7 +144,7 @@ export default function PatientAppointmentDetailPage() {
     <div className="space-y-6">
       <Link
         href="/patient/appointments"
-        className="inline-flex items-center gap-1.5 text-xs text-[#768086] hover:text-[#14181a]"
+        className="inline-flex items-center gap-1.5 text-xs text-[#77817C] hover:text-[#242A28]"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         Back to My Appointments
@@ -179,8 +179,8 @@ export default function PatientAppointmentDetailPage() {
       )}
 
       {/* Main Appointment Detail Card */}
-      <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 sm:p-9 space-y-8 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-4 pb-6 border-b border-[#e6e4dd]">
+      <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 sm:p-9 space-y-8 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4 pb-6 border-b border-[#E5E8E6]">
           <div className="flex items-center gap-4">
             <DoctorAvatar
               initials={appt.avatar_initials || 'HX'}
@@ -189,16 +189,16 @@ export default function PatientAppointmentDetailPage() {
             />
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs text-[#768086]">{appt.booking_reference}</span>
+                <span className="font-mono text-xs text-[#77817C]">{appt.booking_reference}</span>
                 {isEligibleForCancel && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#edf5f4] text-[#0f5c5c]">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#E6EFE9] text-[#174C40]">
                     Eligible for Online Cancellation
                   </span>
                 )}
               </div>
-              <h1 className="font-editorial text-3xl text-[#14181a] mt-0.5">{appt.doctor_name}</h1>
-              <p className="text-sm text-[#0f5c5c] font-medium">{appt.doctor_specialty}</p>
-              <p className="text-xs text-[#768086] mt-0.5">{appt.department_name}</p>
+              <h1 className="font-editorial text-3xl text-[#242A28] mt-0.5">{appt.doctor_name}</h1>
+              <p className="text-sm text-[#174C40] font-medium">{appt.doctor_specialty}</p>
+              <p className="text-xs text-[#77817C] mt-0.5">{appt.department_name}</p>
             </div>
           </div>
 
@@ -208,8 +208,8 @@ export default function PatientAppointmentDetailPage() {
                 isCancelled
                   ? 'bg-[#fef2f2] text-[#b91c1c] border border-rose-200'
                   : isCompleted
-                  ? 'bg-[#f2f1ec] text-[#4b555b]'
-                  : 'bg-[#edf5f4] text-[#0f5c5c] border border-teal-200'
+                  ? 'bg-[#E6EFE9] text-[#4A5350]'
+                  : 'bg-[#E6EFE9] text-[#174C40] border border-teal-200'
               }`}
             >
               {appt.status}
@@ -224,65 +224,65 @@ export default function PatientAppointmentDetailPage() {
 
         {/* Schedule Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm">
-          <div className="rounded-xl border border-[#e6e4dd] bg-[#faf9f6] p-4 space-y-1">
-            <p className="text-[11px] font-mono uppercase text-[#768086]">Appointment Date</p>
-            <p className="font-mono font-semibold text-[#14181a] inline-flex items-center gap-1.5">
-              <Calendar className="h-4 w-4 text-[#0f5c5c]" />
+          <div className="rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] p-4 space-y-1">
+            <p className="text-[11px] font-mono uppercase text-[#77817C]">Appointment Date</p>
+            <p className="font-mono font-semibold text-[#242A28] inline-flex items-center gap-1.5">
+              <Calendar className="h-4 w-4 text-[#174C40]" />
               {appt.appointment_date}
             </p>
           </div>
-          <div className="rounded-xl border border-[#e6e4dd] bg-[#faf9f6] p-4 space-y-1">
-            <p className="text-[11px] font-mono uppercase text-[#768086]">Time Slot</p>
-            <p className="font-mono font-semibold text-[#14181a] inline-flex items-center gap-1.5">
-              <Clock className="h-4 w-4 text-[#0f5c5c]" />
+          <div className="rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] p-4 space-y-1">
+            <p className="text-[11px] font-mono uppercase text-[#77817C]">Time Slot</p>
+            <p className="font-mono font-semibold text-[#242A28] inline-flex items-center gap-1.5">
+              <Clock className="h-4 w-4 text-[#174C40]" />
               {appt.time_slot}
             </p>
           </div>
-          <div className="rounded-xl border border-[#e6e4dd] bg-[#faf9f6] p-4 space-y-1">
-            <p className="text-[11px] font-mono uppercase text-[#768086]">Visit Format</p>
-            <p className="font-medium text-[#14181a]">{appt.visit_type}</p>
+          <div className="rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] p-4 space-y-1">
+            <p className="text-[11px] font-mono uppercase text-[#77817C]">Visit Format</p>
+            <p className="font-medium text-[#242A28]">{appt.visit_type}</p>
           </div>
         </div>
 
         {/* Location & Contact */}
-        <div className="space-y-4 text-sm text-[#4b555b]">
+        <div className="space-y-4 text-sm text-[#4A5350]">
           {appt.floor_location && (
             <p className="flex items-start gap-2">
-              <MapPin className="h-4 w-4 text-[#0f5c5c] mt-0.5 shrink-0" />
+              <MapPin className="h-4 w-4 text-[#174C40] mt-0.5 shrink-0" />
               <span>
-                <strong className="text-[#14181a]">Clinic Location:</strong> {appt.floor_location}, Healix
+                <strong className="text-[#242A28]">Clinic Location:</strong> {appt.floor_location}, Healix
                 Medical Center
               </span>
             </p>
           )}
           <p className="flex items-start gap-2">
-            <Phone className="h-4 w-4 text-[#0f5c5c] mt-0.5 shrink-0" />
+            <Phone className="h-4 w-4 text-[#174C40] mt-0.5 shrink-0" />
             <span>
-              <strong className="text-[#14181a]">Department Hotline:</strong> +1 (800) 432-5490{' '}
+              <strong className="text-[#242A28]">Department Hotline:</strong> +1 (800) 432-5490{' '}
               {appt.phone_ext ? `(Ext: ${appt.phone_ext})` : ''}
             </span>
           </p>
           {appt.reason_for_visit && (
-            <div className="rounded-xl border border-[#e6e4dd] bg-[#f2f1ec]/60 p-4">
-              <p className="text-xs font-mono uppercase tracking-wider text-[#768086] mb-1">
+            <div className="rounded-xl border border-[#E5E8E6] bg-[#E6EFE9]/60 p-4">
+              <p className="text-xs font-mono uppercase tracking-wider text-[#77817C] mb-1">
                 Clinical Notes / Reason for Visit
               </p>
-              <p className="text-[#14181a] italic">&quot;{appt.reason_for_visit}&quot;</p>
+              <p className="text-[#242A28] italic">&quot;{appt.reason_for_visit}&quot;</p>
             </div>
           )}
         </div>
 
         {/* Cancellation Eligibility & Action Toolbar */}
-        <div className="pt-5 border-t border-[#e6e4dd] flex flex-wrap items-center justify-between gap-4">
-          <p className="text-xs text-[#768086]">
+        <div className="pt-5 border-t border-[#E5E8E6] flex flex-wrap items-center justify-between gap-4">
+          <p className="text-xs text-[#77817C]">
             Standard Consultation Fee:{' '}
-            <span className="font-mono font-semibold text-[#14181a]">{appt.consultation_fee || '$180'}</span>
+            <span className="font-mono font-semibold text-[#242A28]">{appt.consultation_fee || '$180'}</span>
           </p>
 
           <div className="flex items-center gap-3">
             <Link
               href={`/doctors/${appt.doctor_slug}`}
-              className="px-4 py-2 rounded-full border border-[#d5d2c9] text-xs font-medium text-[#14181a] hover:border-[#14181a]"
+              className="px-4 py-2 rounded-full border border-[#77817C] text-xs font-medium text-[#242A28] hover:border-[#242A28]"
             >
               Doctor Profile
             </Link>
@@ -301,7 +301,7 @@ export default function PatientAppointmentDetailPage() {
             {isCancelled && (
               <Link
                 href={`/appointments/book?doctor=${appt.doctor_slug}`}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#14181a] text-white text-xs font-semibold hover:bg-[#0f5c5c] transition-colors"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#242A28] text-white text-xs font-semibold hover:bg-[#174C40] transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Rebook Consultation
@@ -312,15 +312,15 @@ export default function PatientAppointmentDetailPage() {
       </div>
 
       {/* Audit History & Activity Log (Workflow D - Step 10) */}
-      <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 space-y-5 shadow-sm">
-        <div className="flex items-center justify-between border-b border-[#e6e4dd] pb-4">
+      <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 space-y-5 shadow-sm">
+        <div className="flex items-center justify-between border-b border-[#E5E8E6] pb-4">
           <div className="flex items-center gap-2">
-            <History className="h-4 w-4 text-[#0f5c5c]" />
-            <h2 className="text-sm font-semibold text-[#14181a]">
+            <History className="h-4 w-4 text-[#174C40]" />
+            <h2 className="text-sm font-semibold text-[#242A28]">
               Step 10 · Appointment Audit History
             </h2>
           </div>
-          <span className="text-[11px] font-mono text-[#768086]">
+          <span className="text-[11px] font-mono text-[#77817C]">
             Permanent Healthcare Audit Trail
           </span>
         </div>
@@ -330,7 +330,7 @@ export default function PatientAppointmentDetailPage() {
             {appt.audit_logs.map((log, idx) => (
               <div
                 key={idx}
-                className="rounded-xl border border-[#e6e4dd] bg-[#faf9f6] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                className="rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -344,20 +344,20 @@ export default function PatientAppointmentDetailPage() {
                       {log.previous_status ? `${log.previous_status} → ` : ''}
                       {log.new_status}
                     </span>
-                    <span className="text-[#14181a] font-medium">by {log.changed_by}</span>
+                    <span className="text-[#242A28] font-medium">by {log.changed_by}</span>
                   </div>
                   {log.reason && (
-                    <p className="text-[#4b555b] text-[11px] italic">Reason: &quot;{log.reason}&quot;</p>
+                    <p className="text-[#4A5350] text-[11px] italic">Reason: &quot;{log.reason}&quot;</p>
                   )}
                 </div>
-                <span className="font-mono text-[11px] text-[#768086] shrink-0">
+                <span className="font-mono text-[11px] text-[#77817C] shrink-0">
                   {log.timestamp}
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <div className="rounded-xl bg-[#faf9f6] p-4 text-xs text-[#768086]">
+          <div className="rounded-xl bg-[#FAFAF7] p-4 text-xs text-[#77817C]">
             Initial appointment creation confirmed. No subsequent status modifications recorded.
           </div>
         )}
@@ -366,17 +366,17 @@ export default function PatientAppointmentDetailPage() {
       {/* Cancellation Policy Modal (Workflow D - Steps 4 & 5) */}
       {showCancelModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-[#e6e4dd] shadow-2xl p-6 sm:p-7 space-y-6">
-            <div className="flex items-center justify-between border-b border-[#e6e4dd] pb-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full border border-[#E5E8E6] shadow-2xl p-6 sm:p-7 space-y-6">
+            <div className="flex items-center justify-between border-b border-[#E5E8E6] pb-4">
               <div className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
                   <AlertTriangle className="h-4 w-4" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-base text-[#14181a]">
+                  <h3 className="font-semibold text-base text-[#242A28]">
                     Cancel Appointment
                   </h3>
-                  <p className="text-[11px] text-[#768086] font-mono">
+                  <p className="text-[11px] text-[#77817C] font-mono">
                     Ref: {appt.booking_reference}
                   </p>
                 </div>
@@ -384,7 +384,7 @@ export default function PatientAppointmentDetailPage() {
               <button
                 type="button"
                 onClick={() => setShowCancelModal(false)}
-                className="text-[#768086] hover:text-[#14181a] p-1 rounded-lg"
+                className="text-[#77817C] hover:text-[#242A28] p-1 rounded-lg"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -414,29 +414,29 @@ export default function PatientAppointmentDetailPage() {
 
             {/* Reason Selection */}
             <div className="space-y-3 text-xs">
-              <label className="block font-semibold text-[#14181a]">
+              <label className="block font-semibold text-[#242A28]">
                 Reason for Cancellation (Required for Audit Trail)
               </label>
               <div className="space-y-2">
                 {COMMON_CANCEL_REASONS.map((reason) => (
                   <label
                     key={reason}
-                    className="flex items-start gap-2.5 p-2.5 rounded-xl border border-[#e6e4dd] hover:bg-[#faf9f6] cursor-pointer"
+                    className="flex items-start gap-2.5 p-2.5 rounded-xl border border-[#E5E8E6] hover:bg-[#FAFAF7] cursor-pointer"
                   >
                     <input
                       type="radio"
                       name="cancelReason"
                       checked={cancelReason === reason}
                       onChange={() => setCancelReason(reason)}
-                      className="mt-0.5 text-[#0f5c5c] focus:ring-[#0f5c5c]"
+                      className="mt-0.5 text-[#174C40] focus:ring-[#174C40]"
                     />
-                    <span className="text-xs text-[#14181a]">{reason}</span>
+                    <span className="text-xs text-[#242A28]">{reason}</span>
                   </label>
                 ))}
               </div>
 
               <div>
-                <label className="block text-[11px] text-[#768086] mb-1">
+                <label className="block text-[11px] text-[#77817C] mb-1">
                   Additional Notes (Optional):
                 </label>
                 <textarea
@@ -444,18 +444,18 @@ export default function PatientAppointmentDetailPage() {
                   value={customReason}
                   onChange={(e) => setCustomReason(e.target.value)}
                   placeholder="Provide any additional clinical notes or reason for cancellation..."
-                  className="w-full px-3 py-2 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-xs text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-xs text-[#242A28] focus:outline-none focus:border-[#174C40]"
                 />
               </div>
             </div>
 
             {/* Modal Actions (Step 5: Patient confirms cancellation) */}
-            <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-end gap-3 pt-3 border-t border-[#e6e4dd]">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-end gap-3 pt-3 border-t border-[#E5E8E6]">
               <button
                 type="button"
                 onClick={() => setShowCancelModal(false)}
                 disabled={cancelling}
-                className="px-5 py-2.5 rounded-full border border-[#d5d2c9] text-xs font-semibold text-[#14181a] hover:border-[#14181a] transition-colors"
+                className="px-5 py-2.5 rounded-full border border-[#77817C] text-xs font-semibold text-[#242A28] hover:border-[#242A28] transition-colors"
               >
                 Keep Appointment
               </button>

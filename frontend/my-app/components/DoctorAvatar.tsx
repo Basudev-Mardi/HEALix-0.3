@@ -1,5 +1,5 @@
-const TONE_MAP: Record<string, string> = {
-  emerald: 'bg-[#e7f3f0] text-[#0f5c5c] border-[#cde4de]',
+﻿const TONE_MAP: Record<string, string> = {
+  emerald: 'bg-[#e7f3f0] text-[#174C40] border-[#cde4de]',
   slate: 'bg-[#eceff2] text-[#2c3a47] border-[#d8dee4]',
   stone: 'bg-[#f1efe9] text-[#4a463f] border-[#dfdbd1]',
   teal: 'bg-[#e6f2f2] text-[#115e59] border-[#c8e2e2]',

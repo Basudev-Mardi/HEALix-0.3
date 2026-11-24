@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -96,13 +96,13 @@ export default function NotificationsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-mono uppercase tracking-[0.14em] text-[#0f5c5c]">
+          <p className="text-xs font-mono uppercase tracking-[0.14em] text-[#174C40]">
             Multi-Channel Alerts
           </p>
-          <h1 className="font-editorial text-3xl sm:text-4xl text-[#14181a] mt-1">
+          <h1 className="font-editorial text-3xl sm:text-4xl text-[#242A28] mt-1">
             Notifications &amp; Alerts
           </h1>
-          <p className="text-xs text-[#768086] mt-1">
+          <p className="text-xs text-[#77817C] mt-1">
             Real-time delivery status across In-Portal, Email, SMS, and WhatsApp.
           </p>
         </div>
@@ -117,7 +117,7 @@ export default function NotificationsPage() {
             {simulating ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Clock className="h-3.5 w-3.5 text-[#0f5c5c]" />
+              <Clock className="h-3.5 w-3.5 text-[#174C40]" />
             )}
             Simulate 24h Reminder
           </button>
@@ -126,9 +126,9 @@ export default function NotificationsPage() {
             <button
               type="button"
               onClick={markAllRead}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#d5d2c9] bg-white text-xs font-medium text-[#14181a] hover:border-[#14181a] transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#77817C] bg-white text-xs font-medium text-[#242A28] hover:border-[#242A28] transition-colors"
             >
-              <CheckCheck className="h-3.5 w-3.5 text-[#0f5c5c]" />
+              <CheckCheck className="h-3.5 w-3.5 text-[#174C40]" />
               Mark all read ({unreadCount})
             </button>
           )}
@@ -153,27 +153,27 @@ export default function NotificationsPage() {
       )}
 
       {/* Notification Events Matrix Banner */}
-      <div className="rounded-2xl border border-[#e6e4dd] bg-[#faf9f6] p-4.5 text-xs text-[#4b555b] space-y-2 shadow-xs">
-        <p className="font-semibold text-[#14181a] flex items-center gap-1.5 text-[11px] uppercase font-mono tracking-wider">
-          <Shield className="h-3.5 w-3.5 text-[#0f5c5c]" />
+      <div className="rounded-2xl border border-[#E5E8E6] bg-[#FAFAF7] p-4.5 text-xs text-[#4A5350] space-y-2 shadow-xs">
+        <p className="font-semibold text-[#242A28] flex items-center gap-1.5 text-[11px] uppercase font-mono tracking-wider">
+          <Shield className="h-3.5 w-3.5 text-[#174C40]" />
           Supported Notification Events &amp; Delivery Matrix
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-          <div className="rounded-lg bg-white p-2 border border-[#e6e4dd]">
-            <span className="font-semibold text-[#14181a] block">Registration</span>
-            <span className="text-[#768086]">Account verification</span>
+          <div className="rounded-lg bg-white p-2 border border-[#E5E8E6]">
+            <span className="font-semibold text-[#242A28] block">Registration</span>
+            <span className="text-[#77817C]">Account verification</span>
           </div>
-          <div className="rounded-lg bg-white p-2 border border-[#e6e4dd]">
-            <span className="font-semibold text-[#14181a] block">Appointment Booked</span>
-            <span className="text-[#768086]">Booking confirmation</span>
+          <div className="rounded-lg bg-white p-2 border border-[#E5E8E6]">
+            <span className="font-semibold text-[#242A28] block">Appointment Booked</span>
+            <span className="text-[#77817C]">Booking confirmation</span>
           </div>
-          <div className="rounded-lg bg-white p-2 border border-[#e6e4dd]">
-            <span className="font-semibold text-[#14181a] block">Confirmed / Rescheduled</span>
-            <span className="text-[#768086]">Schedule &amp; room updates</span>
+          <div className="rounded-lg bg-white p-2 border border-[#E5E8E6]">
+            <span className="font-semibold text-[#242A28] block">Confirmed / Rescheduled</span>
+            <span className="text-[#77817C]">Schedule &amp; room updates</span>
           </div>
-          <div className="rounded-lg bg-white p-2 border border-[#e6e4dd]">
-            <span className="font-semibold text-[#14181a] block">Cancelled / Reminder</span>
-            <span className="text-[#768086]">Cancellation &amp; 24h alerts</span>
+          <div className="rounded-lg bg-white p-2 border border-[#E5E8E6]">
+            <span className="font-semibold text-[#242A28] block">Cancelled / Reminder</span>
+            <span className="text-[#77817C]">Cancellation &amp; 24h alerts</span>
           </div>
         </div>
       </div>
@@ -188,8 +188,8 @@ export default function NotificationsPage() {
               onClick={() => setSelectedFilter(tab)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 selectedFilter === tab
-                  ? 'bg-[#14181a] text-white'
-                  : 'bg-white border border-[#e6e4dd] text-[#4b555b] hover:border-[#14181a]'
+                  ? 'bg-[#242A28] text-white'
+                  : 'bg-white border border-[#E5E8E6] text-[#4A5350] hover:border-[#242A28]'
               }`}
             >
               {tab} {tab === 'Unread' && unreadCount > 0 ? `(${unreadCount})` : ''}
@@ -199,13 +199,13 @@ export default function NotificationsPage() {
       </div>
 
       {loading ? (
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-10 text-sm text-[#768086]">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-10 text-sm text-[#77817C]">
           Loading notifications and channel logs...
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-10 text-center space-y-2">
-          <p className="text-base font-medium text-[#14181a]">No notifications in this filter.</p>
-          <p className="text-xs text-[#768086]">New appointment updates and report releases will appear here automatically.</p>
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-10 text-center space-y-2">
+          <p className="text-base font-medium text-[#242A28]">No notifications in this filter.</p>
+          <p className="text-xs text-[#77817C]">New appointment updates and report releases will appear here automatically.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -221,16 +221,16 @@ export default function NotificationsPage() {
                 key={n.id}
                 className={`rounded-2xl border p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4 transition-all ${
                   n.is_read
-                    ? 'border-[#e6e4dd] bg-white'
-                    : 'border-[#cde4de] bg-[#edf5f4]/40 shadow-xs'
+                    ? 'border-[#E5E8E6] bg-white'
+                    : 'border-[#cde4de] bg-[#E6EFE9]/40 shadow-xs'
                 }`}
               >
                 <div className="flex items-start gap-4">
                   <span
                     className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${
                       n.is_read
-                        ? 'bg-[#f2f1ec] text-[#768086]'
-                        : 'bg-[#0f5c5c] text-white shadow-xs'
+                        ? 'bg-[#E6EFE9] text-[#77817C]'
+                        : 'bg-[#174C40] text-white shadow-xs'
                     }`}
                   >
                     <Bell className="h-4 w-4" />
@@ -238,7 +238,7 @@ export default function NotificationsPage() {
 
                   <div className="space-y-1.5">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[11px] font-mono uppercase tracking-wider text-[#0f5c5c] font-semibold">
+                      <span className="text-[11px] font-mono uppercase tracking-wider text-[#174C40] font-semibold">
                         {n.category}
                       </span>
 
@@ -270,9 +270,9 @@ export default function NotificationsPage() {
                       </div>
                     </div>
 
-                    <h2 className="text-base font-semibold text-[#14181a]">{n.title}</h2>
-                    <p className="text-xs sm:text-sm text-[#4b555b] leading-relaxed">{n.message}</p>
-                    <span className="text-[11px] font-mono text-[#768086] block pt-0.5">
+                    <h2 className="text-base font-semibold text-[#242A28]">{n.title}</h2>
+                    <p className="text-xs sm:text-sm text-[#4A5350] leading-relaxed">{n.message}</p>
+                    <span className="text-[11px] font-mono text-[#77817C] block pt-0.5">
                       {n.created_at ? new Date(n.created_at).toLocaleString() : 'Just now'}
                     </span>
                   </div>
@@ -282,7 +282,7 @@ export default function NotificationsPage() {
                   {n.action_href && (
                     <Link
                       href={n.action_href}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#14181a] text-white text-xs font-semibold hover:bg-[#0f5c5c] transition-colors"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#242A28] text-white text-xs font-semibold hover:bg-[#174C40] transition-colors"
                     >
                       View
                       <ArrowUpRight className="h-3 w-3" />
@@ -292,7 +292,7 @@ export default function NotificationsPage() {
                     <button
                       type="button"
                       onClick={() => markOneRead(n.id)}
-                      className="text-xs text-[#768086] hover:text-[#14181a] px-2 py-1 rounded-md hover:bg-[#faf9f6]"
+                      className="text-xs text-[#77817C] hover:text-[#242A28] px-2 py-1 rounded-md hover:bg-[#FAFAF7]"
                     >
                       Mark read
                     </button>

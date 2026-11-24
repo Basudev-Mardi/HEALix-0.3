@@ -1,19 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --bg-canvas: #faf9f6;
-  --bg-surface: #ffffff;
-  --bg-subtle: #f2f1ec;
-  --border-subtle: #e6e4dd;
-  --border-strong: #d5d2c9;
-  --ink-primary: #14181a;
-  --ink-secondary: #4b555b;
-  --ink-muted: #768086;
-  --accent: #0f5c5c;
-  --accent-hover: #0b4747;
-  --accent-soft: #edf5f4;
-  --emergency: #b91c1c;
-  --emergency-soft: #fef2f2;
+  /* 5. Premium Minimalist Design System Palette */
+  --bg-canvas: #FAFAF7;       /* Warm White - Main background */
+  --bg-surface: #FFFFFF;      /* White - Cards */
+  --bg-subtle: #E6EFE9;       /* Soft Sage - Section backgrounds */
+  --border-subtle: #E5E8E6;   /* Very light grey - Borders */
+  --border-strong: #77817C;   /* Muted Grey */
+  --ink-primary: #242A28;     /* Charcoal - Main text */
+  --ink-secondary: #4A5350;   /* Muted Charcoal */
+  --ink-muted: #77817C;       /* Muted Grey */
+
+  /* Accents */
+  --deep-forest: #174C40;     /* Deep Forest - Primary action */
+  --deep-forest-hover: #123C32;
+  --medical-green: #287A64;   /* Medical Green - Secondary action & Success */
+  --medical-green-hover: #206250;
+  --soft-sage: #E6EFE9;       /* Soft Sage */
+
+  /* Aliases for semantic usage */
+  --accent: #174C40;
+  --accent-hover: #123C32;
+  --accent-secondary: #287A64;
+  --accent-soft: #E6EFE9;
+
+  /* Feedback */
+  --status-success: #287A64;  /* Green */
+  --status-warning: #B45309;  /* Amber */
+  --status-error: #B91C1C;    /* Muted Red */
+
+  --emergency: #B91C1C;
+  --emergency-soft: #FEF2F2;
 }
 
 @theme inline {
@@ -22,6 +39,14 @@
   --font-sans: var(--font-geist-sans);
   --font-serif: var(--font-newsreader);
   --font-mono: var(--font-geist-mono);
+
+  --color-forest: #174C40;
+  --color-forest-dark: #123C32;
+  --color-medical: #287A64;
+  --color-sage: #E6EFE9;
+  --color-warm-white: #FAFAF7;
+  --color-charcoal: #242A28;
+  --color-muted-grey: #77817C;
 }
 
 html {
@@ -59,13 +84,57 @@ body {
   border-color: var(--border-subtle);
 }
 
+/* Premium Minimalist Design System Component Classes */
+
+/* Cards: White background, subtle border, gentle restrained hover */
 .card-minimal {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  transition: border-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+  border-radius: 0.75rem;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 
 .card-minimal:hover {
   border-color: var(--border-strong);
-  box-shadow: 0 10px 30px -18px rgba(20, 24, 26, 0.14);
+  box-shadow: 0 4px 12px -2px rgba(36, 42, 40, 0.05);
+}
+
+/* Section backgrounds: Soft Sage */
+.section-sage {
+  background-color: var(--soft-sage);
+}
+
+/* Primary Button: Deep Forest */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  background-color: #174C40;
+  color: #FAFAF7;
+  padding: 0.625rem 1.25rem;
+  transition: background-color 150ms ease;
+}
+
+.btn-primary:hover {
+  background-color: #123C32;
+}
+
+/* Secondary Button: White / Green border */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  background-color: #FFFFFF;
+  color: #287A64;
+  border: 1px solid #287A64;
+  padding: 0.625rem 1.25rem;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.btn-secondary:hover {
+  background-color: #E6EFE9;
 }

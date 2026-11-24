@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
@@ -31,7 +31,7 @@ export default function HealthLibraryClient({ articles }: { articles: HealthArti
   return (
     <div className="space-y-10">
       {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#e6e4dd]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E5E8E6]">
         <div className="flex flex-wrap items-center gap-2">
           {categories.map((cat) => (
             <button
@@ -40,8 +40,8 @@ export default function HealthLibraryClient({ articles }: { articles: HealthArti
               onClick={() => setSelectedCategory(cat)}
               className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${
                 selectedCategory === cat
-                  ? 'bg-[#14181a] text-white'
-                  : 'bg-white border border-[#e6e4dd] text-[#4b555b] hover:border-[#14181a]'
+                  ? 'bg-[#242A28] text-white'
+                  : 'bg-white border border-[#E5E8E6] text-[#4A5350] hover:border-[#242A28]'
               }`}
             >
               {cat}
@@ -50,21 +50,21 @@ export default function HealthLibraryClient({ articles }: { articles: HealthArti
         </div>
 
         <div className="relative sm:w-72">
-          <Search className="h-4 w-4 text-[#768086] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="h-4 w-4 text-[#77817C] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search clinical topics..."
-            className="w-full pl-10 pr-4 py-2 rounded-full bg-white border border-[#e6e4dd] text-xs text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+            className="w-full pl-10 pr-4 py-2 rounded-full bg-white border border-[#E5E8E6] text-xs text-[#242A28] focus:outline-none focus:border-[#174C40]"
           />
         </div>
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-12 text-center space-y-2">
-          <p className="text-base font-medium text-[#14181a]">No articles found.</p>
-          <p className="text-xs text-[#768086]">Try another search term or clear the filter.</p>
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-12 text-center space-y-2">
+          <p className="text-base font-medium text-[#242A28]">No articles found.</p>
+          <p className="text-xs text-[#77817C]">Try another search term or clear the filter.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -75,20 +75,20 @@ export default function HealthLibraryClient({ articles }: { articles: HealthArti
             >
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-2 text-xs">
-                  <span className="text-[11px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#edf5f4] text-[#0f5c5c]">
+                  <span className="text-[11px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#E6EFE9] text-[#174C40]">
                     {article.category}
                   </span>
-                  <span className="inline-flex items-center gap-1 font-mono text-[#768086]">
+                  <span className="inline-flex items-center gap-1 font-mono text-[#77817C]">
                     <Clock className="h-3 w-3" />
                     {article.read_minutes} min read
                   </span>
                 </div>
 
-                <h2 className="font-editorial text-2xl text-[#14181a] group-hover:text-[#0f5c5c] transition-colors leading-snug">
+                <h2 className="font-editorial text-2xl text-[#242A28] group-hover:text-[#174C40] transition-colors leading-snug">
                   <Link href={`/health-library/${article.slug}`}>{article.title}</Link>
                 </h2>
 
-                <p className="text-sm leading-relaxed text-[#4b555b] line-clamp-3">
+                <p className="text-sm leading-relaxed text-[#4A5350] line-clamp-3">
                   {article.excerpt}
                 </p>
 
@@ -96,7 +96,7 @@ export default function HealthLibraryClient({ articles }: { articles: HealthArti
                   {article.tags.map((t) => (
                     <span
                       key={t}
-                      className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full bg-[#faf9f6] border border-[#e6e4dd] text-[#768086]"
+                      className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full bg-[#FAFAF7] border border-[#E5E8E6] text-[#77817C]"
                     >
                       <Tag className="h-2.5 w-2.5" />
                       {t}
@@ -105,14 +105,14 @@ export default function HealthLibraryClient({ articles }: { articles: HealthArti
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-[#e6e4dd] flex items-center justify-between text-xs">
+              <div className="mt-6 pt-4 border-t border-[#E5E8E6] flex items-center justify-between text-xs">
                 <div>
-                  <p className="font-medium text-[#14181a]">{article.author_name}</p>
-                  <p className="text-[11px] text-[#768086]">{article.published_date}</p>
+                  <p className="font-medium text-[#242A28]">{article.author_name}</p>
+                  <p className="text-[11px] text-[#77817C]">{article.published_date}</p>
                 </div>
                 <Link
                   href={`/health-library/${article.slug}`}
-                  className="inline-flex items-center gap-1 text-[#0f5c5c] font-medium group-hover:translate-x-0.5 transition-transform"
+                  className="inline-flex items-center gap-1 text-[#174C40] font-medium group-hover:translate-x-0.5 transition-transform"
                 >
                   Read
                   <ArrowRight className="h-3.5 w-3.5" />

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -208,14 +208,14 @@ export default function BookAppointmentClient({
       {/* Main Workflow (Steps 1 to 5) */}
       <div className="lg:col-span-8 space-y-8">
         {/* Step 1: Select Medical Department */}
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 sm:p-8 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#e6e4dd] pb-3">
-            <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#0f5c5c] font-semibold">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 sm:p-8 space-y-4">
+          <div className="flex items-center justify-between border-b border-[#E5E8E6] pb-3">
+            <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#174C40] font-semibold">
               Step 1 · Select Medical Department
             </span>
-            <Building2 className="h-4 w-4 text-[#0f5c5c]" />
+            <Building2 className="h-4 w-4 text-[#174C40]" />
           </div>
-          <p className="text-xs text-[#768086]">
+          <p className="text-xs text-[#77817C]">
             Filter specialist physicians by clinical specialty and hospital wing:
           </p>
 
@@ -225,8 +225,8 @@ export default function BookAppointmentClient({
               onClick={() => setSelectedDeptSlug('all')}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 selectedDeptSlug === 'all'
-                  ? 'bg-[#14181a] text-white'
-                  : 'bg-[#faf9f6] border border-[#e6e4dd] text-[#4b555b] hover:border-[#14181a]'
+                  ? 'bg-[#242A28] text-white'
+                  : 'bg-[#FAFAF7] border border-[#E5E8E6] text-[#4A5350] hover:border-[#242A28]'
               }`}
             >
               All Departments ({doctors.length})
@@ -240,8 +240,8 @@ export default function BookAppointmentClient({
                   onClick={() => setSelectedDeptSlug(dept.slug)}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     selectedDeptSlug === dept.slug
-                      ? 'bg-[#14181a] text-white'
-                      : 'bg-[#faf9f6] border border-[#e6e4dd] text-[#4b555b] hover:border-[#14181a]'
+                      ? 'bg-[#242A28] text-white'
+                      : 'bg-[#FAFAF7] border border-[#E5E8E6] text-[#4A5350] hover:border-[#242A28]'
                   }`}
                 >
                   {dept.name} {count > 0 && `(${count})`}
@@ -252,12 +252,12 @@ export default function BookAppointmentClient({
         </div>
 
         {/* Step 2: Select Doctor */}
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 sm:p-8 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#e6e4dd] pb-3">
-            <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#0f5c5c] font-semibold">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 sm:p-8 space-y-4">
+          <div className="flex items-center justify-between border-b border-[#E5E8E6] pb-3">
+            <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#174C40] font-semibold">
               Step 2 · Select Doctor
             </span>
-            <Stethoscope className="h-4 w-4 text-[#0f5c5c]" />
+            <Stethoscope className="h-4 w-4 text-[#174C40]" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
@@ -269,25 +269,25 @@ export default function BookAppointmentClient({
                   onClick={() => setDoctorSlug(doc.slug)}
                   className={`cursor-pointer rounded-xl border p-4.5 flex items-start gap-3.5 transition-all ${
                     active
-                      ? 'border-[#0f5c5c] bg-[#edf5f4]/70 shadow-sm ring-1 ring-[#0f5c5c]'
-                      : 'border-[#e6e4dd] bg-[#faf9f6] hover:border-[#0f5c5c]/60'
+                      ? 'border-[#174C40] bg-[#E6EFE9]/70 shadow-sm ring-1 ring-[#174C40]'
+                      : 'border-[#E5E8E6] bg-[#FAFAF7] hover:border-[#174C40]/60'
                   }`}
                 >
                   <DoctorAvatar initials={doc.avatar_initials} tone={doc.accent_tone} size="md" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-semibold text-[#14181a] truncate">{doc.name}</p>
-                      <span className="text-xs font-mono font-semibold text-[#0f5c5c] shrink-0">
+                      <p className="text-sm font-semibold text-[#242A28] truncate">{doc.name}</p>
+                      <span className="text-xs font-mono font-semibold text-[#174C40] shrink-0">
                         {doc.consultation_fee}
                       </span>
                     </div>
-                    <p className="text-xs text-[#0f5c5c] font-medium truncate mt-0.5">
+                    <p className="text-xs text-[#174C40] font-medium truncate mt-0.5">
                       {doc.specialty}
                     </p>
-                    <p className="text-[11px] text-[#768086] truncate mt-1">
+                    <p className="text-[11px] text-[#77817C] truncate mt-1">
                       {doc.qualification} · {doc.experience_years} yrs exp
                     </p>
-                    <p className="text-[11px] text-[#768086] truncate mt-0.5">
+                    <p className="text-[11px] text-[#77817C] truncate mt-0.5">
                       {doc.department_floor || doc.department_name}
                     </p>
                   </div>
@@ -297,23 +297,23 @@ export default function BookAppointmentClient({
           </div>
 
           {selectedDoctor && (
-            <div className="mt-2 p-3.5 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-xs text-[#4b555b] flex items-center justify-between">
+            <div className="mt-2 p-3.5 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-xs text-[#4A5350] flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <Clock className="h-3.5 w-3.5 text-[#0f5c5c]" />
+                <Clock className="h-3.5 w-3.5 text-[#174C40]" />
                 <strong>Clinic Schedule:</strong> {selectedDoctor.consultation_days} ({selectedDoctor.consultation_hours})
               </span>
-              <span className="font-mono text-[#0f5c5c] font-semibold">{selectedDoctor.consultation_fee}</span>
+              <span className="font-mono text-[#174C40] font-semibold">{selectedDoctor.consultation_fee}</span>
             </div>
           )}
         </div>
 
         {/* Step 3: Select Appointment Type */}
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 sm:p-8 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#e6e4dd] pb-3">
-            <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#0f5c5c] font-semibold">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 sm:p-8 space-y-4">
+          <div className="flex items-center justify-between border-b border-[#E5E8E6] pb-3">
+            <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#174C40] font-semibold">
               Step 3 · Select Appointment Type
             </span>
-            <FileText className="h-4 w-4 text-[#0f5c5c]" />
+            <FileText className="h-4 w-4 text-[#174C40]" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -327,18 +327,18 @@ export default function BookAppointmentClient({
                   onClick={() => setAppointmentType(item.type)}
                   className={`rounded-xl border p-5 text-left transition-all ${
                     active
-                      ? 'border-[#0f5c5c] bg-[#edf5f4]/60 shadow-sm ring-1 ring-[#0f5c5c]'
-                      : 'border-[#e6e4dd] bg-[#faf9f6] hover:border-[#d5d2c9]'
+                      ? 'border-[#174C40] bg-[#E6EFE9]/60 shadow-sm ring-1 ring-[#174C40]'
+                      : 'border-[#E5E8E6] bg-[#FAFAF7] hover:border-[#77817C]'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <IconComp className="h-5 w-5 text-[#0f5c5c]" />
-                    <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white border border-[#e6e4dd] text-[#768086]">
+                    <IconComp className="h-5 w-5 text-[#174C40]" />
+                    <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white border border-[#E5E8E6] text-[#77817C]">
                       {item.badge}
                     </span>
                   </div>
-                  <p className="text-sm font-semibold text-[#14181a]">{item.type}</p>
-                  <p className="text-xs text-[#4b555b] mt-1.5 leading-relaxed">{item.desc}</p>
+                  <p className="text-sm font-semibold text-[#242A28]">{item.type}</p>
+                  <p className="text-xs text-[#4A5350] mt-1.5 leading-relaxed">{item.desc}</p>
                 </button>
               );
             })}
@@ -346,18 +346,18 @@ export default function BookAppointmentClient({
         </div>
 
         {/* Step 4: Select Date */}
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 sm:p-8 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#e6e4dd] pb-3">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 sm:p-8 space-y-4">
+          <div className="flex items-center justify-between border-b border-[#E5E8E6] pb-3">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#0f5c5c] font-semibold">
+              <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#174C40] font-semibold">
                 Step 4 · Select Date
               </span>
-              <span className="text-[11px] font-mono text-[#768086]">
+              <span className="text-[11px] font-mono text-[#77817C]">
                 (Next 14 Days)
               </span>
             </div>
-            <span className="inline-flex items-center gap-1.5 text-xs text-[#768086]">
-              <CalendarDays className="h-3.5 w-3.5 text-[#0f5c5c]" />
+            <span className="inline-flex items-center gap-1.5 text-xs text-[#77817C]">
+              <CalendarDays className="h-3.5 w-3.5 text-[#174C40]" />
               Doctor Scheduled Days Highlighted
             </span>
           </div>
@@ -373,15 +373,15 @@ export default function BookAppointmentClient({
                   onClick={() => setSelectedDate(d.iso)}
                   className={`rounded-xl border p-2.5 text-center transition-all relative ${
                     active
-                      ? 'bg-[#14181a] text-white border-[#14181a] shadow-sm'
+                      ? 'bg-[#242A28] text-white border-[#242A28] shadow-sm'
                       : isScheduled
-                      ? 'bg-white text-[#14181a] border-[#0f5c5c]/40 hover:border-[#14181a]'
-                      : 'bg-[#faf9f6] text-[#768086] border-[#e6e4dd] hover:border-[#14181a]'
+                      ? 'bg-white text-[#242A28] border-[#174C40]/40 hover:border-[#242A28]'
+                      : 'bg-[#FAFAF7] text-[#77817C] border-[#E5E8E6] hover:border-[#242A28]'
                   }`}
                 >
                   <span
                     className={`block text-[10px] font-mono uppercase ${
-                      active ? 'text-white/80' : isScheduled ? 'text-[#0f5c5c] font-semibold' : 'text-[#768086]'
+                      active ? 'text-white/80' : isScheduled ? 'text-[#174C40] font-semibold' : 'text-[#77817C]'
                     }`}
                   >
                     {d.dayName}
@@ -390,7 +390,7 @@ export default function BookAppointmentClient({
                     {d.label}
                   </span>
                   {isScheduled && !active && (
-                    <span className="block text-[9px] text-[#0f5c5c] mt-0.5 font-medium">
+                    <span className="block text-[9px] text-[#174C40] mt-0.5 font-medium">
                       Clinic Day
                     </span>
                   )}
@@ -401,16 +401,16 @@ export default function BookAppointmentClient({
         </div>
 
         {/* Step 5: Select Time Slot */}
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 sm:p-8 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#e6e4dd] pb-3">
-            <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#0f5c5c] font-semibold">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 sm:p-8 space-y-4">
+          <div className="flex items-center justify-between border-b border-[#E5E8E6] pb-3">
+            <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#174C40] font-semibold">
               Step 5 · Select Available Time Slot
             </span>
             <div className="flex items-center gap-2">
               {loadingSlots ? (
-                <span className="text-xs font-mono text-[#0f5c5c]">Verifying slot availability...</span>
+                <span className="text-xs font-mono text-[#174C40]">Verifying slot availability...</span>
               ) : (
-                <span className="text-xs font-mono text-[#768086]">
+                <span className="text-xs font-mono text-[#77817C]">
                   {slots.filter((s) => s.available).length} slots open
                 </span>
               )}
@@ -428,17 +428,17 @@ export default function BookAppointmentClient({
                   onClick={() => setSelectedSlot(slot.time)}
                   className={`rounded-xl border px-3 py-3 text-xs font-mono transition-all flex items-center justify-between ${
                     !slot.available
-                      ? 'bg-[#f4f3ef] text-[#a0a7ac] border-[#e6e4dd] cursor-not-allowed line-through'
+                      ? 'bg-[#f4f3ef] text-[#a0a7ac] border-[#E5E8E6] cursor-not-allowed line-through'
                       : active
-                      ? 'bg-[#0f5c5c] text-white border-[#0f5c5c] shadow-sm font-semibold'
-                      : 'bg-white text-[#14181a] border-[#e6e4dd] hover:border-[#0f5c5c]'
+                      ? 'bg-[#174C40] text-white border-[#174C40] shadow-sm font-semibold'
+                      : 'bg-white text-[#242A28] border-[#E5E8E6] hover:border-[#174C40]'
                   }`}
                 >
                   <span>{slot.time}</span>
                   {slot.available ? (
                     <span
                       className={`text-[9px] uppercase px-1.5 py-0.5 rounded ${
-                        active ? 'bg-white/20 text-white' : 'bg-[#edf5f4] text-[#0f5c5c]'
+                        active ? 'bg-white/20 text-white' : 'bg-[#E6EFE9] text-[#174C40]'
                       }`}
                     >
                       Open
@@ -455,69 +455,69 @@ export default function BookAppointmentClient({
 
       {/* Sticky Summary Sidebar */}
       <aside className="lg:col-span-4 lg:sticky lg:top-28">
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 space-y-6 shadow-sm">
-          <div className="flex items-center justify-between border-b border-[#e6e4dd] pb-3">
-            <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#768086]">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 space-y-6 shadow-sm">
+          <div className="flex items-center justify-between border-b border-[#E5E8E6] pb-3">
+            <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#77817C]">
               Booking Overview
             </p>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#edf5f4] text-[#0f5c5c]">
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#E6EFE9] text-[#174C40]">
               Step 1–5 Done
             </span>
           </div>
 
           {selectedDoctor && (
-            <div className="flex items-center gap-4 pb-5 border-b border-[#e6e4dd]">
+            <div className="flex items-center gap-4 pb-5 border-b border-[#E5E8E6]">
               <DoctorAvatar
                 initials={selectedDoctor.avatar_initials}
                 tone={selectedDoctor.accent_tone}
                 size="md"
               />
               <div className="min-w-0">
-                <p className="text-base font-semibold text-[#14181a] truncate">{selectedDoctor.name}</p>
-                <p className="text-xs text-[#0f5c5c] font-medium truncate">{selectedDoctor.specialty}</p>
-                <p className="text-xs text-[#768086] mt-0.5 truncate">{selectedDoctor.department_name}</p>
+                <p className="text-base font-semibold text-[#242A28] truncate">{selectedDoctor.name}</p>
+                <p className="text-xs text-[#174C40] font-medium truncate">{selectedDoctor.specialty}</p>
+                <p className="text-xs text-[#77817C] mt-0.5 truncate">{selectedDoctor.department_name}</p>
               </div>
             </div>
           )}
 
           <dl className="space-y-3.5 text-sm">
             <div className="flex items-start justify-between">
-              <dt className="text-xs text-[#768086]">Department</dt>
-              <dd className="text-xs font-medium text-[#14181a] text-right">
+              <dt className="text-xs text-[#77817C]">Department</dt>
+              <dd className="text-xs font-medium text-[#242A28] text-right">
                 {selectedDoctor?.department_name || 'Selected'}
               </dd>
             </div>
             <div className="flex items-start justify-between">
-              <dt className="text-xs text-[#768086]">Appointment Type</dt>
-              <dd className="text-xs font-medium text-[#14181a] text-right max-w-[180px]">
+              <dt className="text-xs text-[#77817C]">Appointment Type</dt>
+              <dd className="text-xs font-medium text-[#242A28] text-right max-w-[180px]">
                 {appointmentType}
               </dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-xs text-[#768086]">Appointment Date</dt>
-              <dd className="font-mono text-xs text-[#14181a] font-medium">
+              <dt className="text-xs text-[#77817C]">Appointment Date</dt>
+              <dd className="font-mono text-xs text-[#242A28] font-medium">
                 {selectedDate || '—'}
               </dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-xs text-[#768086]">Time Slot</dt>
-              <dd className="font-mono text-xs text-[#14181a] inline-flex items-center gap-1 font-semibold">
-                <Clock className="h-3.5 w-3.5 text-[#0f5c5c]" />
+              <dt className="text-xs text-[#77817C]">Time Slot</dt>
+              <dd className="font-mono text-xs text-[#242A28] inline-flex items-center gap-1 font-semibold">
+                <Clock className="h-3.5 w-3.5 text-[#174C40]" />
                 {selectedSlot || 'Select a slot'}
               </dd>
             </div>
             {selectedDoctor?.department_floor && (
               <div className="flex items-center justify-between">
-                <dt className="text-xs text-[#768086]">Consultation Room</dt>
-                <dd className="text-xs text-[#14181a] flex items-center gap-1">
-                  <MapPin className="h-3 w-3 text-[#0f5c5c]" />
+                <dt className="text-xs text-[#77817C]">Consultation Room</dt>
+                <dd className="text-xs text-[#242A28] flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-[#174C40]" />
                   {selectedDoctor.department_floor}
                 </dd>
               </div>
             )}
-            <div className="flex items-center justify-between pt-3 border-t border-[#e6e4dd]">
-              <dt className="text-xs text-[#768086] font-medium">Consultation Fee</dt>
-              <dd className="font-mono font-bold text-base text-[#0f5c5c]">
+            <div className="flex items-center justify-between pt-3 border-t border-[#E5E8E6]">
+              <dt className="text-xs text-[#77817C] font-medium">Consultation Fee</dt>
+              <dd className="font-mono font-bold text-base text-[#174C40]">
                 {selectedDoctor?.consultation_fee || '$180'}
               </dd>
             </div>
@@ -527,15 +527,15 @@ export default function BookAppointmentClient({
             type="button"
             disabled={!selectedSlot}
             onClick={handleContinue}
-            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-full bg-[#14181a] text-white text-xs font-semibold hover:bg-[#0f5c5c] disabled:bg-[#d5d2c9] disabled:cursor-not-allowed transition-colors shadow-sm"
+            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-full bg-[#242A28] text-white text-xs font-semibold hover:bg-[#174C40] disabled:bg-[#77817C] disabled:cursor-not-allowed transition-colors shadow-sm"
           >
             Continue to Patient Details &amp; Review
             <ArrowRight className="h-4 w-4" />
           </button>
 
-          <div className="rounded-xl bg-[#faf9f6] p-3 text-[11px] text-[#768086] space-y-1">
-            <p className="flex items-center gap-1 font-medium text-[#14181a]">
-              <Info className="h-3.5 w-3.5 text-[#0f5c5c]" />
+          <div className="rounded-xl bg-[#FAFAF7] p-3 text-[11px] text-[#77817C] space-y-1">
+            <p className="flex items-center gap-1 font-medium text-[#242A28]">
+              <Info className="h-3.5 w-3.5 text-[#174C40]" />
               Booking &amp; Payment Policy:
             </p>
             <p>• Zero upfront booking fee. Payment settled at reception desk.</p>

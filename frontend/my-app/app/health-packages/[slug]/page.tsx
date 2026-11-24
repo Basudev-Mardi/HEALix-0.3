@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
@@ -81,36 +81,36 @@ export default async function HealthPackageDetailPage({
 
             {/* Quick Specs Strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="rounded-xl border border-[#e6e4dd] bg-white p-4">
-                <p className="text-[11px] font-mono uppercase text-[#768086]">Duration</p>
-                <p className="font-semibold text-sm text-[#14181a] mt-0.5">{pkg.duration}</p>
+              <div className="rounded-xl border border-[#E5E8E6] bg-white p-4">
+                <p className="text-[11px] font-mono uppercase text-[#77817C]">Duration</p>
+                <p className="font-semibold text-sm text-[#242A28] mt-0.5">{pkg.duration}</p>
               </div>
-              <div className="rounded-xl border border-[#e6e4dd] bg-white p-4">
-                <p className="text-[11px] font-mono uppercase text-[#768086]">Report Turnaround</p>
-                <p className="font-semibold text-sm text-[#14181a] mt-0.5">{pkg.turnaround}</p>
+              <div className="rounded-xl border border-[#E5E8E6] bg-white p-4">
+                <p className="text-[11px] font-mono uppercase text-[#77817C]">Report Turnaround</p>
+                <p className="font-semibold text-sm text-[#242A28] mt-0.5">{pkg.turnaround}</p>
               </div>
-              <div className="rounded-xl border border-[#e6e4dd] bg-white p-4">
-                <p className="text-[11px] font-mono uppercase text-[#768086]">Recommended Frequency</p>
-                <p className="font-semibold text-sm text-[#14181a] mt-0.5">{pkg.recommended_frequency}</p>
+              <div className="rounded-xl border border-[#E5E8E6] bg-white p-4">
+                <p className="text-[11px] font-mono uppercase text-[#77817C]">Recommended Frequency</p>
+                <p className="font-semibold text-sm text-[#242A28] mt-0.5">{pkg.recommended_frequency}</p>
               </div>
-              <div className="rounded-xl border border-[#e6e4dd] bg-white p-4">
-                <p className="text-[11px] font-mono uppercase text-[#768086]">Investigations</p>
-                <p className="font-semibold text-sm text-[#0f5c5c] mt-0.5">{totalTests} Parameters</p>
+              <div className="rounded-xl border border-[#E5E8E6] bg-white p-4">
+                <p className="text-[11px] font-mono uppercase text-[#77817C]">Investigations</p>
+                <p className="font-semibold text-sm text-[#174C40] mt-0.5">{totalTests} Parameters</p>
               </div>
             </div>
 
             {/* Overview & Clinical Purpose */}
-            <div className="space-y-4 rounded-2xl border border-[#e6e4dd] bg-white p-7">
-              <h2 className="font-editorial text-2xl text-[#14181a]">
+            <div className="space-y-4 rounded-2xl border border-[#E5E8E6] bg-white p-7">
+              <h2 className="font-editorial text-2xl text-[#242A28]">
                 Clinical Overview &amp; Health Objective
               </h2>
-              <p className="text-sm text-[#4b555b] leading-relaxed">
+              <p className="text-sm text-[#4A5350] leading-relaxed">
                 {pkg.overview}
               </p>
-              <div className="rounded-xl bg-[#faf9f6] p-4 border border-[#f0eee6] flex items-start gap-3 text-xs text-[#4b555b]">
-                <ShieldCheck className="h-4 w-4 text-[#0f5c5c] shrink-0 mt-0.5" />
+              <div className="rounded-xl bg-[#FAFAF7] p-4 border border-[#f0eee6] flex items-start gap-3 text-xs text-[#4A5350]">
+                <ShieldCheck className="h-4 w-4 text-[#174C40] shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-semibold text-[#14181a]">Healix Diagnostic Assurance: </span>
+                  <span className="font-semibold text-[#242A28]">Healix Diagnostic Assurance: </span>
                   All biological samples and imaging scans are processed on certified, automated medical systems supervised by board-certified clinical pathologists and radiologists.
                 </div>
               </div>
@@ -120,10 +120,10 @@ export default async function HealthPackageDetailPage({
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="font-editorial text-2xl sm:text-3xl text-[#14181a]">
+                  <h2 className="font-editorial text-2xl sm:text-3xl text-[#242A28]">
                     Included Diagnostic Tests &amp; Panels
                   </h2>
-                  <p className="text-xs text-[#768086] mt-1">
+                  <p className="text-xs text-[#77817C] mt-1">
                     Complete breakdown of {totalTests} clinical parameters across {pkg.tests.length} diagnostic categories.
                   </p>
                 </div>
@@ -133,20 +133,20 @@ export default async function HealthPackageDetailPage({
                 {pkg.tests.map((group) => (
                   <div
                     key={group.group}
-                    className="rounded-2xl border border-[#e6e4dd] bg-white p-6 space-y-3 shadow-xs"
+                    className="rounded-2xl border border-[#E5E8E6] bg-white p-6 space-y-3 shadow-xs"
                   >
-                    <div className="flex items-center justify-between border-b border-[#e6e4dd] pb-2">
-                      <h3 className="text-sm font-semibold text-[#14181a]">
+                    <div className="flex items-center justify-between border-b border-[#E5E8E6] pb-2">
+                      <h3 className="text-sm font-semibold text-[#242A28]">
                         {group.group}
                       </h3>
-                      <span className="text-[11px] font-mono text-[#0f5c5c] bg-[#edf5f4] px-2 py-0.5 rounded-full">
+                      <span className="text-[11px] font-mono text-[#174C40] bg-[#E6EFE9] px-2 py-0.5 rounded-full">
                         {group.items.length} items
                       </span>
                     </div>
-                    <ul className="space-y-2 text-xs text-[#4b555b]">
+                    <ul className="space-y-2 text-xs text-[#4A5350]">
                       {group.items.map((item) => (
                         <li key={item} className="flex items-start gap-2">
-                          <Check className="h-3.5 w-3.5 text-[#0f5c5c] shrink-0 mt-0.5" />
+                          <Check className="h-3.5 w-3.5 text-[#174C40] shrink-0 mt-0.5" />
                           <span>{item}</span>
                         </li>
                       ))}
@@ -157,28 +157,28 @@ export default async function HealthPackageDetailPage({
             </div>
 
             {/* Eligibility & Candidacy Information */}
-            <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 space-y-5 shadow-xs">
-              <div className="flex items-center gap-2 pb-3 border-b border-[#e6e4dd]">
-                <Users className="h-5 w-5 text-[#0f5c5c]" />
-                <h2 className="font-editorial text-xl sm:text-2xl text-[#14181a]">
+            <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 space-y-5 shadow-xs">
+              <div className="flex items-center gap-2 pb-3 border-b border-[#E5E8E6]">
+                <Users className="h-5 w-5 text-[#174C40]" />
+                <h2 className="font-editorial text-xl sm:text-2xl text-[#242A28]">
                   Eligibility &amp; Target Cohort Information
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="rounded-xl bg-[#faf9f6] p-4 border border-[#e6e4dd] space-y-1">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#768086]">
+                <div className="rounded-xl bg-[#FAFAF7] p-4 border border-[#E5E8E6] space-y-1">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#77817C]">
                     Recommended Age Bracket
                   </span>
-                  <p className="font-semibold text-sm text-[#14181a]">
+                  <p className="font-semibold text-sm text-[#242A28]">
                     {pkg.eligibility?.age_range || '18+ years'}
                   </p>
                 </div>
-                <div className="rounded-xl bg-[#faf9f6] p-4 border border-[#e6e4dd] space-y-1">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#768086]">
+                <div className="rounded-xl bg-[#FAFAF7] p-4 border border-[#E5E8E6] space-y-1">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#77817C]">
                     Target Demographics
                   </span>
-                  <p className="font-semibold text-sm text-[#14181a]">
+                  <p className="font-semibold text-sm text-[#242A28]">
                     {pkg.eligibility?.gender_target || 'All genders'}
                   </p>
                 </div>
@@ -186,13 +186,13 @@ export default async function HealthPackageDetailPage({
 
               {/* Who benefits most */}
               <div className="space-y-2">
-                <h3 className="text-xs font-semibold text-[#14181a] uppercase tracking-wider font-mono">
+                <h3 className="text-xs font-semibold text-[#242A28] uppercase tracking-wider font-mono">
                   Recommended For:
                 </h3>
-                <ul className="space-y-1.5 text-xs text-[#4b555b]">
+                <ul className="space-y-1.5 text-xs text-[#4A5350]">
                   {(pkg.eligibility?.recommended_for || [pkg.ideal_for]).map((item, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-[#0f5c5c] shrink-0 mt-0.5" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-[#174C40] shrink-0 mt-0.5" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -219,18 +219,18 @@ export default async function HealthPackageDetailPage({
             </div>
 
             {/* Preparation Guidelines */}
-            <div className="rounded-2xl border border-[#e6e4dd] bg-[#faf9f6] p-7 space-y-4">
-              <h2 className="text-base font-semibold text-[#14181a] flex items-center gap-2">
-                <FileText className="h-4 w-4 text-[#0f5c5c]" />
+            <div className="rounded-2xl border border-[#E5E8E6] bg-[#FAFAF7] p-7 space-y-4">
+              <h2 className="text-base font-semibold text-[#242A28] flex items-center gap-2">
+                <FileText className="h-4 w-4 text-[#174C40]" />
                 Patient Preparation Instructions
               </h2>
-              <p className="text-xs text-[#768086]">
+              <p className="text-xs text-[#77817C]">
                 Strict adherence to preparation instructions ensures laboratory accuracy and prevents invalid specimen re-collections.
               </p>
-              <ol className="space-y-2.5 text-xs text-[#4b555b]">
+              <ol className="space-y-2.5 text-xs text-[#4A5350]">
                 {pkg.preparation.map((prep, idx) => (
-                  <li key={idx} className="flex items-start gap-2.5 bg-white p-3 rounded-lg border border-[#e6e4dd]">
-                    <span className="font-mono text-xs font-bold text-[#0f5c5c]">{idx + 1}.</span>
+                  <li key={idx} className="flex items-start gap-2.5 bg-white p-3 rounded-lg border border-[#E5E8E6]">
+                    <span className="font-mono text-xs font-bold text-[#174C40]">{idx + 1}.</span>
                     <span className="leading-relaxed">{prep}</span>
                   </li>
                 ))}
@@ -238,14 +238,14 @@ export default async function HealthPackageDetailPage({
             </div>
 
             {/* Terms and Conditions */}
-            <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 space-y-4 shadow-xs">
-              <div className="flex items-center gap-2 pb-3 border-b border-[#e6e4dd]">
-                <FileCheck2 className="h-4 w-4 text-[#0f5c5c]" />
-                <h2 className="font-editorial text-xl text-[#14181a]">
+            <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 space-y-4 shadow-xs">
+              <div className="flex items-center gap-2 pb-3 border-b border-[#E5E8E6]">
+                <FileCheck2 className="h-4 w-4 text-[#174C40]" />
+                <h2 className="font-editorial text-xl text-[#242A28]">
                   Hospital Terms &amp; Package Conditions
                 </h2>
               </div>
-              <ul className="space-y-2 text-xs text-[#4b555b]">
+              <ul className="space-y-2 text-xs text-[#4A5350]">
                 {(pkg.terms_and_conditions || [
                   'Appointments must be confirmed at least 24 hours in advance.',
                   'Package price is inclusive of all diagnostic tests and physician consultation.',
@@ -253,7 +253,7 @@ export default async function HealthPackageDetailPage({
                   'Free rescheduling is available up to 4 hours prior to the slot.',
                 ]).map((term, idx) => (
                   <li key={idx} className="flex items-start gap-2.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#0f5c5c] shrink-0 mt-1.5" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#174C40] shrink-0 mt-1.5" />
                     <span className="leading-relaxed">{term}</span>
                   </li>
                 ))}
@@ -264,7 +264,7 @@ export default async function HealthPackageDetailPage({
             <div className="pt-2">
               <Link
                 href="/health-packages"
-                className="inline-flex items-center gap-2 text-xs font-medium text-[#0f5c5c] hover:underline"
+                className="inline-flex items-center gap-2 text-xs font-medium text-[#174C40] hover:underline"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Back to All Preventive Health Packages
@@ -280,19 +280,19 @@ export default async function HealthPackageDetailPage({
 
         {/* Other Recommended Packages Carousel / Grid */}
         {pkg.otherPackages && pkg.otherPackages.length > 0 && (
-          <div className="mt-20 pt-12 border-t border-[#e6e4dd] space-y-6">
+          <div className="mt-20 pt-12 border-t border-[#E5E8E6] space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-editorial text-2xl text-[#14181a]">
+                <h3 className="font-editorial text-2xl text-[#242A28]">
                   Other Preventive Health Programs
                 </h3>
-                <p className="text-xs text-[#768086] mt-0.5">
+                <p className="text-xs text-[#77817C] mt-0.5">
                   Explore complementary health assessments designed for different life stages.
                 </p>
               </div>
               <Link
                 href="/health-packages"
-                className="text-xs font-medium text-[#0f5c5c] hover:underline inline-flex items-center gap-1"
+                className="text-xs font-medium text-[#174C40] hover:underline inline-flex items-center gap-1"
               >
                 View all packages
                 <ArrowRight className="h-3 w-3" />
@@ -303,29 +303,29 @@ export default async function HealthPackageDetailPage({
               {pkg.otherPackages.map((other) => (
                 <div
                   key={other.slug}
-                  className="rounded-2xl border border-[#e6e4dd] bg-white p-5 space-y-3 hover:border-[#0f5c5c] transition-colors"
+                  className="rounded-2xl border border-[#E5E8E6] bg-white p-5 space-y-3 hover:border-[#174C40] transition-colors"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono uppercase text-[#0f5c5c] bg-[#edf5f4] px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-mono uppercase text-[#174C40] bg-[#E6EFE9] px-2 py-0.5 rounded-full">
                       {other.tier} Tier
                     </span>
-                    <span className="text-xs font-semibold text-[#14181a] font-mono">
+                    <span className="text-xs font-semibold text-[#242A28] font-mono">
                       ${other.price}
                     </span>
                   </div>
-                  <h4 className="font-editorial text-lg text-[#14181a]">
-                    <Link href={`/health-packages/${other.slug}`} className="hover:text-[#0f5c5c]">
+                  <h4 className="font-editorial text-lg text-[#242A28]">
+                    <Link href={`/health-packages/${other.slug}`} className="hover:text-[#174C40]">
                       {other.name}
                     </Link>
                   </h4>
-                  <p className="text-xs text-[#4b555b] line-clamp-2">
+                  <p className="text-xs text-[#4A5350] line-clamp-2">
                     {other.short_description}
                   </p>
-                  <div className="pt-2 border-t border-[#e6e4dd] flex items-center justify-between text-xs">
-                    <span className="text-[11px] text-[#768086]">{other.duration}</span>
+                  <div className="pt-2 border-t border-[#E5E8E6] flex items-center justify-between text-xs">
+                    <span className="text-[11px] text-[#77817C]">{other.duration}</span>
                     <Link
                       href={`/health-packages/${other.slug}`}
-                      className="text-xs font-medium text-[#0f5c5c] hover:underline inline-flex items-center gap-1"
+                      className="text-xs font-medium text-[#174C40] hover:underline inline-flex items-center gap-1"
                     >
                       Details
                       <ArrowRight className="h-3 w-3" />

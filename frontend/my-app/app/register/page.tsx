@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -198,55 +198,55 @@ function RegisterWizard() {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       {/* Workflow Stepper Indicator */}
-      <div className="bg-white rounded-2xl border border-[#e6e4dd] p-5 shadow-xs">
+      <div className="bg-white rounded-2xl border border-[#E5E8E6] p-5 shadow-xs">
         <div className="flex items-center justify-between text-xs font-mono">
           <div className="flex items-center gap-2">
             <span
               className={`h-6 w-6 rounded-full flex items-center justify-center font-bold ${
                 stage === 1
-                  ? 'bg-[#14181a] text-white'
+                  ? 'bg-[#242A28] text-white'
                   : 'bg-emerald-100 text-emerald-800'
               }`}
             >
               {stage > 1 ? <Check className="h-3.5 w-3.5" /> : '1'}
             </span>
-            <span className={stage === 1 ? 'font-bold text-[#14181a]' : 'text-[#768086]'}>
+            <span className={stage === 1 ? 'font-bold text-[#242A28]' : 'text-[#77817C]'}>
               1. Personal Details
             </span>
           </div>
 
-          <div className="h-0.5 w-10 bg-[#e6e4dd] hidden sm:block" />
+          <div className="h-0.5 w-10 bg-[#E5E8E6] hidden sm:block" />
 
           <div className="flex items-center gap-2">
             <span
               className={`h-6 w-6 rounded-full flex items-center justify-center font-bold ${
                 stage === 2
-                  ? 'bg-[#14181a] text-white'
+                  ? 'bg-[#242A28] text-white'
                   : stage > 2
                   ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-[#faf9f6] text-[#768086] border border-[#e6e4dd]'
+                  : 'bg-[#FAFAF7] text-[#77817C] border border-[#E5E8E6]'
               }`}
             >
               {stage > 2 ? <Check className="h-3.5 w-3.5" /> : '2'}
             </span>
-            <span className={stage === 2 ? 'font-bold text-[#14181a]' : 'text-[#768086]'}>
+            <span className={stage === 2 ? 'font-bold text-[#242A28]' : 'text-[#77817C]'}>
               2. Verify Contact
             </span>
           </div>
 
-          <div className="h-0.5 w-10 bg-[#e6e4dd] hidden sm:block" />
+          <div className="h-0.5 w-10 bg-[#E5E8E6] hidden sm:block" />
 
           <div className="flex items-center gap-2">
             <span
               className={`h-6 w-6 rounded-full flex items-center justify-center font-bold ${
                 stage === 3
                   ? 'bg-emerald-600 text-white'
-                  : 'bg-[#faf9f6] text-[#768086] border border-[#e6e4dd]'
+                  : 'bg-[#FAFAF7] text-[#77817C] border border-[#E5E8E6]'
               }`}
             >
               3
             </span>
-            <span className={stage === 3 ? 'font-bold text-emerald-800' : 'text-[#768086]'}>
+            <span className={stage === 3 ? 'font-bold text-emerald-800' : 'text-[#77817C]'}>
               3. ID &amp; Dashboard
             </span>
           </div>
@@ -257,20 +257,20 @@ function RegisterWizard() {
       {stage === 1 && (
         <div className="space-y-6">
           <div className="text-center space-y-2">
-            <p className="text-xs font-mono uppercase tracking-[0.16em] text-[#0f5c5c]">
+            <p className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40]">
               Workflow B · Step 1 &amp; 2
             </p>
-            <h1 className="font-editorial text-3xl sm:text-4xl text-[#14181a]">
+            <h1 className="font-editorial text-3xl sm:text-4xl text-[#242A28]">
               New Patient Registration
             </h1>
-            <p className="text-xs sm:text-sm text-[#4b555b] max-w-md mx-auto">
+            <p className="text-xs sm:text-sm text-[#4A5350] max-w-md mx-auto">
               Provide your legal demographic details. The system checks for duplicates and registers your official hospital profile.
             </p>
           </div>
 
           <form
             onSubmit={handleProceedToVerification}
-            className="rounded-2xl border border-[#e6e4dd] bg-white p-7 sm:p-9 space-y-5 shadow-sm"
+            className="rounded-2xl border border-[#E5E8E6] bg-white p-7 sm:p-9 space-y-5 shadow-sm"
           >
             {error && (
               <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-3.5 text-xs text-rose-800">
@@ -279,7 +279,7 @@ function RegisterWizard() {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-[#14181a] mb-1.5">
+              <label className="block text-xs font-semibold text-[#242A28] mb-1.5">
                 Full Legal Name <span className="text-rose-600">*</span>
               </label>
               <input
@@ -288,13 +288,13 @@ function RegisterWizard() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="e.g., Jonathan Mercer"
-                className="w-full px-4 py-2.5 rounded-xl border border-[#e6e4dd] bg-[#faf9f6] text-xs text-[#14181a] focus:bg-white focus:outline-hidden focus:border-[#0f5c5c]"
+                className="w-full px-4 py-2.5 rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] text-xs text-[#242A28] focus:bg-white focus:outline-hidden focus:border-[#174C40]"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-[#14181a] mb-1.5">
+                <label className="block text-xs font-semibold text-[#242A28] mb-1.5">
                   Email Address <span className="text-rose-600">*</span>
                 </label>
                 <input
@@ -303,12 +303,12 @@ function RegisterWizard() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="jonathan@example.com"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#e6e4dd] bg-[#faf9f6] text-xs text-[#14181a] focus:bg-white focus:outline-hidden focus:border-[#0f5c5c]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] text-xs text-[#242A28] focus:bg-white focus:outline-hidden focus:border-[#174C40]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#14181a] mb-1.5">
+                <label className="block text-xs font-semibold text-[#242A28] mb-1.5">
                   Mobile Phone Number <span className="text-rose-600">*</span>
                 </label>
                 <input
@@ -317,32 +317,32 @@ function RegisterWizard() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+1 (555) 019-2834"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#e6e4dd] bg-[#faf9f6] text-xs text-[#14181a] focus:bg-white focus:outline-hidden focus:border-[#0f5c5c]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] text-xs text-[#242A28] focus:bg-white focus:outline-hidden focus:border-[#174C40]"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-[#14181a] mb-1.5">
+                <label className="block text-xs font-semibold text-[#242A28] mb-1.5">
                   Date of Birth <span className="text-neutral-500 font-normal">(Used for demographic check)</span>
                 </label>
                 <input
                   type="date"
                   value={dob}
                   onChange={(e) => setDob(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#e6e4dd] bg-[#faf9f6] text-xs text-[#14181a] focus:bg-white focus:outline-hidden focus:border-[#0f5c5c]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] text-xs text-[#242A28] focus:bg-white focus:outline-hidden focus:border-[#174C40]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#14181a] mb-1.5">
+                <label className="block text-xs font-semibold text-[#242A28] mb-1.5">
                   Gender
                 </label>
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#e6e4dd] bg-[#faf9f6] text-xs text-[#14181a] focus:bg-white focus:outline-hidden focus:border-[#0f5c5c]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] text-xs text-[#242A28] focus:bg-white focus:outline-hidden focus:border-[#174C40]"
                 >
                   <option value="">Select Gender</option>
                   <option value="Male">Male</option>
@@ -354,7 +354,7 @@ function RegisterWizard() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#14181a] mb-1.5">
+              <label className="block text-xs font-semibold text-[#242A28] mb-1.5">
                 Residential Street Address
               </label>
               <input
@@ -362,13 +362,13 @@ function RegisterWizard() {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="124 Commonwealth Ave, Apt 4B, Boston, MA"
-                className="w-full px-4 py-2.5 rounded-xl border border-[#e6e4dd] bg-[#faf9f6] text-xs text-[#14181a] focus:bg-white focus:outline-hidden focus:border-[#0f5c5c]"
+                className="w-full px-4 py-2.5 rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] text-xs text-[#242A28] focus:bg-white focus:outline-hidden focus:border-[#174C40]"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-[#14181a] mb-1.5">
+                <label className="block text-xs font-semibold text-[#242A28] mb-1.5">
                   Password <span className="text-rose-600">*</span>
                 </label>
                 <div className="relative">
@@ -378,12 +378,12 @@ function RegisterWizard() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Minimum 8 characters"
-                    className="w-full px-4 py-2.5 pr-10 rounded-xl border border-[#e6e4dd] bg-[#faf9f6] text-xs text-[#14181a] focus:bg-white focus:outline-hidden focus:border-[#0f5c5c]"
+                    className="w-full px-4 py-2.5 pr-10 rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] text-xs text-[#242A28] focus:bg-white focus:outline-hidden focus:border-[#174C40]"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#768086] hover:text-[#14181a]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#77817C] hover:text-[#242A28]"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -391,7 +391,7 @@ function RegisterWizard() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#14181a] mb-1.5">
+                <label className="block text-xs font-semibold text-[#242A28] mb-1.5">
                   Confirm Password <span className="text-rose-600">*</span>
                 </label>
                 <input
@@ -400,7 +400,7 @@ function RegisterWizard() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-enter password"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#e6e4dd] bg-[#faf9f6] text-xs text-[#14181a] focus:bg-white focus:outline-hidden focus:border-[#0f5c5c]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] text-xs text-[#242A28] focus:bg-white focus:outline-hidden focus:border-[#174C40]"
                 />
               </div>
             </div>
@@ -411,19 +411,19 @@ function RegisterWizard() {
                   type="checkbox"
                   checked={consentTerms}
                   onChange={(e) => setConsentTerms(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-[#e6e4dd] text-[#0f5c5c] focus:ring-[#0f5c5c]"
+                  className="mt-1 h-4 w-4 rounded border-[#E5E8E6] text-[#174C40] focus:ring-[#174C40]"
                 />
-                <span className="text-xs text-[#4b555b] leading-relaxed">
+                <span className="text-xs text-[#4A5350] leading-relaxed">
                   I consent to the Healix{' '}
-                  <Link href="/privacy-policy" className="text-[#0f5c5c] underline">
+                  <Link href="/privacy-policy" className="text-[#174C40] underline">
                     Privacy Policy
                   </Link>
                   ,{' '}
-                  <Link href="/terms" className="text-[#0f5c5c] underline">
+                  <Link href="/terms" className="text-[#174C40] underline">
                     Terms &amp; Conditions
                   </Link>
                   , and{' '}
-                  <Link href="/patient-rights" className="text-[#0f5c5c] underline">
+                  <Link href="/patient-rights" className="text-[#174C40] underline">
                     Patient Rights &amp; Responsibilities
                   </Link>
                   . I understand my official Medical Record Number (MRN) is generated server-side.
@@ -434,7 +434,7 @@ function RegisterWizard() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#14181a] text-white text-xs font-semibold hover:bg-[#0f5c5c] transition-colors disabled:opacity-50 mt-4 shadow-xs"
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#242A28] text-white text-xs font-semibold hover:bg-[#174C40] transition-colors disabled:opacity-50 mt-4 shadow-xs"
             >
               {submitting ? (
                 <>
@@ -449,14 +449,14 @@ function RegisterWizard() {
               )}
             </button>
 
-            <div className="pt-4 border-t border-[#e6e4dd] flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#768086]">
+            <div className="pt-4 border-t border-[#E5E8E6] flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#77817C]">
               <span className="inline-flex items-center gap-1.5 font-mono text-[11px]">
-                <ShieldCheck className="h-3.5 w-3.5 text-[#0f5c5c]" />
+                <ShieldCheck className="h-3.5 w-3.5 text-[#174C40]" />
                 Automated Duplicate Check &amp; HIPAA Shield
               </span>
               <p>
                 Already registered?{' '}
-                <Link href={loginLink} className="text-[#0f5c5c] font-semibold hover:underline">
+                <Link href={loginLink} className="text-[#174C40] font-semibold hover:underline">
                   Sign in
                 </Link>
               </p>
@@ -469,20 +469,20 @@ function RegisterWizard() {
       {stage === 2 && (
         <div className="space-y-6">
           <div className="text-center space-y-2">
-            <p className="text-xs font-mono uppercase tracking-[0.16em] text-[#0f5c5c]">
+            <p className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40]">
               Workflow B · Step 4
             </p>
-            <h1 className="font-editorial text-3xl sm:text-4xl text-[#14181a]">
+            <h1 className="font-editorial text-3xl sm:text-4xl text-[#242A28]">
               Verify Contact Information
             </h1>
-            <p className="text-xs sm:text-sm text-[#4b555b] max-w-md mx-auto">
-              We sent a 6-digit verification code to <strong className="text-[#14181a] font-mono">{phone}</strong>.
+            <p className="text-xs sm:text-sm text-[#4A5350] max-w-md mx-auto">
+              We sent a 6-digit verification code to <strong className="text-[#242A28] font-mono">{phone}</strong>.
             </p>
           </div>
 
           <form
             onSubmit={handleVerifyAndCreateAccount}
-            className="rounded-2xl border border-[#e6e4dd] bg-white p-7 sm:p-9 space-y-6 shadow-sm"
+            className="rounded-2xl border border-[#E5E8E6] bg-white p-7 sm:p-9 space-y-6 shadow-sm"
           >
             {error && (
               <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-3.5 text-xs text-rose-800">
@@ -491,8 +491,8 @@ function RegisterWizard() {
             )}
 
             {infoMessage && (
-              <div className="rounded-xl border border-[#cde4de] bg-[#edf5f4] p-3.5 text-xs text-[#0f5c5c] flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-[#0f5c5c] shrink-0" />
+              <div className="rounded-xl border border-[#cde4de] bg-[#E6EFE9] p-3.5 text-xs text-[#174C40] flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-[#174C40] shrink-0" />
                 <span>{infoMessage}</span>
               </div>
             )}
@@ -500,14 +500,14 @@ function RegisterWizard() {
             {demoOtp && (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 flex items-center justify-between">
                 <span>Testing Demo OTP Code:</span>
-                <span className="font-mono font-bold text-sm tracking-widest text-[#0f5c5c]">
+                <span className="font-mono font-bold text-sm tracking-widest text-[#174C40]">
                   {demoOtp}
                 </span>
               </div>
             )}
 
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-[#14181a]">
+              <label className="block text-xs font-semibold text-[#242A28]">
                 Enter 6-Digit Verification Code <span className="text-rose-600">*</span>
               </label>
               <input
@@ -517,9 +517,9 @@ function RegisterWizard() {
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
                 placeholder="123456"
-                className="w-full text-center tracking-[0.5em] font-mono text-2xl py-3 rounded-xl border border-[#e6e4dd] bg-[#faf9f6] text-[#14181a] focus:bg-white focus:outline-hidden focus:border-[#0f5c5c]"
+                className="w-full text-center tracking-[0.5em] font-mono text-2xl py-3 rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] text-[#242A28] focus:bg-white focus:outline-hidden focus:border-[#174C40]"
               />
-              <p className="text-[11px] text-[#768086] text-center">
+              <p className="text-[11px] text-[#77817C] text-center">
                 Code expires in 10 minutes.
               </p>
             </div>
@@ -528,7 +528,7 @@ function RegisterWizard() {
               <button
                 type="button"
                 onClick={() => setStage(1)}
-                className="w-full sm:w-1/3 py-3 rounded-full border border-[#d2d0c8] text-xs font-medium text-[#4b555b] hover:border-[#14181a] transition-colors inline-flex items-center justify-center gap-1.5"
+                className="w-full sm:w-1/3 py-3 rounded-full border border-[#d2d0c8] text-xs font-medium text-[#4A5350] hover:border-[#242A28] transition-colors inline-flex items-center justify-center gap-1.5"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Edit Details
@@ -537,7 +537,7 @@ function RegisterWizard() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full sm:w-2/3 py-3 rounded-full bg-[#0f5c5c] text-white text-xs font-semibold hover:bg-[#0a4242] transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2 shadow-xs"
+                className="w-full sm:w-2/3 py-3 rounded-full bg-[#174C40] text-white text-xs font-semibold hover:bg-[#0a4242] transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2 shadow-xs"
               >
                 {submitting ? (
                   <>
@@ -568,40 +568,40 @@ function RegisterWizard() {
               <span className="text-xs font-mono uppercase tracking-[0.16em] text-emerald-800 font-bold bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
                 Workflow B · Step 5 &amp; 6 Complete
               </span>
-              <h2 className="font-editorial text-3xl sm:text-4xl text-[#14181a]">
+              <h2 className="font-editorial text-3xl sm:text-4xl text-[#242A28]">
                 Welcome to Healix, {createdPatient.full_name}
               </h2>
-              <p className="text-xs sm:text-sm text-[#4b555b] max-w-md mx-auto">
+              <p className="text-xs sm:text-sm text-[#4A5350] max-w-md mx-auto">
                 Your patient identity and clinical profile have been securely created and approved by hospital systems.
               </p>
             </div>
 
             {/* Permanent Patient Identification Number Card */}
-            <div className="rounded-2xl border-2 border-[#0f5c5c] bg-[#edf5f4] p-6 max-w-md mx-auto space-y-2 text-center shadow-xs">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-[#0f5c5c] font-semibold">
+            <div className="rounded-2xl border-2 border-[#174C40] bg-[#E6EFE9] p-6 max-w-md mx-auto space-y-2 text-center shadow-xs">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-[#174C40] font-semibold">
                 Official Medical Record Number (MRN)
               </span>
-              <p className="font-mono text-3xl sm:text-4xl font-bold text-[#14181a] tracking-wider">
+              <p className="font-mono text-3xl sm:text-4xl font-bold text-[#242A28] tracking-wider">
                 {createdPatient.mrn}
               </p>
-              <p className="text-[11px] text-[#4b555b] pt-1">
+              <p className="text-[11px] text-[#4A5350] pt-1">
                 Keep this permanent identification number handy for laboratory tests, billing, and clinic check-ins.
               </p>
             </div>
 
             {/* Summary Details */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-left max-w-md mx-auto text-xs border border-[#e6e4dd] rounded-xl p-4 bg-[#faf9f6]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-left max-w-md mx-auto text-xs border border-[#E5E8E6] rounded-xl p-4 bg-[#FAFAF7]">
               <div>
-                <span className="text-[10px] text-[#768086] uppercase font-mono">Patient Name</span>
-                <p className="font-semibold text-[#14181a] truncate">{createdPatient.full_name}</p>
+                <span className="text-[10px] text-[#77817C] uppercase font-mono">Patient Name</span>
+                <p className="font-semibold text-[#242A28] truncate">{createdPatient.full_name}</p>
               </div>
               <div>
-                <span className="text-[10px] text-[#768086] uppercase font-mono">Email</span>
-                <p className="font-semibold text-[#14181a] truncate">{createdPatient.email}</p>
+                <span className="text-[10px] text-[#77817C] uppercase font-mono">Email</span>
+                <p className="font-semibold text-[#242A28] truncate">{createdPatient.email}</p>
               </div>
               <div>
-                <span className="text-[10px] text-[#768086] uppercase font-mono">Mobile</span>
-                <p className="font-semibold text-[#14181a] font-mono">{createdPatient.phone}</p>
+                <span className="text-[10px] text-[#77817C] uppercase font-mono">Mobile</span>
+                <p className="font-semibold text-[#242A28] font-mono">{createdPatient.phone}</p>
               </div>
             </div>
 
@@ -610,7 +610,7 @@ function RegisterWizard() {
               <button
                 type="button"
                 onClick={handleAccessDashboard}
-                className="w-full max-w-md mx-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full bg-[#14181a] text-white text-xs font-semibold hover:bg-[#0f5c5c] transition-colors shadow-sm"
+                className="w-full max-w-md mx-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full bg-[#242A28] text-white text-xs font-semibold hover:bg-[#174C40] transition-colors shadow-sm"
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Step 7 · Access Patient Dashboard
@@ -629,7 +629,7 @@ export default function RegisterPage() {
     <section className="container-editorial py-14 lg:py-20">
       <Suspense
         fallback={
-          <div className="max-w-xl mx-auto rounded-2xl border border-[#e6e4dd] bg-white p-10 text-sm text-[#768086]">
+          <div className="max-w-xl mx-auto rounded-2xl border border-[#E5E8E6] bg-white p-10 text-sm text-[#77817C]">
             Loading registration portal...
           </div>
         }

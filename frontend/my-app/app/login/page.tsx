@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -133,18 +133,18 @@ function LoginForm() {
   return (
     <div className="max-w-md mx-auto">
       <div className="text-center space-y-3 mb-8">
-        <p className="text-xs font-mono uppercase tracking-[0.16em] text-[#0f5c5c]">
+        <p className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40]">
           Patient Portal
         </p>
-        <h1 className="font-editorial text-4xl sm:text-5xl text-[#14181a]">Sign in to Healix</h1>
-        <p className="text-xs sm:text-sm text-[#4b555b]">
+        <h1 className="font-editorial text-4xl sm:text-5xl text-[#242A28]">Sign in to Healix</h1>
+        <p className="text-xs sm:text-sm text-[#4A5350]">
           Manage appointments, view laboratory &amp; radiology reports, and consult prescriptions.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 sm:p-9 space-y-6 shadow-sm">
+      <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 sm:p-9 space-y-6 shadow-sm">
         {/* Login Method Toggle */}
-        <div className="grid grid-cols-2 p-1 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-xs font-medium">
+        <div className="grid grid-cols-2 p-1 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-xs font-medium">
           <button
             type="button"
             onClick={() => {
@@ -153,8 +153,8 @@ function LoginForm() {
             }}
             className={`py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
               loginMode === 'password'
-                ? 'bg-white text-[#14181a] shadow-sm font-semibold'
-                : 'text-[#768086] hover:text-[#14181a]'
+                ? 'bg-white text-[#242A28] shadow-sm font-semibold'
+                : 'text-[#77817C] hover:text-[#242A28]'
             }`}
           >
             <Lock className="h-3.5 w-3.5" />
@@ -168,8 +168,8 @@ function LoginForm() {
             }}
             className={`py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
               loginMode === 'otp'
-                ? 'bg-white text-[#14181a] shadow-sm font-semibold'
-                : 'text-[#768086] hover:text-[#14181a]'
+                ? 'bg-white text-[#242A28] shadow-sm font-semibold'
+                : 'text-[#77817C] hover:text-[#242A28]'
             }`}
           >
             <Smartphone className="h-3.5 w-3.5" />
@@ -190,7 +190,7 @@ function LoginForm() {
         {loginMode === 'password' && (
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>
-              <label htmlFor="login-identifier" className="block text-xs font-semibold text-[#14181a] mb-1.5">
+              <label htmlFor="login-identifier" className="block text-xs font-semibold text-[#242A28] mb-1.5">
                 Email Address or Mobile Number
               </label>
               <input
@@ -200,18 +200,18 @@ function LoginForm() {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder="email@example.com or mobile number"
-                className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+                className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="login-password" className="block text-xs font-semibold text-[#14181a]">
+                <label htmlFor="login-password" className="block text-xs font-semibold text-[#242A28]">
                   Password
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-[#0f5c5c] hover:underline font-medium"
+                  className="text-xs text-[#174C40] hover:underline font-medium"
                 >
                   Forgot password?
                 </Link>
@@ -223,14 +223,14 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
-                className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+                className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
               />
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#14181a] text-white text-xs font-semibold hover:bg-[#0f5c5c] disabled:opacity-60 transition-colors shadow-sm"
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#242A28] text-white text-xs font-semibold hover:bg-[#174C40] disabled:opacity-60 transition-colors shadow-sm"
             >
               {submitting ? (
                 <>
@@ -246,21 +246,21 @@ function LoginForm() {
             </button>
 
             {/* Demo Account Helper */}
-            <div className="rounded-xl border border-[#e6e4dd] bg-[#faf9f6] p-3.5 space-y-1.5">
+            <div className="rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] p-3.5 space-y-1.5">
               <div className="flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-[#0f5c5c] font-medium">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-[#174C40] font-medium">
                   <Sparkles className="h-3.5 w-3.5" />
                   Demo Patient Account
                 </span>
                 <button
                   type="button"
                   onClick={fillDemo}
-                  className="text-xs font-semibold text-[#14181a] underline hover:text-[#0f5c5c]"
+                  className="text-xs font-semibold text-[#242A28] underline hover:text-[#174C40]"
                 >
                   Auto-fill
                 </button>
               </div>
-              <p className="text-xs font-mono text-[#4b555b]">
+              <p className="text-xs font-mono text-[#4A5350]">
                 clara.vance@example.com · Healix2026!
               </p>
             </div>
@@ -273,7 +273,7 @@ function LoginForm() {
             {!otpSent ? (
               <form onSubmit={handleSendOtp} className="space-y-4">
                 <div>
-                  <label htmlFor="otp-ident" className="block text-xs font-semibold text-[#14181a] mb-1.5">
+                  <label htmlFor="otp-ident" className="block text-xs font-semibold text-[#242A28] mb-1.5">
                     Registered Email or Mobile Number
                   </label>
                   <input
@@ -283,9 +283,9 @@ function LoginForm() {
                     value={otpIdentifier}
                     onChange={(e) => setOtpIdentifier(e.target.value)}
                     placeholder="clara.vance@example.com or +1 (617) 555-0199"
-                    className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+                    className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
                   />
-                  <p className="text-[11px] text-[#768086] mt-1.5">
+                  <p className="text-[11px] text-[#77817C] mt-1.5">
                     We will send a 6-digit one-time security code to your registered contact.
                   </p>
                 </div>
@@ -293,7 +293,7 @@ function LoginForm() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#14181a] text-white text-xs font-semibold hover:bg-[#0f5c5c] disabled:opacity-60 transition-colors shadow-sm"
+                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#242A28] text-white text-xs font-semibold hover:bg-[#174C40] disabled:opacity-60 transition-colors shadow-sm"
                 >
                   {submitting ? (
                     <>
@@ -308,12 +308,12 @@ function LoginForm() {
                   )}
                 </button>
 
-                <div className="rounded-xl border border-[#e6e4dd] bg-[#faf9f6] p-3.5 flex items-center justify-between">
-                  <span className="text-[11px] font-mono text-[#0f5c5c] uppercase">Demo Account</span>
+                <div className="rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] p-3.5 flex items-center justify-between">
+                  <span className="text-[11px] font-mono text-[#174C40] uppercase">Demo Account</span>
                   <button
                     type="button"
                     onClick={fillDemoOtp}
-                    className="text-xs font-semibold text-[#14181a] underline hover:text-[#0f5c5c]"
+                    className="text-xs font-semibold text-[#242A28] underline hover:text-[#174C40]"
                   >
                     Auto-fill clara.vance@example.com
                   </button>
@@ -321,21 +321,21 @@ function LoginForm() {
               </form>
             ) : (
               <form onSubmit={handleVerifyOtp} className="space-y-4">
-                <div className="p-3.5 rounded-xl bg-[#edf5f4] border border-[#cde4de] space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-[#0f5c5c]">
+                <div className="p-3.5 rounded-xl bg-[#E6EFE9] border border-[#cde4de] space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-[#174C40]">
                     <CheckCircle2 className="h-4 w-4" />
                     Code Dispatched
                   </div>
-                  <p className="text-xs text-[#14181a]">{otpNotice?.message}</p>
+                  <p className="text-xs text-[#242A28]">{otpNotice?.message}</p>
                   {otpNotice?.demo_otp && (
-                    <p className="text-xs font-mono text-[#0f5c5c] pt-1">
+                    <p className="text-xs font-mono text-[#174C40] pt-1">
                       <strong>Demo Code:</strong> {otpNotice.demo_otp}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="otp-input" className="block text-xs font-semibold text-[#14181a] mb-1.5">
+                  <label htmlFor="otp-input" className="block text-xs font-semibold text-[#242A28] mb-1.5">
                     Enter 6-Digit Passcode
                   </label>
                   <input
@@ -346,7 +346,7 @@ function LoginForm() {
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value)}
                     placeholder="123456"
-                    className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-center font-mono text-lg tracking-widest text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+                    className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-center font-mono text-lg tracking-widest text-[#242A28] focus:outline-none focus:border-[#174C40]"
                   />
                 </div>
 
@@ -357,14 +357,14 @@ function LoginForm() {
                       setOtpSent(false);
                       setOtpCode('');
                     }}
-                    className="text-xs text-[#768086] hover:text-[#14181a] underline"
+                    className="text-xs text-[#77817C] hover:text-[#242A28] underline"
                   >
                     Resend to different contact
                   </button>
                   <button
                     type="submit"
                     disabled={submitting || otpCode.length < 6}
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#0f5c5c] text-white text-xs font-semibold hover:bg-[#0c4a4a] disabled:opacity-60 transition-colors shadow-sm"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#174C40] text-white text-xs font-semibold hover:bg-[#0c4a4a] disabled:opacity-60 transition-colors shadow-sm"
                   >
                     {submitting ? 'Verifying...' : 'Verify & Sign In'}
                   </button>
@@ -374,9 +374,9 @@ function LoginForm() {
           </div>
         )}
 
-        <p className="pt-2 border-t border-[#e6e4dd] text-center text-xs text-[#768086]">
+        <p className="pt-2 border-t border-[#E5E8E6] text-center text-xs text-[#77817C]">
           New patient to Healix Medical Center?{' '}
-          <Link href="/register" className="text-[#0f5c5c] font-semibold hover:underline">
+          <Link href="/register" className="text-[#174C40] font-semibold hover:underline">
             Register new patient account
           </Link>
         </p>
@@ -390,7 +390,7 @@ export default function LoginPage() {
     <section className="container-editorial py-16 lg:py-20">
       <Suspense
         fallback={
-          <div className="max-w-md mx-auto rounded-2xl border border-[#e6e4dd] bg-white p-10 text-sm text-[#768086]">
+          <div className="max-w-md mx-auto rounded-2xl border border-[#E5E8E6] bg-white p-10 text-sm text-[#77817C]">
             Loading sign-in form...
           </div>
         }

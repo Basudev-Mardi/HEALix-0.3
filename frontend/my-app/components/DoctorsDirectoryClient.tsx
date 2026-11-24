@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
@@ -120,26 +120,26 @@ export default function DoctorsDirectoryClient({
   return (
     <div className="space-y-8">
       {/* Search Bar & Primary Department Pills */}
-      <div className="space-y-5 pb-6 border-b border-[#e6e4dd]">
+      <div className="space-y-5 pb-6 border-b border-[#E5E8E6]">
         <div className="flex flex-col md:flex-row items-center gap-4">
           <div className="relative w-full md:flex-1">
-            <Search className="h-4 w-4 text-[#768086] absolute left-4 top-1/2 -translate-y-1/2" />
+            <Search className="h-4 w-4 text-[#77817C] absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by doctor name, specialty, or qualification..."
-              className="w-full pl-11 pr-4 py-3 rounded-full bg-white border border-[#e6e4dd] text-sm text-[#14181a] placeholder:text-[#768086] focus:outline-none focus:border-[#0f5c5c] shadow-xs"
+              className="w-full pl-11 pr-4 py-3 rounded-full bg-white border border-[#E5E8E6] text-sm text-[#242A28] placeholder:text-[#77817C] focus:outline-none focus:border-[#174C40] shadow-xs"
             />
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-[#768086] uppercase">Sort:</span>
+              <span className="text-xs font-mono text-[#77817C] uppercase">Sort:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'experience' | 'name')}
-                className="px-3.5 py-2 rounded-lg bg-white border border-[#e6e4dd] text-xs font-medium text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+                className="px-3.5 py-2 rounded-lg bg-white border border-[#E5E8E6] text-xs font-medium text-[#242A28] focus:outline-none focus:border-[#174C40]"
               >
                 <option value="experience">Experience (Highest First)</option>
                 <option value="name">Doctor Name (A–Z)</option>
@@ -150,7 +150,7 @@ export default function DoctorsDirectoryClient({
               <button
                 type="button"
                 onClick={resetFilters}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#e6e4dd] bg-[#faf9f6] text-xs text-[#b91c1c] hover:bg-rose-50 hover:border-rose-200 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E5E8E6] bg-[#FAFAF7] text-xs text-[#b91c1c] hover:bg-rose-50 hover:border-rose-200 transition-colors"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 Reset
@@ -163,13 +163,13 @@ export default function DoctorsDirectoryClient({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
           {/* Department Filter */}
           <div>
-            <label className="block text-[11px] font-mono uppercase tracking-wider text-[#768086] mb-1">
+            <label className="block text-[11px] font-mono uppercase tracking-wider text-[#77817C] mb-1">
               Department
             </label>
             <select
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white border border-[#e6e4dd] text-xs text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+              className="w-full px-3 py-2 rounded-lg bg-white border border-[#E5E8E6] text-xs text-[#242A28] focus:outline-none focus:border-[#174C40]"
             >
               <option value="all">All Clinical Departments</option>
               {departments.map((d) => (
@@ -182,13 +182,13 @@ export default function DoctorsDirectoryClient({
 
           {/* Specialization Filter */}
           <div>
-            <label className="block text-[11px] font-mono uppercase tracking-wider text-[#768086] mb-1">
+            <label className="block text-[11px] font-mono uppercase tracking-wider text-[#77817C] mb-1">
               Specialization
             </label>
             <select
               value={selectedSpecialty}
               onChange={(e) => setSelectedSpecialty(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white border border-[#e6e4dd] text-xs text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+              className="w-full px-3 py-2 rounded-lg bg-white border border-[#E5E8E6] text-xs text-[#242A28] focus:outline-none focus:border-[#174C40]"
             >
               <option value="all">All Specializations</option>
               {allSpecialties.map((spec) => (
@@ -201,13 +201,13 @@ export default function DoctorsDirectoryClient({
 
           {/* Availability Filter */}
           <div>
-            <label className="block text-[11px] font-mono uppercase tracking-wider text-[#768086] mb-1">
+            <label className="block text-[11px] font-mono uppercase tracking-wider text-[#77817C] mb-1">
               Availability
             </label>
             <select
               value={selectedAvailability}
               onChange={(e) => setSelectedAvailability(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white border border-[#e6e4dd] text-xs text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+              className="w-full px-3 py-2 rounded-lg bg-white border border-[#E5E8E6] text-xs text-[#242A28] focus:outline-none focus:border-[#174C40]"
             >
               <option value="all">All Schedules</option>
               <option value="weekdays">Available Weekdays (Mon–Fri)</option>
@@ -217,13 +217,13 @@ export default function DoctorsDirectoryClient({
 
           {/* Fee Filter */}
           <div>
-            <label className="block text-[11px] font-mono uppercase tracking-wider text-[#768086] mb-1">
+            <label className="block text-[11px] font-mono uppercase tracking-wider text-[#77817C] mb-1">
               Consultation Fee
             </label>
             <select
               value={selectedFee}
               onChange={(e) => setSelectedFee(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white border border-[#e6e4dd] text-xs text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+              className="w-full px-3 py-2 rounded-lg bg-white border border-[#E5E8E6] text-xs text-[#242A28] focus:outline-none focus:border-[#174C40]"
             >
               <option value="all">All Fee Ranges</option>
               <option value="under-200">Under $200</option>
@@ -235,7 +235,7 @@ export default function DoctorsDirectoryClient({
       </div>
 
       {/* Results Meta Banner */}
-      <div className="flex items-center justify-between text-xs text-[#768086]">
+      <div className="flex items-center justify-between text-xs text-[#77817C]">
         <p className="font-mono uppercase tracking-[0.12em]">
           Showing {filtered.length} of {doctors.length} verified hospital specialists
         </p>
@@ -247,16 +247,16 @@ export default function DoctorsDirectoryClient({
 
       {/* Doctors Grid with Listing Card */}
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-12 text-center space-y-3">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-12 text-center space-y-3">
           <User className="h-10 w-10 text-neutral-400 mx-auto mb-1" />
-          <h3 className="text-base font-medium text-[#14181a]">No specialists match your criteria</h3>
-          <p className="text-xs text-[#768086] max-w-sm mx-auto">
+          <h3 className="text-base font-medium text-[#242A28]">No specialists match your criteria</h3>
+          <p className="text-xs text-[#77817C] max-w-sm mx-auto">
             Try resetting your filters or contacting our centralized appointments desk directly for subspecialty referrals.
           </p>
           <button
             type="button"
             onClick={resetFilters}
-            className="px-4 py-2 rounded-full bg-[#14181a] text-white text-xs font-medium hover:bg-[#0f5c5c] transition-colors"
+            className="px-4 py-2 rounded-full bg-[#242A28] text-white text-xs font-medium hover:bg-[#174C40] transition-colors"
           >
             Clear All Filters
           </button>
@@ -266,7 +266,7 @@ export default function DoctorsDirectoryClient({
           {filtered.map((doctor) => (
             <div
               key={doctor.slug}
-              className="rounded-2xl border border-[#e6e4dd] bg-white p-7 flex flex-col justify-between hover:border-[#0f5c5c] transition-all shadow-xs group"
+              className="rounded-2xl border border-[#E5E8E6] bg-white p-7 flex flex-col justify-between hover:border-[#174C40] transition-all shadow-xs group"
             >
               <div>
                 {/* Header: Photo / Avatar + Availability Badge */}
@@ -277,45 +277,45 @@ export default function DoctorsDirectoryClient({
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
                       Accepting Patients
                     </span>
-                    <span className="block text-[11px] font-mono text-[#768086] mt-1">
+                    <span className="block text-[11px] font-mono text-[#77817C] mt-1">
                       {doctor.experience_years} Years Experience
                     </span>
                   </div>
                 </div>
 
                 {/* Name, Designation, Specialty */}
-                <h3 className="font-editorial text-xl font-semibold text-[#14181a] group-hover:text-[#0f5c5c] transition-colors">
+                <h3 className="font-editorial text-xl font-semibold text-[#242A28] group-hover:text-[#174C40] transition-colors">
                   {doctor.name}
                 </h3>
-                <p className="text-xs font-medium text-[#0f5c5c] mt-0.5">{doctor.title}</p>
-                <p className="text-xs text-[#14181a] font-medium mt-1">{doctor.specialty}</p>
+                <p className="text-xs font-medium text-[#174C40] mt-0.5">{doctor.title}</p>
+                <p className="text-xs text-[#242A28] font-medium mt-1">{doctor.specialty}</p>
 
                 {/* Qualification and Department Badges */}
                 <div className="flex flex-wrap items-center gap-1.5 my-3 text-[11px]">
-                  <span className="px-2 py-0.5 rounded-md bg-[#faf9f6] border border-[#e6e4dd] font-mono text-[#4b555b]">
+                  <span className="px-2 py-0.5 rounded-md bg-[#FAFAF7] border border-[#E5E8E6] font-mono text-[#4A5350]">
                     {doctor.qualification}
                   </span>
-                  <span className="px-2 py-0.5 rounded-md bg-teal-50/60 text-[#0f5c5c]">
+                  <span className="px-2 py-0.5 rounded-md bg-teal-50/60 text-[#174C40]">
                     {doctor.department_name}
                   </span>
                 </div>
 
                 {/* Bio preview */}
-                <p className="text-xs leading-relaxed text-[#4b555b] line-clamp-2 font-light">
+                <p className="text-xs leading-relaxed text-[#4A5350] line-clamp-2 font-light">
                   {doctor.bio}
                 </p>
               </div>
 
               {/* Consultation Details & Dual Action Buttons */}
-              <div className="mt-6 pt-4 border-t border-[#e6e4dd] space-y-4">
-                <div className="flex items-center justify-between text-xs text-[#4b555b]">
+              <div className="mt-6 pt-4 border-t border-[#E5E8E6] space-y-4">
+                <div className="flex items-center justify-between text-xs text-[#4A5350]">
                   <span className="inline-flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-[#0f5c5c]" />
+                    <Clock className="h-3.5 w-3.5 text-[#174C40]" />
                     {doctor.consultation_days}
                   </span>
                   <div className="text-right">
-                    <span className="text-[10px] text-[#768086] block">Consultation Fee</span>
-                    <span className="font-mono text-xs font-bold text-[#14181a]">
+                    <span className="text-[10px] text-[#77817C] block">Consultation Fee</span>
+                    <span className="font-mono text-xs font-bold text-[#242A28]">
                       {doctor.consultation_fee}
                     </span>
                   </div>
@@ -324,14 +324,14 @@ export default function DoctorsDirectoryClient({
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <Link
                     href={`/doctors/${doctor.slug}`}
-                    className="py-2.5 px-3 rounded-lg border border-[#e6e4dd] bg-[#faf9f6] hover:bg-white hover:border-[#14181a] text-xs font-medium text-[#14181a] text-center transition-colors inline-flex items-center justify-center gap-1"
+                    className="py-2.5 px-3 rounded-lg border border-[#E5E8E6] bg-[#FAFAF7] hover:bg-white hover:border-[#242A28] text-xs font-medium text-[#242A28] text-center transition-colors inline-flex items-center justify-center gap-1"
                   >
                     View Profile
-                    <ArrowRight className="h-3.5 w-3.5 text-[#768086]" />
+                    <ArrowRight className="h-3.5 w-3.5 text-[#77817C]" />
                   </Link>
                   <Link
                     href={`/appointments/book?doctor=${doctor.slug}`}
-                    className="py-2.5 px-3 rounded-lg bg-[#0f5c5c] text-white text-xs font-medium text-center hover:bg-[#0c4a4a] transition-colors inline-flex items-center justify-center gap-1"
+                    className="py-2.5 px-3 rounded-lg bg-[#174C40] text-white text-xs font-medium text-center hover:bg-[#0c4a4a] transition-colors inline-flex items-center justify-center gap-1"
                   >
                     <Calendar className="h-3.5 w-3.5" />
                     Book Visit

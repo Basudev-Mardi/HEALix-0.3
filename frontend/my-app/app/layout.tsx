@@ -37,8 +37,8 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#faf9f6] text-[#14181a]">
-        <Suspense fallback={<div className="h-[109px] border-b border-[#e6e4dd] bg-[#faf9f6]" />}>
+      <body className="min-h-full flex flex-col bg-[#FAFAF7] text-[#242A28]">
+        <Suspense fallback={<div className="h-[109px] border-b border-[#E5E8E6] bg-[#FAFAF7]" />}>
           <SiteHeader />
         </Suspense>
         <main className="flex-1">{children}</main>

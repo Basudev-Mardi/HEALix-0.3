@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -95,7 +95,7 @@ export default async function AboutPage() {
   ];
 
   return (
-    <div className="bg-[#faf9f6] text-[#14181a]">
+    <div className="bg-[#FAFAF7] text-[#242A28]">
       {/* 01. Page Header & Introduction */}
       <PageHeader
         eyebrow="About Healix Hospital"
@@ -105,19 +105,19 @@ export default async function AboutPage() {
       />
 
       {/* 02. History, Establishment & Verified Metrics */}
-      <section className="container-editorial py-16 lg:py-20 border-b border-[#e6e4dd]">
+      <section className="container-editorial py-16 lg:py-20 border-b border-[#E5E8E6]">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           <div className="lg:col-span-7 space-y-6">
-            <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#0f5c5c] block">
+            <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40] block">
               History &amp; Establishment
             </span>
-            <h2 className="font-editorial text-3xl sm:text-4xl text-[#14181a] leading-tight">
+            <h2 className="font-editorial text-3xl sm:text-4xl text-[#242A28] leading-tight">
               Built where academic precision meets human serenity.
             </h2>
-            <p className="text-base leading-relaxed text-[#4b555b] font-light">
+            <p className="text-base leading-relaxed text-[#4A5350] font-light">
               {hospital.about_story}
             </p>
-            <p className="text-base leading-relaxed text-[#4b555b] font-light">
+            <p className="text-base leading-relaxed text-[#4A5350] font-light">
               Over more than twenty years, Healix has steadily expanded into a 420-bed quaternary referral hospital. Every single ward, catheterization laboratory, and consultation room is planned around multidisciplinary collaboration—ensuring cardiologists, neurologists, oncologists, and nursing specialists deliberate together rather than in fragmented clinical silos.
             </p>
 
@@ -128,8 +128,8 @@ export default async function AboutPage() {
                 'Transparent clinical outcome reporting audited quarterly',
                 'Direct 24/7 Level I trauma, stroke & STEMI readiness',
               ].map((point, idx) => (
-                <div key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#14181a]">
-                  <CheckCircle2 className="h-4 w-4 text-[#0f5c5c] mt-0.5 shrink-0" />
+                <div key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#242A28]">
+                  <CheckCircle2 className="h-4 w-4 text-[#174C40] mt-0.5 shrink-0" />
                   <span>{point}</span>
                 </div>
               ))}
@@ -137,52 +137,52 @@ export default async function AboutPage() {
           </div>
 
           <div className="lg:col-span-5 space-y-5">
-            <div className="rounded-2xl border border-[#e6e4dd] bg-white p-8 space-y-6 shadow-xs">
-              <div className="flex items-center justify-between border-b border-[#e6e4dd] pb-3">
-                <p className="text-xs font-mono uppercase tracking-[0.14em] text-[#768086]">
+            <div className="rounded-2xl border border-[#E5E8E6] bg-white p-8 space-y-6 shadow-xs">
+              <div className="flex items-center justify-between border-b border-[#E5E8E6] pb-3">
+                <p className="text-xs font-mono uppercase tracking-[0.14em] text-[#77817C]">
                   Verified Hospital Data
                 </p>
-                <span className="text-[11px] font-mono text-[#0f5c5c] font-semibold">
+                <span className="text-[11px] font-mono text-[#174C40] font-semibold">
                   Audited 2026
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <p className="font-editorial text-3xl text-[#14181a]">{hospital.founded_year}</p>
-                  <p className="text-xs text-[#768086] mt-1">Year Founded</p>
+                  <p className="font-editorial text-3xl text-[#242A28]">{hospital.founded_year}</p>
+                  <p className="text-xs text-[#77817C] mt-1">Year Founded</p>
                 </div>
                 <div>
-                  <p className="font-editorial text-3xl text-[#14181a]">{hospital.beds_count}</p>
-                  <p className="text-xs text-[#768086] mt-1">Licensed Beds</p>
+                  <p className="font-editorial text-3xl text-[#242A28]">{hospital.beds_count}</p>
+                  <p className="text-xs text-[#77817C] mt-1">Licensed Beds</p>
                 </div>
                 <div>
-                  <p className="font-editorial text-3xl text-[#14181a]">{hospital.doctors_count}+</p>
-                  <p className="text-xs text-[#768086] mt-1">Attending Specialists</p>
+                  <p className="font-editorial text-3xl text-[#242A28]">{hospital.doctors_count}+</p>
+                  <p className="text-xs text-[#77817C] mt-1">Attending Specialists</p>
                 </div>
                 <div>
-                  <p className="font-editorial text-3xl text-[#14181a]">{hospital.patients_served}</p>
-                  <p className="text-xs text-[#768086] mt-1">Patients Served</p>
+                  <p className="font-editorial text-3xl text-[#242A28]">{hospital.patients_served}</p>
+                  <p className="text-xs text-[#77817C] mt-1">Patients Served</p>
                 </div>
               </div>
 
-              <div className="pt-5 border-t border-[#e6e4dd] flex items-center gap-3">
-                <Award className="h-5 w-5 text-[#0f5c5c] shrink-0" />
+              <div className="pt-5 border-t border-[#E5E8E6] flex items-center gap-3">
+                <Award className="h-5 w-5 text-[#174C40] shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-[#14181a]">{hospital.accreditation}</p>
-                  <p className="text-xs text-[#768086]">Level I Trauma &amp; Comprehensive Stroke Center</p>
+                  <p className="text-sm font-medium text-[#242A28]">{hospital.accreditation}</p>
+                  <p className="text-xs text-[#77817C]">Level I Trauma &amp; Comprehensive Stroke Center</p>
                 </div>
               </div>
             </div>
 
             {/* Leadership Quote Banner */}
-            <blockquote className="rounded-2xl border border-[#e6e4dd] bg-[#f2f1ec]/70 p-7 space-y-3">
-              <p className="font-editorial italic text-lg leading-relaxed text-[#14181a]">
+            <blockquote className="rounded-2xl border border-[#E5E8E6] bg-[#E6EFE9]/70 p-7 space-y-3">
+              <p className="font-editorial italic text-lg leading-relaxed text-[#242A28]">
                 &ldquo;{hospital.leadership_quote}&rdquo;
               </p>
               <footer className="text-xs pt-1">
-                <p className="font-semibold text-[#14181a]">{hospital.leadership_name}</p>
-                <p className="text-[#768086]">{hospital.leadership_title}</p>
+                <p className="font-semibold text-[#242A28]">{hospital.leadership_name}</p>
+                <p className="text-[#77817C]">{hospital.leadership_title}</p>
               </footer>
             </blockquote>
           </div>
@@ -190,33 +190,33 @@ export default async function AboutPage() {
       </section>
 
       {/* 03. Mission & Vision */}
-      <section className="container-editorial py-16 lg:py-20 border-b border-[#e6e4dd]">
+      <section className="container-editorial py-16 lg:py-20 border-b border-[#E5E8E6]">
         <div className="max-w-2xl mb-10">
-          <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#0f5c5c] block mb-2">
+          <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40] block mb-2">
             Institutional Purpose
           </span>
-          <h2 className="font-editorial text-3xl sm:text-4xl text-[#14181a]">
+          <h2 className="font-editorial text-3xl sm:text-4xl text-[#242A28]">
             Mission &amp; Long-Term Vision
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="rounded-2xl border border-[#e6e4dd] bg-white p-8 space-y-4 shadow-xs">
-            <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#0f5c5c]">
+          <div className="rounded-2xl border border-[#E5E8E6] bg-white p-8 space-y-4 shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#174C40]">
               <Target className="w-5 h-5" />
             </div>
-            <h3 className="font-editorial text-2xl text-[#14181a]">Our Mission</h3>
-            <p className="text-sm leading-relaxed text-[#4b555b] font-light">
+            <h3 className="font-editorial text-2xl text-[#242A28]">Our Mission</h3>
+            <p className="text-sm leading-relaxed text-[#4A5350] font-light">
               {hospital.mission}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-[#e6e4dd] bg-white p-8 space-y-4 shadow-xs">
-            <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#0f5c5c]">
+          <div className="rounded-2xl border border-[#E5E8E6] bg-white p-8 space-y-4 shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#174C40]">
               <Compass className="w-5 h-5" />
             </div>
-            <h3 className="font-editorial text-2xl text-[#14181a]">Our Vision</h3>
-            <p className="text-sm leading-relaxed text-[#4b555b] font-light">
+            <h3 className="font-editorial text-2xl text-[#242A28]">Our Vision</h3>
+            <p className="text-sm leading-relaxed text-[#4A5350] font-light">
               {hospital.vision}
             </p>
           </div>
@@ -225,7 +225,7 @@ export default async function AboutPage() {
         <div className="mt-8 text-right">
           <Link
             href="/about/mission-vision"
-            className="text-xs text-[#0f5c5c] hover:underline font-medium inline-flex items-center gap-1"
+            className="text-xs text-[#174C40] hover:underline font-medium inline-flex items-center gap-1"
           >
             Explore our comprehensive ethics &amp; values statement &rarr;
           </Link>
@@ -233,13 +233,13 @@ export default async function AboutPage() {
       </section>
 
       {/* 04. Core Values */}
-      <section className="bg-white py-16 lg:py-20 border-b border-[#e6e4dd]">
+      <section className="bg-white py-16 lg:py-20 border-b border-[#E5E8E6]">
         <div className="container-editorial">
           <div className="max-w-2xl mb-12">
-            <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#0f5c5c] block mb-2">
+            <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40] block mb-2">
               Guiding Principles
             </span>
-            <h2 className="font-editorial text-3xl sm:text-4xl text-[#14181a]">
+            <h2 className="font-editorial text-3xl sm:text-4xl text-[#242A28]">
               The four pillars of Healix clinical care
             </h2>
           </div>
@@ -248,11 +248,11 @@ export default async function AboutPage() {
             {(hospital.values_json || []).map((val, idx) => (
               <div
                 key={idx}
-                className="rounded-2xl border border-[#e6e4dd] bg-[#faf9f6] p-7 space-y-3"
+                className="rounded-2xl border border-[#E5E8E6] bg-[#FAFAF7] p-7 space-y-3"
               >
-                <span className="font-mono text-xs text-[#0f5c5c] font-semibold">0{idx + 1}.</span>
-                <h3 className="font-editorial text-xl text-[#14181a]">{val.title}</h3>
-                <p className="text-xs text-[#4b555b] leading-relaxed font-light">
+                <span className="font-mono text-xs text-[#174C40] font-semibold">0{idx + 1}.</span>
+                <h3 className="font-editorial text-xl text-[#242A28]">{val.title}</h3>
+                <p className="text-xs text-[#4A5350] leading-relaxed font-light">
                   {val.description}
                 </p>
               </div>
@@ -262,19 +262,19 @@ export default async function AboutPage() {
       </section>
 
       {/* 05. Hospital Leadership Council */}
-      <section className="container-editorial py-16 lg:py-20 border-b border-[#e6e4dd]">
+      <section className="container-editorial py-16 lg:py-20 border-b border-[#E5E8E6]">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#0f5c5c] block mb-2">
+            <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40] block mb-2">
               Clinical Governance
             </span>
-            <h2 className="font-editorial text-3xl sm:text-4xl text-[#14181a]">
+            <h2 className="font-editorial text-3xl sm:text-4xl text-[#242A28]">
               Hospital Leadership &amp; Medical Board
             </h2>
           </div>
           <Link
             href="/doctors"
-            className="inline-flex items-center gap-1 text-xs font-medium text-[#14181a] hover:text-[#0f5c5c] transition-colors"
+            className="inline-flex items-center gap-1 text-xs font-medium text-[#242A28] hover:text-[#174C40] transition-colors"
           >
             Browse all 185+ attending physicians &rarr;
           </Link>
@@ -284,19 +284,19 @@ export default async function AboutPage() {
           {clinicalLeaders.map((leader, idx) => (
             <div
               key={idx}
-              className="rounded-2xl border border-[#e6e4dd] bg-white p-6 space-y-4 shadow-xs"
+              className="rounded-2xl border border-[#E5E8E6] bg-white p-6 space-y-4 shadow-xs"
             >
-              <div className="w-12 h-12 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center font-mono font-semibold text-sm text-[#0f5c5c]">
+              <div className="w-12 h-12 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center font-mono font-semibold text-sm text-[#174C40]">
                 {leader.initials}
               </div>
               <div>
-                <h3 className="font-editorial text-lg text-[#14181a] font-medium leading-snug">
+                <h3 className="font-editorial text-lg text-[#242A28] font-medium leading-snug">
                   {leader.name}
                 </h3>
-                <p className="text-xs text-[#0f5c5c] font-medium mt-0.5">{leader.title}</p>
-                <p className="text-[11px] text-[#768086] mt-1">{leader.specialty}</p>
+                <p className="text-xs text-[#174C40] font-medium mt-0.5">{leader.title}</p>
+                <p className="text-[11px] text-[#77817C] mt-1">{leader.specialty}</p>
               </div>
-              <div className="pt-3 border-t border-[#e6e4dd] text-[11px] text-[#4b555b]">
+              <div className="pt-3 border-t border-[#E5E8E6] text-[11px] text-[#4A5350]">
                 Alma Mater: {leader.institution}
               </div>
             </div>
@@ -305,7 +305,7 @@ export default async function AboutPage() {
       </section>
 
       {/* 06. Infrastructure Overview */}
-      <section className="border-b border-[#e6e4dd] bg-[#14181a] text-white py-16 lg:py-20">
+      <section className="border-b border-[#E5E8E6] bg-[#242A28] text-white py-16 lg:py-20">
         <div className="container-editorial">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-12">
             <div className="lg:col-span-8 space-y-4">
@@ -322,7 +322,7 @@ export default async function AboutPage() {
             <div className="lg:col-span-4 flex justify-start lg:justify-end">
               <Link
                 href="/about/infrastructure"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-[#14181a] text-xs font-medium hover:bg-[#edf5f4] transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-[#242A28] text-xs font-medium hover:bg-[#E6EFE9] transition-colors"
               >
                 Detailed Infrastructure Specs
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -349,15 +349,15 @@ export default async function AboutPage() {
       </section>
 
       {/* 07. Accreditations & Certifications */}
-      <section className="container-editorial py-16 lg:py-20 border-b border-[#e6e4dd]">
+      <section className="container-editorial py-16 lg:py-20 border-b border-[#E5E8E6]">
         <div className="max-w-2xl mb-12">
-          <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#0f5c5c] block mb-2">
+          <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40] block mb-2">
             Verified Standards
           </span>
-          <h2 className="font-editorial text-3xl sm:text-4xl text-[#14181a]">
+          <h2 className="font-editorial text-3xl sm:text-4xl text-[#242A28]">
             Accreditations &amp; Clinical Certifications
           </h2>
-          <p className="text-xs text-[#768086] mt-2">
+          <p className="text-xs text-[#77817C] mt-2">
             Every clinical division operates under independently audited protocols with zero tolerance for infection risks.
           </p>
         </div>
@@ -366,50 +366,50 @@ export default async function AboutPage() {
           {certifications.map((cert, idx) => (
             <div
               key={idx}
-              className="rounded-2xl border border-[#e6e4dd] bg-white p-7 space-y-3 shadow-xs"
+              className="rounded-2xl border border-[#E5E8E6] bg-white p-7 space-y-3 shadow-xs"
             >
               <div className="flex items-center justify-between">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-teal-50 text-[#0f5c5c] font-semibold border border-teal-100">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-teal-50 text-[#174C40] font-semibold border border-teal-100">
                   {cert.badge}
                 </span>
-                <ShieldCheck className="w-5 h-5 text-[#0f5c5c]" />
+                <ShieldCheck className="w-5 h-5 text-[#174C40]" />
               </div>
-              <h3 className="font-editorial text-xl text-[#14181a] font-medium">{cert.title}</h3>
-              <p className="text-xs text-[#4b555b] leading-relaxed font-light">{cert.body}</p>
+              <h3 className="font-editorial text-xl text-[#242A28] font-medium">{cert.title}</h3>
+              <p className="text-xs text-[#4A5350] leading-relaxed font-light">{cert.body}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* 08. Patient Care Philosophy */}
-      <section className="bg-white py-16 lg:py-20 border-b border-[#e6e4dd]">
+      <section className="bg-white py-16 lg:py-20 border-b border-[#E5E8E6]">
         <div className="container-editorial">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-6 space-y-5">
-              <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#0f5c5c] block">
+              <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40] block">
                 Our Ethos
               </span>
-              <h2 className="font-editorial text-3xl sm:text-4xl text-[#14181a] leading-tight">
+              <h2 className="font-editorial text-3xl sm:text-4xl text-[#242A28] leading-tight">
                 A care philosophy built on listening, collaboration, and dignity.
               </h2>
-              <p className="text-sm leading-relaxed text-[#4b555b] font-light">
+              <p className="text-sm leading-relaxed text-[#4A5350] font-light">
                 At Healix, patients are never reduced to isolated diagnostic numbers or hurried assembly-line handovers. We structure outpatient visits to afford unhurried dialogue, ensuring our physicians listen attentively to subtle patient-reported symptoms.
               </p>
-              <div className="space-y-3 pt-2 text-xs text-[#14181a]">
+              <div className="space-y-3 pt-2 text-xs text-[#242A28]">
                 <div className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#0f5c5c] shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-[#174C40] shrink-0 mt-0.5" />
                   <span>
                     <strong>Collaborative Rounds:</strong> Daily bedside multidisciplinary rounds include nurses, physical therapists, clinical pharmacologists, and family caregivers.
                   </span>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#0f5c5c] shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-[#174C40] shrink-0 mt-0.5" />
                   <span>
                     <strong>Informed Partnership:</strong> Full diagnostic disclosures, second opinion support, and clear risk-benefit explanations prior to every elective procedure.
                   </span>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#0f5c5c] shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 text-[#174C40] shrink-0 mt-0.5" />
                   <span>
                     <strong>Transparent Financial Counseling:</strong> Upfront cashless pre-authorization with empaneled TPAs, eliminating unexpected discharge day bills.
                   </span>
@@ -419,7 +419,7 @@ export default async function AboutPage() {
               <div className="pt-4">
                 <Link
                   href="/patient-rights"
-                  className="text-xs text-[#0f5c5c] hover:underline font-medium inline-flex items-center gap-1"
+                  className="text-xs text-[#174C40] hover:underline font-medium inline-flex items-center gap-1"
                 >
                   Read Patient Bill of Rights &amp; Responsibilities &rarr;
                 </Link>
@@ -427,34 +427,34 @@ export default async function AboutPage() {
             </div>
 
             <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="rounded-2xl border border-[#e6e4dd] bg-[#faf9f6] p-6 space-y-2">
-                <Users className="w-5 h-5 text-[#0f5c5c]" />
-                <h4 className="font-editorial text-lg text-[#14181a]">Multidisciplinary Boards</h4>
-                <p className="text-xs text-[#768086] leading-relaxed">
+              <div className="rounded-2xl border border-[#E5E8E6] bg-[#FAFAF7] p-6 space-y-2">
+                <Users className="w-5 h-5 text-[#174C40]" />
+                <h4 className="font-editorial text-lg text-[#242A28]">Multidisciplinary Boards</h4>
+                <p className="text-xs text-[#77817C] leading-relaxed">
                   Complex cases are reviewed collectively by clinical committees for optimal survival outcomes.
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-[#e6e4dd] bg-[#faf9f6] p-6 space-y-2">
-                <HeartHandshake className="w-5 h-5 text-[#0f5c5c]" />
-                <h4 className="font-editorial text-lg text-[#14181a]">Unhurried Care</h4>
-                <p className="text-xs text-[#768086] leading-relaxed">
+              <div className="rounded-2xl border border-[#E5E8E6] bg-[#FAFAF7] p-6 space-y-2">
+                <HeartHandshake className="w-5 h-5 text-[#174C40]" />
+                <h4 className="font-editorial text-lg text-[#242A28]">Unhurried Care</h4>
+                <p className="text-xs text-[#77817C] leading-relaxed">
                   20-to-40 minute specialist consultation slots giving you time to ask every question.
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-[#e6e4dd] bg-[#faf9f6] p-6 space-y-2">
-                <Eye className="w-5 h-5 text-[#0f5c5c]" />
-                <h4 className="font-editorial text-lg text-[#14181a]">Radical Transparency</h4>
-                <p className="text-xs text-[#768086] leading-relaxed">
+              <div className="rounded-2xl border border-[#E5E8E6] bg-[#FAFAF7] p-6 space-y-2">
+                <Eye className="w-5 h-5 text-[#174C40]" />
+                <h4 className="font-editorial text-lg text-[#242A28]">Radical Transparency</h4>
+                <p className="text-xs text-[#77817C] leading-relaxed">
                   Immediate digital portal access to your lab reports, doctor notes, and imaging files.
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-[#e6e4dd] bg-[#faf9f6] p-6 space-y-2">
-                <ShieldCheck className="w-5 h-5 text-[#0f5c5c]" />
-                <h4 className="font-editorial text-lg text-[#14181a]">Infection Control</h4>
-                <p className="text-xs text-[#768086] leading-relaxed">
+              <div className="rounded-2xl border border-[#E5E8E6] bg-[#FAFAF7] p-6 space-y-2">
+                <ShieldCheck className="w-5 h-5 text-[#174C40]" />
+                <h4 className="font-editorial text-lg text-[#242A28]">Infection Control</h4>
+                <p className="text-xs text-[#77817C] leading-relaxed">
                   0.02% hospital-acquired infection rate, benchmarked among the safest surgical centers globally.
                 </p>
               </div>
@@ -467,16 +467,16 @@ export default async function AboutPage() {
       <section className="container-editorial py-16 lg:py-20">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#0f5c5c] block mb-2">
+            <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40] block mb-2">
               Visual Campus Tour
             </span>
-            <h2 className="font-editorial text-3xl sm:text-4xl text-[#14181a]">
+            <h2 className="font-editorial text-3xl sm:text-4xl text-[#242A28]">
               Healing Architecture &amp; Clinical Spaces
             </h2>
           </div>
           <Link
             href="/gallery"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#14181a] hover:text-[#0f5c5c] transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#242A28] hover:text-[#174C40] transition-colors"
           >
             View complete hospital gallery
             <ArrowRight className="h-4 w-4" />
@@ -487,21 +487,21 @@ export default async function AboutPage() {
           {previewGallery.map((item) => (
             <div
               key={item.id}
-              className="rounded-2xl border border-[#e6e4dd] bg-white p-6 flex flex-col justify-between shadow-xs hover:border-[#0f5c5c] transition-all"
+              className="rounded-2xl border border-[#E5E8E6] bg-white p-6 flex flex-col justify-between shadow-xs hover:border-[#174C40] transition-all"
             >
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#0f5c5c] block mb-1.5 font-semibold">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#174C40] block mb-1.5 font-semibold">
                   {item.category}
                 </span>
-                <h3 className="font-editorial text-lg text-[#14181a] font-medium leading-snug">
+                <h3 className="font-editorial text-lg text-[#242A28] font-medium leading-snug">
                   {item.title}
                 </h3>
-                <p className="text-xs text-[#768086] mt-2 leading-relaxed">{item.description}</p>
+                <p className="text-xs text-[#77817C] mt-2 leading-relaxed">{item.description}</p>
               </div>
 
-              <div className="mt-6 pt-3 border-t border-[#e6e4dd] text-[11px] font-mono text-[#4b555b] flex items-center justify-between">
+              <div className="mt-6 pt-3 border-t border-[#E5E8E6] text-[11px] font-mono text-[#4A5350] flex items-center justify-between">
                 <span>{item.location}</span>
-                <span className="text-[#0f5c5c]">Verified Space</span>
+                <span className="text-[#174C40]">Verified Space</span>
               </div>
             </div>
           ))}

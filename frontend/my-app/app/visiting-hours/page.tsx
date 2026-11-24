@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Clock, Info, MapPin, Phone, Siren, Users } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
@@ -29,30 +29,30 @@ export default async function VisitingHoursPage() {
             {schedules.map((item) => (
               <article
                 key={item.id}
-                className="rounded-2xl border border-[#e6e4dd] bg-white p-7 space-y-4"
+                className="rounded-2xl border border-[#E5E8E6] bg-white p-7 space-y-4"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div>
-                    <span className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#0f5c5c]">
+                    <span className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#174C40]">
                       {item.category}
                     </span>
-                    <h2 className="text-xl font-medium text-[#14181a] mt-1">{item.unit_name}</h2>
+                    <h2 className="text-xl font-medium text-[#242A28] mt-1">{item.unit_name}</h2>
                   </div>
                   <div className="sm:text-right shrink-0">
-                    <p className="inline-flex items-center gap-1.5 font-mono text-sm font-medium text-[#14181a]">
-                      <Clock className="h-3.5 w-3.5 text-[#0f5c5c]" />
+                    <p className="inline-flex items-center gap-1.5 font-mono text-sm font-medium text-[#242A28]">
+                      <Clock className="h-3.5 w-3.5 text-[#174C40]" />
                       {item.hours}
                     </p>
-                    <p className="text-xs text-[#768086] mt-0.5">{item.days}</p>
+                    <p className="text-xs text-[#77817C] mt-0.5">{item.days}</p>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-[#e6e4dd] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                  <span className="inline-flex items-center gap-1.5 text-[#14181a] font-medium">
-                    <Users className="h-3.5 w-3.5 text-[#0f5c5c]" />
+                <div className="pt-4 border-t border-[#E5E8E6] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <span className="inline-flex items-center gap-1.5 text-[#242A28] font-medium">
+                    <Users className="h-3.5 w-3.5 text-[#174C40]" />
                     {item.max_visitors}
                   </span>
-                  <p className="text-[#4b555b] sm:max-w-md sm:text-right">{item.guidelines}</p>
+                  <p className="text-[#4A5350] sm:max-w-md sm:text-right">{item.guidelines}</p>
                 </div>
               </article>
             ))}
@@ -60,12 +60,12 @@ export default async function VisitingHoursPage() {
 
           {/* Sidebar Guidelines & Contact */}
           <aside className="lg:col-span-4 space-y-6">
-            <div className="rounded-2xl border border-[#e6e4dd] bg-[#f2f1ec]/70 p-7 space-y-4">
-              <h3 className="text-sm font-semibold text-[#14181a] flex items-center gap-2">
-                <Info className="h-4 w-4 text-[#0f5c5c]" />
+            <div className="rounded-2xl border border-[#E5E8E6] bg-[#E6EFE9]/70 p-7 space-y-4">
+              <h3 className="text-sm font-semibold text-[#242A28] flex items-center gap-2">
+                <Info className="h-4 w-4 text-[#174C40]" />
                 Visitor Etiquette
               </h3>
-              <ul className="space-y-3 text-sm text-[#4b555b]">
+              <ul className="space-y-3 text-sm text-[#4A5350]">
                 <li>• Check in at the Main Atrium Concierge for a printed visitor pass.</li>
                 <li>• Please sanitize hands upon entering and leaving every patient room.</li>
                 <li>• Keep mobile phones on silent mode inside inpatient and ICU corridors.</li>
@@ -73,17 +73,17 @@ export default async function VisitingHoursPage() {
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 space-y-4">
-              <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#768086]">
+            <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 space-y-4">
+              <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#77817C]">
                 Campus Contact
               </p>
               <div className="space-y-3 text-sm">
-                <p className="flex items-start gap-2.5 text-[#4b555b]">
-                  <MapPin className="h-4 w-4 text-[#0f5c5c] mt-0.5 shrink-0" />
+                <p className="flex items-start gap-2.5 text-[#4A5350]">
+                  <MapPin className="h-4 w-4 text-[#174C40] mt-0.5 shrink-0" />
                   {contact.address}
                 </p>
-                <p className="flex items-center gap-2.5 font-mono text-[#14181a]">
-                  <Phone className="h-4 w-4 text-[#0f5c5c] shrink-0" />
+                <p className="flex items-center gap-2.5 font-mono text-[#242A28]">
+                  <Phone className="h-4 w-4 text-[#174C40] shrink-0" />
                   {contact.phone}
                 </p>
                 <p className="flex items-center gap-2.5 font-mono text-[#b91c1c]">

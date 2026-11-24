@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import {
@@ -99,16 +99,16 @@ export default function InsuranceEnquiryForm({
   }
 
   return (
-    <div className="rounded-2xl border border-[#e6e4dd] bg-white p-6 sm:p-8 shadow-xs space-y-6">
-      <div className="space-y-1.5 border-b border-[#e6e4dd] pb-4">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#edf5f4] text-[#0f5c5c] text-xs font-semibold uppercase tracking-wider">
+    <div className="rounded-2xl border border-[#E5E8E6] bg-white p-6 sm:p-8 shadow-xs space-y-6">
+      <div className="space-y-1.5 border-b border-[#E5E8E6] pb-4">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E6EFE9] text-[#174C40] text-xs font-semibold uppercase tracking-wider">
           <Building2 className="h-3.5 w-3.5" />
           Pre-Authorization &amp; Coverage Verification Desk
         </div>
-        <h3 className="font-editorial text-2xl text-[#14181a] mt-2">
+        <h3 className="font-editorial text-2xl text-[#242A28] mt-2">
           Verify Your Insurance Coverage
         </h3>
-        <p className="text-xs text-[#768086] leading-relaxed">
+        <p className="text-xs text-[#77817C] leading-relaxed">
           Submit your policy details before admission to verify cashless eligibility, network tier standing, and estimate co-payments.
         </p>
       </div>
@@ -133,7 +133,7 @@ export default function InsuranceEnquiryForm({
             <button
               type="button"
               onClick={handleReset}
-              className="px-5 py-2 rounded-full bg-[#0f5c5c] text-white text-xs font-medium hover:bg-[#0a4242] transition-colors"
+              className="px-5 py-2 rounded-full bg-[#174C40] text-white text-xs font-medium hover:bg-[#0a4242] transition-colors"
             >
               Submit Another Enquiry
             </button>
@@ -149,7 +149,7 @@ export default function InsuranceEnquiryForm({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="font-medium text-[#14181a]">
+              <label className="font-medium text-[#242A28]">
                 Patient Full Name <span className="text-rose-500">*</span>
               </label>
               <input
@@ -158,12 +158,12 @@ export default function InsuranceEnquiryForm({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Robert Caldwell"
-                className="w-full rounded-lg border border-[#e6e4dd] px-3 py-2.5 text-xs text-[#14181a] focus:border-[#0f5c5c] focus:outline-hidden"
+                className="w-full rounded-lg border border-[#E5E8E6] px-3 py-2.5 text-xs text-[#242A28] focus:border-[#174C40] focus:outline-hidden"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-medium text-[#14181a]">
+              <label className="font-medium text-[#242A28]">
                 Email Address <span className="text-rose-500">*</span>
               </label>
               <input
@@ -172,14 +172,14 @@ export default function InsuranceEnquiryForm({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g. robert@example.com"
-                className="w-full rounded-lg border border-[#e6e4dd] px-3 py-2.5 text-xs text-[#14181a] focus:border-[#0f5c5c] focus:outline-hidden"
+                className="w-full rounded-lg border border-[#E5E8E6] px-3 py-2.5 text-xs text-[#242A28] focus:border-[#174C40] focus:outline-hidden"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="font-medium text-[#14181a]">
+              <label className="font-medium text-[#242A28]">
                 Mobile Phone Number
               </label>
               <input
@@ -187,12 +187,12 @@ export default function InsuranceEnquiryForm({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="e.g. +1 (555) 018-9922"
-                className="w-full rounded-lg border border-[#e6e4dd] px-3 py-2.5 text-xs text-[#14181a] focus:border-[#0f5c5c] focus:outline-hidden"
+                className="w-full rounded-lg border border-[#E5E8E6] px-3 py-2.5 text-xs text-[#242A28] focus:border-[#174C40] focus:outline-hidden"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-medium text-[#14181a]">
+              <label className="font-medium text-[#242A28]">
                 Insurance Carrier or TPA
               </label>
               <input
@@ -200,7 +200,7 @@ export default function InsuranceEnquiryForm({
                 value={insurerName}
                 onChange={(e) => setInsurerName(e.target.value)}
                 placeholder="e.g. Blue Cross, Aetna, MedAssist TPA..."
-                className="w-full rounded-lg border border-[#e6e4dd] px-3 py-2.5 text-xs text-[#14181a] focus:border-[#0f5c5c] focus:outline-hidden"
+                className="w-full rounded-lg border border-[#E5E8E6] px-3 py-2.5 text-xs text-[#242A28] focus:border-[#174C40] focus:outline-hidden"
               />
               <datalist id="insurance-partners-list">
                 {partners.map((p) => (
@@ -212,7 +212,7 @@ export default function InsuranceEnquiryForm({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="font-medium text-[#14181a]">
+              <label className="font-medium text-[#242A28]">
                 Policy / Member ID Number
               </label>
               <input
@@ -220,12 +220,12 @@ export default function InsuranceEnquiryForm({
                 value={policyNumber}
                 onChange={(e) => setPolicyNumber(e.target.value)}
                 placeholder="e.g. BC-99482104"
-                className="w-full rounded-lg border border-[#e6e4dd] px-3 py-2.5 text-xs text-[#14181a] focus:border-[#0f5c5c] focus:outline-hidden font-mono"
+                className="w-full rounded-lg border border-[#E5E8E6] px-3 py-2.5 text-xs text-[#242A28] focus:border-[#174C40] focus:outline-hidden font-mono"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-medium text-[#14181a]">
+              <label className="font-medium text-[#242A28]">
                 Planned Procedure or Department
               </label>
               <input
@@ -233,25 +233,25 @@ export default function InsuranceEnquiryForm({
                 value={treatmentType}
                 onChange={(e) => setTreatmentType(e.target.value)}
                 placeholder="e.g. Cardiology Angioplasty, Knee Replacement, General Surgery"
-                className="w-full rounded-lg border border-[#e6e4dd] px-3 py-2.5 text-xs text-[#14181a] focus:border-[#0f5c5c] focus:outline-hidden"
+                className="w-full rounded-lg border border-[#E5E8E6] px-3 py-2.5 text-xs text-[#242A28] focus:border-[#174C40] focus:outline-hidden"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="font-medium text-[#14181a]">
+            <label className="font-medium text-[#242A28]">
               Estimated Date of Admission (Optional)
             </label>
             <input
               type="date"
               value={estimatedDate}
               onChange={(e) => setEstimatedDate(e.target.value)}
-              className="w-full sm:w-1/2 rounded-lg border border-[#e6e4dd] px-3 py-2.5 text-xs text-[#14181a] focus:border-[#0f5c5c] focus:outline-hidden"
+              className="w-full sm:w-1/2 rounded-lg border border-[#E5E8E6] px-3 py-2.5 text-xs text-[#242A28] focus:border-[#174C40] focus:outline-hidden"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="font-medium text-[#14181a]">
+            <label className="font-medium text-[#242A28]">
               Additional Inquiries or Clinical Notes
             </label>
             <textarea
@@ -259,20 +259,20 @@ export default function InsuranceEnquiryForm({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Mention room category preferences, pre-existing conditions, or prior authorization queries..."
-              className="w-full rounded-lg border border-[#e6e4dd] px-3 py-2.5 text-xs text-[#14181a] focus:border-[#0f5c5c] focus:outline-hidden resize-none"
+              className="w-full rounded-lg border border-[#E5E8E6] px-3 py-2.5 text-xs text-[#242A28] focus:border-[#174C40] focus:outline-hidden resize-none"
             />
           </div>
 
           <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <p className="text-[11px] text-[#768086] flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-[#0f5c5c]" />
+            <p className="text-[11px] text-[#77817C] flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-[#174C40]" />
               Average verification turnaround: 2–4 business hours
             </p>
 
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-[#14181a] text-white text-xs font-medium hover:bg-[#0f5c5c] transition-colors disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-[#242A28] text-white text-xs font-medium hover:bg-[#174C40] transition-colors disabled:opacity-50"
             >
               {submitting ? (
                 <>

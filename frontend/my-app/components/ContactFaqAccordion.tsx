@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
@@ -52,7 +52,7 @@ export default function ContactFaqAccordion() {
               onClick={() => setOpenIndex(isOpen ? null : idx)}
               className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-4 hover:bg-[#FAF9F6] transition-colors"
             >
-              <span className="font-editorial text-sm sm:text-base text-[#14181a] font-medium flex items-center gap-2">
+              <span className="font-editorial text-sm sm:text-base text-[#242A28] font-medium flex items-center gap-2">
                 <HelpCircle className="h-4 w-4 text-[#0F5C5C] shrink-0" />
                 {faq.q}
               </span>
@@ -64,7 +64,7 @@ export default function ContactFaqAccordion() {
             </button>
 
             {isOpen && (
-              <div className="p-4 sm:p-5 pt-0 text-xs sm:text-sm text-neutral-600 leading-relaxed border-t border-[#f0eee6] bg-[#faf9f6]/40">
+              <div className="p-4 sm:p-5 pt-0 text-xs sm:text-sm text-neutral-600 leading-relaxed border-t border-[#f0eee6] bg-[#FAFAF7]/40">
                 {faq.a}
               </div>
             )}

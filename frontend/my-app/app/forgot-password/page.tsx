@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useState } from 'react';
@@ -39,39 +39,39 @@ export default function ForgotPasswordPage() {
       <div className="max-w-md mx-auto">
         <Link
           href="/login"
-          className="inline-flex items-center gap-1.5 text-xs text-[#768086] hover:text-[#14181a] mb-8"
+          className="inline-flex items-center gap-1.5 text-xs text-[#77817C] hover:text-[#242A28] mb-8"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Sign In
         </Link>
 
         <div className="space-y-3 mb-8">
-          <p className="text-xs font-mono uppercase tracking-[0.16em] text-[#0f5c5c]">
+          <p className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40]">
             Account Recovery
           </p>
-          <h1 className="font-editorial text-4xl text-[#14181a]">Forgot your password?</h1>
-          <p className="text-sm text-[#4b555b]">
+          <h1 className="font-editorial text-4xl text-[#242A28]">Forgot your password?</h1>
+          <p className="text-sm text-[#4A5350]">
             Enter the email address registered with your Healix account and we will issue a secure
             password reset link.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 sm:p-9">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 sm:p-9">
           {result ? (
             <div className="space-y-5">
               <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-[#0f5c5c] shrink-0 mt-0.5" />
-                <p className="text-sm text-[#14181a] leading-relaxed">{result.message}</p>
+                <CheckCircle2 className="h-5 w-5 text-[#174C40] shrink-0 mt-0.5" />
+                <p className="text-sm text-[#242A28] leading-relaxed">{result.message}</p>
               </div>
 
               {result.demo_reset_token && (
-                <div className="rounded-xl border border-[#cde4de] bg-[#edf5f4] p-4 space-y-3">
-                  <p className="text-[11px] font-mono uppercase tracking-wider text-[#0f5c5c]">
+                <div className="rounded-xl border border-[#cde4de] bg-[#E6EFE9] p-4 space-y-3">
+                  <p className="text-[11px] font-mono uppercase tracking-wider text-[#174C40]">
                     Direct Reset Link Ready
                   </p>
                   <Link
                     href={`/reset-password?token=${encodeURIComponent(result.demo_reset_token)}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-[#14181a] underline hover:text-[#0f5c5c]"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-[#242A28] underline hover:text-[#174C40]"
                   >
                     Proceed to Reset Password
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
               )}
 
               <div>
-                <label htmlFor="forgot-email" className="block text-xs font-medium text-[#14181a] mb-1.5">
+                <label htmlFor="forgot-email" className="block text-xs font-medium text-[#242A28] mb-1.5">
                   Registered Email Address
                 </label>
                 <input
@@ -101,14 +101,14 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="clara.vance@example.com"
-                  className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+                  className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#14181a] text-white text-sm font-medium hover:bg-[#0f5c5c] disabled:opacity-60 transition-colors"
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#242A28] text-white text-sm font-medium hover:bg-[#174C40] disabled:opacity-60 transition-colors"
               >
                 {submitting ? (
                   <>

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import AppointmentStepper from '@/components/AppointmentStepper';
 import ConfirmationClient from '@/components/ConfirmationClient';
@@ -26,7 +26,7 @@ export default function BookingConfirmationPage() {
       <section className="container-editorial py-14 lg:py-18">
         <Suspense
           fallback={
-            <div className="rounded-2xl border border-[#e6e4dd] bg-white p-10 text-sm text-[#768086]">
+            <div className="rounded-2xl border border-[#E5E8E6] bg-white p-10 text-sm text-[#77817C]">
               Loading confirmation pass...
             </div>
           }

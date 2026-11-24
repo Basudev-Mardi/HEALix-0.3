@@ -58,9 +58,9 @@ export default function SiteHeader() {
     pathname === '/patient-rights';
 
   return (
-    <header className="sticky top-0 z-50 bg-[#faf9f6]/90 backdrop-blur-md border-b border-[#e6e4dd]">
+    <header className="sticky top-0 z-50 bg-[#FAFAF7]/90 backdrop-blur-md border-b border-[#E5E8E6]">
       {/* Subtle Utility Strip */}
-      <div className="border-b border-[#e6e4dd] bg-[#f2f1ec]/70 text-xs text-[#4b555b]">
+      <div className="border-b border-[#E5E8E6] bg-[#E6EFE9]/70 text-xs text-[#4A5350]">
         <div className="container-editorial h-9 flex items-center justify-between gap-4">
           <div className="flex items-center gap-5">
             <a
@@ -71,23 +71,23 @@ export default function SiteHeader() {
               <Siren className="h-3 w-3 text-rose-600 animate-pulse" />
               <span>24/7 Emergency: +1 (800) 911-4325</span>
             </a>
-            <span className="hidden md:inline text-[#768086]">|</span>
+            <span className="hidden md:inline text-[#77817C]">|</span>
             <span className="hidden md:inline-flex items-center gap-1.5">
-              <Phone className="h-3 w-3 text-[#768086]" />
+              <Phone className="h-3 w-3 text-[#77817C]" />
               General Desk: +1 (800) 432-5490
             </span>
           </div>
           <div className="flex items-center gap-4">
             <Link
               href="/patient/dashboard"
-              className="inline-flex items-center gap-1.5 hover:text-[#14181a] transition-colors font-medium text-[#0f5c5c]"
+              className="inline-flex items-center gap-1.5 hover:text-[#242A28] transition-colors font-medium text-[#174C40]"
             >
               <UserRound className="h-3 w-3" />
               Patient Portal
             </Link>
             <Link
               href="/insurance"
-              className="hidden sm:inline-flex items-center gap-1.5 hover:text-[#14181a] transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 hover:text-[#242A28] transition-colors"
             >
               Cashless TPA
             </Link>
@@ -104,14 +104,14 @@ export default function SiteHeader() {
       {/* Primary Navigation */}
       <div className="container-editorial h-18 flex items-center justify-between gap-6">
         <Link href="/" className="flex items-center gap-3 group" onClick={() => setMobileOpen(false)}>
-          <span className="h-8 w-8 rounded-full border border-[#14181a] flex items-center justify-center text-xs font-mono font-semibold tracking-tighter group-hover:bg-[#14181a] group-hover:text-white transition-colors">
+          <span className="h-8 w-8 rounded-full border border-[#242A28] flex items-center justify-center text-xs font-mono font-semibold tracking-tighter group-hover:bg-[#242A28] group-hover:text-white transition-colors">
             Hx
           </span>
           <div className="leading-none">
-            <span className="block text-[15px] font-semibold tracking-[0.14em] uppercase text-[#14181a]">
+            <span className="block text-[15px] font-semibold tracking-[0.14em] uppercase text-[#242A28]">
               Healix
             </span>
-            <span className="block text-[10px] tracking-[0.16em] uppercase text-[#768086] mt-0.5">
+            <span className="block text-[10px] tracking-[0.16em] uppercase text-[#77817C] mt-0.5">
               Medical Center
             </span>
           </div>
@@ -130,8 +130,8 @@ export default function SiteHeader() {
               onClick={() => setAboutOpen((prev) => !prev)}
               className={`inline-flex items-center gap-1 py-2 transition-colors ${
                 isAboutActive
-                  ? 'text-[#0f5c5c] font-medium'
-                  : 'text-[#4b555b] hover:text-[#14181a]'
+                  ? 'text-[#174C40] font-medium'
+                  : 'text-[#4A5350] hover:text-[#242A28]'
               }`}
             >
               About
@@ -142,7 +142,7 @@ export default function SiteHeader() {
 
             {aboutOpen && (
               <div className="absolute left-0 top-full pt-2 w-72">
-                <div className="bg-white border border-[#e6e4dd] rounded-xl shadow-lg p-2">
+                <div className="bg-white border border-[#E5E8E6] rounded-xl shadow-lg p-2">
                   {ABOUT_LINKS.map((item) => (
                     <Link
                       key={item.href}
@@ -150,12 +150,12 @@ export default function SiteHeader() {
                       onClick={() => setAboutOpen(false)}
                       className={`block px-3.5 py-2.5 rounded-lg transition-colors ${
                         pathname === item.href
-                          ? 'bg-[#edf5f4] text-[#0f5c5c]'
-                          : 'hover:bg-[#faf9f6] text-[#14181a]'
+                          ? 'bg-[#E6EFE9] text-[#174C40]'
+                          : 'hover:bg-[#FAFAF7] text-[#242A28]'
                       }`}
                     >
                       <span className="block text-sm font-medium">{item.label}</span>
-                      <span className="block text-xs text-[#768086] mt-0.5">{item.desc}</span>
+                      <span className="block text-xs text-[#77817C] mt-0.5">{item.desc}</span>
                     </Link>
                   ))}
                 </div>
@@ -171,7 +171,7 @@ export default function SiteHeader() {
                 key={link.href}
                 href={link.href}
                 className={`py-2 transition-colors ${
-                  active ? 'text-[#0f5c5c] font-medium' : 'text-[#4b555b] hover:text-[#14181a]'
+                  active ? 'text-[#174C40] font-medium' : 'text-[#4A5350] hover:text-[#242A28]'
                 }`}
               >
                 {link.label}
@@ -190,8 +190,8 @@ export default function SiteHeader() {
               onClick={() => setSupportOpen((prev) => !prev)}
               className={`inline-flex items-center gap-1 py-2 transition-colors ${
                 isSupportActive
-                  ? 'text-[#0f5c5c] font-medium'
-                  : 'text-[#4b555b] hover:text-[#14181a]'
+                  ? 'text-[#174C40] font-medium'
+                  : 'text-[#4A5350] hover:text-[#242A28]'
               }`}
             >
               Support &amp; Info
@@ -202,7 +202,7 @@ export default function SiteHeader() {
 
             {supportOpen && (
               <div className="absolute left-0 top-full pt-2 w-80">
-                <div className="bg-white border border-[#e6e4dd] rounded-xl shadow-lg p-2">
+                <div className="bg-white border border-[#E5E8E6] rounded-xl shadow-lg p-2">
                   {SUPPORT_LINKS.map((item) => (
                     <Link
                       key={item.href}
@@ -210,12 +210,12 @@ export default function SiteHeader() {
                       onClick={() => setSupportOpen(false)}
                       className={`block px-3.5 py-2.5 rounded-lg transition-colors ${
                         pathname === item.href
-                          ? 'bg-[#edf5f4] text-[#0f5c5c]'
-                          : 'hover:bg-[#faf9f6] text-[#14181a]'
+                          ? 'bg-[#E6EFE9] text-[#174C40]'
+                          : 'hover:bg-[#FAFAF7] text-[#242A28]'
                       }`}
                     >
                       <span className="block text-sm font-medium">{item.label}</span>
-                      <span className="block text-xs text-[#768086] mt-0.5">{item.desc}</span>
+                      <span className="block text-xs text-[#77817C] mt-0.5">{item.desc}</span>
                     </Link>
                   ))}
                 </div>
@@ -234,8 +234,8 @@ export default function SiteHeader() {
               onClick={() => setApptOpen((prev) => !prev)}
               className={`inline-flex items-center gap-1 py-2 transition-colors ${
                 isApptActive
-                  ? 'text-[#0f5c5c] font-medium'
-                  : 'text-[#4b555b] hover:text-[#14181a]'
+                  ? 'text-[#174C40] font-medium'
+                  : 'text-[#4A5350] hover:text-[#242A28]'
               }`}
             >
               Appointments
@@ -246,7 +246,7 @@ export default function SiteHeader() {
 
             {apptOpen && (
               <div className="absolute right-0 top-full pt-2 w-72">
-                <div className="bg-white border border-[#e6e4dd] rounded-xl shadow-lg p-2">
+                <div className="bg-white border border-[#E5E8E6] rounded-xl shadow-lg p-2">
                   {APPOINTMENT_LINKS.map((item) => (
                     <Link
                       key={item.href}
@@ -254,12 +254,12 @@ export default function SiteHeader() {
                       onClick={() => setApptOpen(false)}
                       className={`block px-3.5 py-2.5 rounded-lg transition-colors ${
                         pathname === item.href
-                          ? 'bg-[#edf5f4] text-[#0f5c5c]'
-                          : 'hover:bg-[#faf9f6] text-[#14181a]'
+                          ? 'bg-[#E6EFE9] text-[#174C40]'
+                          : 'hover:bg-[#FAFAF7] text-[#242A28]'
                       }`}
                     >
                       <span className="block text-sm font-medium">{item.label}</span>
-                      <span className="block text-xs text-[#768086] mt-0.5">{item.desc}</span>
+                      <span className="block text-xs text-[#77817C] mt-0.5">{item.desc}</span>
                     </Link>
                   ))}
                 </div>
@@ -280,7 +280,7 @@ export default function SiteHeader() {
           </a>
           <Link
             href="/appointments/book"
-            className="text-xs font-medium px-4 py-2.5 rounded-full border border-[#d5d2c9] text-[#14181a] hover:border-[#14181a] transition-colors"
+            className="text-xs font-medium px-4 py-2.5 rounded-full border border-[#77817C] text-[#242A28] hover:border-[#242A28] transition-colors"
           >
             Book Appointment
           </Link>
@@ -307,7 +307,7 @@ export default function SiteHeader() {
             type="button"
             onClick={() => setMobileOpen((prev) => !prev)}
             aria-label="Toggle navigation menu"
-            className="p-2 rounded-lg border border-[#e6e4dd] text-[#14181a]"
+            className="p-2 rounded-lg border border-[#E5E8E6] text-[#242A28]"
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -316,9 +316,9 @@ export default function SiteHeader() {
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-[#e6e4dd] bg-[#faf9f6] px-6 py-5 space-y-5 max-h-[80vh] overflow-y-auto">
+        <div className="lg:hidden border-t border-[#E5E8E6] bg-[#FAFAF7] px-6 py-5 space-y-5 max-h-[80vh] overflow-y-auto">
           <div className="space-y-1">
-            <p className="text-[11px] font-mono uppercase tracking-widest text-[#768086] pb-1">
+            <p className="text-[11px] font-mono uppercase tracking-widest text-[#77817C] pb-1">
               About Healix
             </p>
             {ABOUT_LINKS.map((item) => (
@@ -327,7 +327,7 @@ export default function SiteHeader() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={`block py-2 text-sm ${
-                  pathname === item.href ? 'text-[#0f5c5c] font-medium' : 'text-[#14181a]'
+                  pathname === item.href ? 'text-[#174C40] font-medium' : 'text-[#242A28]'
                 }`}
               >
                 {item.label}
@@ -335,8 +335,8 @@ export default function SiteHeader() {
             ))}
           </div>
 
-          <div className="border-t border-[#e6e4dd] pt-4 space-y-1">
-            <p className="text-[11px] font-mono uppercase tracking-widest text-[#768086] pb-1">
+          <div className="border-t border-[#E5E8E6] pt-4 space-y-1">
+            <p className="text-[11px] font-mono uppercase tracking-widest text-[#77817C] pb-1">
               Hospital Directory
             </p>
             {NAV_LINKS.map((item) => (
@@ -345,7 +345,7 @@ export default function SiteHeader() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={`block py-2 text-sm ${
-                  pathname === item.href ? 'text-[#0f5c5c] font-medium' : 'text-[#14181a]'
+                  pathname === item.href ? 'text-[#174C40] font-medium' : 'text-[#242A28]'
                 }`}
               >
                 {item.label}
@@ -353,8 +353,8 @@ export default function SiteHeader() {
             ))}
           </div>
 
-          <div className="border-t border-[#e6e4dd] pt-4 space-y-1">
-            <p className="text-[11px] font-mono uppercase tracking-widest text-[#768086] pb-1">
+          <div className="border-t border-[#E5E8E6] pt-4 space-y-1">
+            <p className="text-[11px] font-mono uppercase tracking-widest text-[#77817C] pb-1">
               Information &amp; Support
             </p>
             {SUPPORT_LINKS.map((item) => (
@@ -363,7 +363,7 @@ export default function SiteHeader() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={`block py-2 text-sm ${
-                  pathname === item.href ? 'text-[#0f5c5c] font-medium' : 'text-[#14181a]'
+                  pathname === item.href ? 'text-[#174C40] font-medium' : 'text-[#242A28]'
                 }`}
               >
                 {item.label}
@@ -371,8 +371,8 @@ export default function SiteHeader() {
             ))}
           </div>
 
-          <div className="border-t border-[#e6e4dd] pt-4 space-y-1">
-            <p className="text-[11px] font-mono uppercase tracking-widest text-[#768086] pb-1">
+          <div className="border-t border-[#E5E8E6] pt-4 space-y-1">
+            <p className="text-[11px] font-mono uppercase tracking-widest text-[#77817C] pb-1">
               Appointments
             </p>
             {APPOINTMENT_LINKS.map((item) => (
@@ -381,7 +381,7 @@ export default function SiteHeader() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={`block py-2 text-sm ${
-                  pathname === item.href ? 'text-[#0f5c5c] font-medium' : 'text-[#14181a]'
+                  pathname === item.href ? 'text-[#174C40] font-medium' : 'text-[#242A28]'
                 }`}
               >
                 {item.label}
@@ -389,18 +389,18 @@ export default function SiteHeader() {
             ))}
           </div>
 
-          <div className="border-t border-[#e6e4dd] pt-4 space-y-2.5">
+          <div className="border-t border-[#E5E8E6] pt-4 space-y-2.5">
             <Link
               href="/patient/dashboard"
               onClick={() => setMobileOpen(false)}
-              className="block w-full text-center py-2.5 rounded-lg border border-[#0f5c5c] text-[#0f5c5c] text-xs font-medium"
+              className="block w-full text-center py-2.5 rounded-lg border border-[#174C40] text-[#174C40] text-xs font-medium"
             >
               Patient Portal Access
             </Link>
             <Link
               href="/appointments/book"
               onClick={() => setMobileOpen(false)}
-              className="block w-full text-center py-2.5 rounded-lg bg-[#0f5c5c] text-white text-xs font-medium"
+              className="block w-full text-center py-2.5 rounded-lg bg-[#174C40] text-white text-xs font-medium"
             >
               Book Appointment
             </Link>

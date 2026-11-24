@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   AlertTriangle,
@@ -41,10 +41,10 @@ export default async function EmergencyPage() {
                 <Siren className="h-3.5 w-3.5" />
                 Emergency Triage Desk
               </p>
-              <p className="font-mono text-2xl font-semibold text-[#14181a]">
+              <p className="font-mono text-2xl font-semibold text-[#242A28]">
                 {contact.emergency_phone}
               </p>
-              <p className="text-xs text-[#4b555b]">Direct 24/7 Emergency Physician Dispatch</p>
+              <p className="text-xs text-[#4A5350]">Direct 24/7 Emergency Physician Dispatch</p>
             </div>
 
             <div className="rounded-2xl bg-white border border-[#f0d5d5] p-6 space-y-2">
@@ -52,21 +52,21 @@ export default async function EmergencyPage() {
                 <Ambulance className="h-3.5 w-3.5" />
                 ALS Ambulance Dispatch
               </p>
-              <p className="font-mono text-2xl font-semibold text-[#14181a]">
+              <p className="font-mono text-2xl font-semibold text-[#242A28]">
                 {contact.ambulance_phone}
               </p>
-              <p className="text-xs text-[#4b555b]">GPS-tracked ICU &amp; Neonatal Ambulances</p>
+              <p className="text-xs text-[#4A5350]">GPS-tracked ICU &amp; Neonatal Ambulances</p>
             </div>
 
             <div className="rounded-2xl bg-white border border-[#f0d5d5] p-6 space-y-2">
-              <p className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[#0f5c5c]">
+              <p className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-[#174C40]">
                 <MapPin className="h-3.5 w-3.5" />
                 Emergency Entrance
               </p>
-              <p className="text-sm font-semibold text-[#14181a]">
+              <p className="text-sm font-semibold text-[#242A28]">
                 Ground Floor, North Trauma Ramp
               </p>
-              <p className="text-xs text-[#4b555b]">{contact.address}</p>
+              <p className="text-xs text-[#4A5350]">{contact.address}</p>
             </div>
           </div>
         </div>
@@ -79,7 +79,7 @@ export default async function EmergencyPage() {
             <p className="text-xs font-mono uppercase tracking-[0.16em] text-[#b91c1c] mb-3">
               Rapid Action Guides
             </p>
-            <h2 className="font-editorial text-3xl sm:text-4xl text-[#14181a]">
+            <h2 className="font-editorial text-3xl sm:text-4xl text-[#242A28]">
               When to seek immediate emergency care
             </h2>
           </div>
@@ -88,7 +88,7 @@ export default async function EmergencyPage() {
             {protocols.map((protocol) => (
               <article
                 key={protocol.id}
-                className="rounded-2xl border border-[#e6e4dd] bg-white p-8 flex flex-col justify-between space-y-6"
+                className="rounded-2xl border border-[#E5E8E6] bg-white p-8 flex flex-col justify-between space-y-6"
               >
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -96,19 +96,19 @@ export default async function EmergencyPage() {
                       <AlertTriangle className="h-3 w-3" />
                       {protocol.triage_level}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 text-xs font-mono text-[#0f5c5c]">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-mono text-[#174C40]">
                       <Clock className="h-3.5 w-3.5" />
                       {protocol.response_time}
                     </span>
                   </div>
 
-                  <h3 className="font-editorial text-2xl text-[#14181a]">{protocol.title}</h3>
-                  <p className="text-sm leading-relaxed text-[#4b555b]">{protocol.description}</p>
+                  <h3 className="font-editorial text-2xl text-[#242A28]">{protocol.title}</h3>
+                  <p className="text-sm leading-relaxed text-[#4A5350]">{protocol.description}</p>
 
                   <ol className="space-y-2.5 pt-2">
                     {protocol.steps.map((step, i) => (
-                      <li key={step} className="flex items-start gap-3 text-sm text-[#14181a]">
-                        <span className="h-5 w-5 rounded-full bg-[#f2f1ec] text-[#14181a] font-mono text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                      <li key={step} className="flex items-start gap-3 text-sm text-[#242A28]">
+                        <span className="h-5 w-5 rounded-full bg-[#E6EFE9] text-[#242A28] font-mono text-[11px] flex items-center justify-center shrink-0 mt-0.5">
                           {i + 1}
                         </span>
                         <span>{step}</span>
@@ -117,8 +117,8 @@ export default async function EmergencyPage() {
                   </ol>
                 </div>
 
-                <div className="pt-4 border-t border-[#e6e4dd] flex items-center justify-between text-xs">
-                  <span className="text-[#768086]">Direct Line</span>
+                <div className="pt-4 border-t border-[#E5E8E6] flex items-center justify-between text-xs">
+                  <span className="text-[#77817C]">Direct Line</span>
                   <span className="inline-flex items-center gap-1.5 font-mono font-medium text-[#b91c1c]">
                     <PhoneCall className="h-3.5 w-3.5" />
                     {protocol.phone}
@@ -131,7 +131,7 @@ export default async function EmergencyPage() {
 
         {/* Emergency Department Capabilities */}
         {department && (
-          <div className="rounded-2xl border border-[#e6e4dd] bg-[#14181a] text-white p-8 lg:p-12">
+          <div className="rounded-2xl border border-[#E5E8E6] bg-[#242A28] text-white p-8 lg:p-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
               <div className="lg:col-span-7 space-y-4">
                 <p className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-[0.16em] text-[#9fd8d2]">

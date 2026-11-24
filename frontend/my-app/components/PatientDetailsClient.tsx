@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -247,20 +247,20 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
       {/* Form (Steps 6 & 8) */}
       <form
         onSubmit={handleSubmit}
-        className="lg:col-span-8 rounded-2xl border border-[#e6e4dd] bg-white p-7 sm:p-9 space-y-8 shadow-sm"
+        className="lg:col-span-8 rounded-2xl border border-[#E5E8E6] bg-white p-7 sm:p-9 space-y-8 shadow-sm"
       >
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6e4dd] pb-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E8E6] pb-5">
           <div>
-            <p className="text-xs font-mono uppercase tracking-[0.14em] text-[#0f5c5c] font-semibold">
+            <p className="text-xs font-mono uppercase tracking-[0.14em] text-[#174C40] font-semibold">
               Step 6 · Enter Patient Information
             </p>
-            <h2 className="font-editorial text-2xl sm:text-3xl text-[#14181a] mt-1">
+            <h2 className="font-editorial text-2xl sm:text-3xl text-[#242A28] mt-1">
               Patient Identification &amp; Contact
             </h2>
           </div>
           <Link
             href={`/appointments/book?doctor=${bookingContext.doctor?.slug || ''}`}
-            className="inline-flex items-center gap-1.5 text-xs text-[#768086] hover:text-[#14181a] px-3 py-1.5 rounded-full border border-[#e6e4dd] bg-[#faf9f6] transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-[#77817C] hover:text-[#242A28] px-3 py-1.5 rounded-full border border-[#E5E8E6] bg-[#FAFAF7] transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Modify slot / doctor
@@ -291,12 +291,12 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
             </span>
           </div>
         ) : (
-          <div className="rounded-xl border border-[#cde4de] bg-[#edf5f4]/60 p-4 text-xs text-[#0f5c5c] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="rounded-xl border border-[#cde4de] bg-[#E6EFE9]/60 p-4 text-xs text-[#174C40] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <UserRound className="h-4 w-4 text-[#0f5c5c] shrink-0" />
+              <UserRound className="h-4 w-4 text-[#174C40] shrink-0" />
               <div>
-                <span className="font-semibold text-[#14181a] block">Have a registered patient account?</span>
-                <span className="text-[#4b555b] text-[11px]">
+                <span className="font-semibold text-[#242A28] block">Have a registered patient account?</span>
+                <span className="text-[#4A5350] text-[11px]">
                   Sign in or create an account to link your booking to your electronic medical record and auto-fill details.
                 </span>
               </div>
@@ -308,7 +308,7 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
                     bookingContext.slot
                   )}&type=${encodeURIComponent(bookingContext.visitType)}`
                 )}`}
-                className="px-3.5 py-1.5 rounded-full bg-[#14181a] text-white font-medium hover:bg-[#0f5c5c] transition-colors text-[11px]"
+                className="px-3.5 py-1.5 rounded-full bg-[#242A28] text-white font-medium hover:bg-[#174C40] transition-colors text-[11px]"
               >
                 Sign In
               </Link>
@@ -318,7 +318,7 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
                     bookingContext.slot
                   )}&type=${encodeURIComponent(bookingContext.visitType)}`
                 )}`}
-                className="px-3.5 py-1.5 rounded-full border border-[#0f5c5c] text-[#0f5c5c] bg-white font-medium hover:bg-[#faf9f6] transition-colors text-[11px]"
+                className="px-3.5 py-1.5 rounded-full border border-[#174C40] text-[#174C40] bg-white font-medium hover:bg-[#FAFAF7] transition-colors text-[11px]"
               >
                 Register
               </Link>
@@ -328,7 +328,7 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
 
         {/* Patient Profile Selection Toggle */}
         <div className="space-y-3">
-          <p className="text-xs font-mono uppercase tracking-wider text-[#768086]">
+          <p className="text-xs font-mono uppercase tracking-wider text-[#77817C]">
             Patient Profile Type
           </p>
           <div className="grid grid-cols-2 gap-3 max-w-md">
@@ -340,8 +340,8 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
               }}
               className={`py-2.5 px-4 rounded-xl text-xs font-semibold border text-center transition-all ${
                 patientMode === 'new'
-                  ? 'bg-[#14181a] text-white border-[#14181a] shadow-sm'
-                  : 'bg-[#faf9f6] text-[#4b555b] border-[#e6e4dd] hover:border-[#14181a]'
+                  ? 'bg-[#242A28] text-white border-[#242A28] shadow-sm'
+                  : 'bg-[#FAFAF7] text-[#4A5350] border-[#E5E8E6] hover:border-[#242A28]'
               }`}
             >
               New Patient Registration
@@ -351,8 +351,8 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
               onClick={() => setPatientMode('existing')}
               className={`py-2.5 px-4 rounded-xl text-xs font-semibold border text-center transition-all ${
                 patientMode === 'existing'
-                  ? 'bg-[#14181a] text-white border-[#14181a] shadow-sm'
-                  : 'bg-[#faf9f6] text-[#4b555b] border-[#e6e4dd] hover:border-[#14181a]'
+                  ? 'bg-[#242A28] text-white border-[#242A28] shadow-sm'
+                  : 'bg-[#FAFAF7] text-[#4A5350] border-[#E5E8E6] hover:border-[#242A28]'
               }`}
             >
               Existing Patient Profile
@@ -362,13 +362,13 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
 
         {/* Existing Patient Lookup Box */}
         {patientMode === 'existing' && (
-          <div className="rounded-xl border border-[#0f5c5c]/30 bg-[#edf5f4]/50 p-4 space-y-3">
+          <div className="rounded-xl border border-[#174C40]/30 bg-[#E6EFE9]/50 p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#0f5c5c] flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-[#174C40] flex items-center gap-1.5">
                 <UserCheck className="h-4 w-4" />
                 Find Registered Healix Account
               </span>
-              <span className="text-[11px] font-mono text-[#768086]">Lookup by Email or UHID</span>
+              <span className="text-[11px] font-mono text-[#77817C]">Lookup by Email or UHID</span>
             </div>
             <div className="flex items-center gap-2">
               <input
@@ -376,18 +376,18 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
                 value={existingLookup}
                 onChange={(e) => setExistingLookup(e.target.value)}
                 placeholder="Enter patient email, phone or UHID..."
-                className="flex-1 px-3.5 py-2 rounded-lg bg-white border border-[#e6e4dd] text-xs text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+                className="flex-1 px-3.5 py-2 rounded-lg bg-white border border-[#E5E8E6] text-xs text-[#242A28] focus:outline-none focus:border-[#174C40]"
               />
               <button
                 type="button"
                 onClick={handleExistingLookup}
-                className="px-4 py-2 rounded-lg bg-[#0f5c5c] text-white text-xs font-medium hover:bg-[#0c4a4a] transition-colors shrink-0"
+                className="px-4 py-2 rounded-lg bg-[#174C40] text-white text-xs font-medium hover:bg-[#0c4a4a] transition-colors shrink-0"
               >
                 Fetch Record
               </button>
             </div>
             {lookupMessage && (
-              <p className="text-xs text-[#0f5c5c] font-medium flex items-center gap-1.5">
+              <p className="text-xs text-[#174C40] font-medium flex items-center gap-1.5">
                 <Check className="h-3.5 w-3.5" />
                 {lookupMessage}
               </p>
@@ -398,7 +398,7 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
         {/* Input Fields */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="sm:col-span-2">
-            <label htmlFor="patient-name" className="block text-xs font-semibold text-[#14181a] mb-1.5">
+            <label htmlFor="patient-name" className="block text-xs font-semibold text-[#242A28] mb-1.5">
               Full Legal Name <span className="text-[#b91c1c]">*</span>
             </label>
             <input
@@ -408,12 +408,12 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
               value={patientName}
               onChange={(e) => setPatientName(e.target.value)}
               placeholder="e.g., Clara Vance"
-              className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+              className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
             />
           </div>
 
           <div>
-            <label htmlFor="patient-email" className="block text-xs font-semibold text-[#14181a] mb-1.5">
+            <label htmlFor="patient-email" className="block text-xs font-semibold text-[#242A28] mb-1.5">
               Email Address <span className="text-[#b91c1c]">*</span>
             </label>
             <input
@@ -423,12 +423,12 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
               value={patientEmail}
               onChange={(e) => setPatientEmail(e.target.value)}
               placeholder="clara.vance@example.com"
-              className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+              className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
             />
           </div>
 
           <div>
-            <label htmlFor="patient-phone" className="block text-xs font-semibold text-[#14181a] mb-1.5">
+            <label htmlFor="patient-phone" className="block text-xs font-semibold text-[#242A28] mb-1.5">
               Mobile Phone Number <span className="text-[#b91c1c]">*</span>
             </label>
             <input
@@ -438,12 +438,12 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
               value={patientPhone}
               onChange={(e) => setPatientPhone(e.target.value)}
               placeholder="+1 (555) 019-2834"
-              className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+              className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
             />
           </div>
 
           <div>
-            <label htmlFor="patient-dob" className="block text-xs font-semibold text-[#14181a] mb-1.5">
+            <label htmlFor="patient-dob" className="block text-xs font-semibold text-[#242A28] mb-1.5">
               Date of Birth
             </label>
             <input
@@ -451,19 +451,19 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
               type="date"
               value={patientDob}
               onChange={(e) => setPatientDob(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+              className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
             />
           </div>
 
           <div>
-            <label htmlFor="patient-gender" className="block text-xs font-semibold text-[#14181a] mb-1.5">
+            <label htmlFor="patient-gender" className="block text-xs font-semibold text-[#242A28] mb-1.5">
               Gender
             </label>
             <select
               id="patient-gender"
               value={patientGender}
               onChange={(e) => setPatientGender(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+              className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
             >
               <option value="">Prefer not to say</option>
               <option value="Female">Female</option>
@@ -473,7 +473,7 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
           </div>
 
           <div className="sm:col-span-2">
-            <label htmlFor="insurance" className="block text-xs font-semibold text-[#14181a] mb-1.5">
+            <label htmlFor="insurance" className="block text-xs font-semibold text-[#242A28] mb-1.5">
               Health Insurance Provider (Optional / Cashless TPA)
             </label>
             <input
@@ -482,16 +482,16 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
               value={insuranceProvider}
               onChange={(e) => setInsuranceProvider(e.target.value)}
               placeholder="e.g., Blue Cross Blue Shield, Aetna, Cigna, Self-Pay"
-              className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+              className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
             />
           </div>
 
           <div className="sm:col-span-2 space-y-2">
             <div className="flex items-center justify-between">
-              <label htmlFor="reason" className="block text-xs font-semibold text-[#14181a]">
+              <label htmlFor="reason" className="block text-xs font-semibold text-[#242A28]">
                 Reason for Visit &amp; Clinical Notes (Optional)
               </label>
-              <span className="text-[11px] font-mono text-[#768086]">
+              <span className="text-[11px] font-mono text-[#77817C]">
                 {reasonForVisit.length}/500 chars
               </span>
             </div>
@@ -502,7 +502,7 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
               value={reasonForVisit}
               onChange={(e) => setReasonForVisit(e.target.value)}
               placeholder="Briefly describe primary symptoms, concerns, or referral notes for the specialist..."
-              className="w-full px-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+              className="w-full px-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
             />
 
             {/* Quick Reason Chips */}
@@ -516,7 +516,7 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
                       prev ? `${prev}; ${chip}`.slice(0, 500) : chip
                     )
                   }
-                  className="text-[11px] px-2.5 py-1 rounded-full bg-[#faf9f6] border border-[#e6e4dd] text-[#768086] hover:text-[#14181a] hover:border-[#14181a] transition-colors"
+                  className="text-[11px] px-2.5 py-1 rounded-full bg-[#FAFAF7] border border-[#E5E8E6] text-[#77817C] hover:text-[#242A28] hover:border-[#242A28] transition-colors"
                 >
                   + {chip}
                 </button>
@@ -526,13 +526,13 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
         </div>
 
         {/* Step 4: System checks slot availability again (Workflow C - Step 4) */}
-        <div className="rounded-xl border border-[#e6e4dd] bg-[#faf9f6] p-4.5 space-y-2.5">
+        <div className="rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] p-4.5 space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#0f5c5c] font-semibold">
+              <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#174C40] font-semibold">
                 Step 4 · Live Slot Availability Recheck
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#edf5f4] text-[#0f5c5c]">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#E6EFE9] text-[#174C40]">
                 Concurrency Safe
               </span>
             </div>
@@ -540,7 +540,7 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
               type="button"
               onClick={recheckSlotAvailability}
               disabled={recheckingSlot}
-              className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#768086] hover:text-[#0f5c5c] transition-colors"
+              className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#77817C] hover:text-[#174C40] transition-colors"
             >
               <RefreshCw className={`h-3 w-3 ${recheckingSlot ? 'animate-spin' : ''}`} />
               Recheck Now
@@ -548,8 +548,8 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
           </div>
 
           {slotStatus === 'checking' && (
-            <div className="flex items-center gap-2 text-xs text-[#768086]">
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0f5c5c]" />
+            <div className="flex items-center gap-2 text-xs text-[#77817C]">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#174C40]" />
               <span>Checking live slot capacity with hospital scheduling server...</span>
             </div>
           )}
@@ -588,91 +588,91 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
         </div>
 
         {/* Step 5: Review Appointment Details (Workflow C - Step 5) */}
-        <div className="rounded-xl border border-[#e6e4dd] bg-[#faf9f6] p-6 space-y-4 shadow-sm">
-          <div className="flex items-center justify-between border-b border-[#e6e4dd] pb-3">
+        <div className="rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] p-6 space-y-4 shadow-sm">
+          <div className="flex items-center justify-between border-b border-[#E5E8E6] pb-3">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#0f5c5c] font-semibold">
+              <span className="text-xs font-mono uppercase tracking-[0.14em] text-[#174C40] font-semibold">
                 Step 5 · Review Appointment Details
               </span>
               {loggedInPatient?.mrn && (
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#14181a] text-white">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#242A28] text-white">
                   MRN: {loggedInPatient.mrn}
                 </span>
               )}
             </div>
-            <ShieldCheck className="h-4 w-4 text-[#0f5c5c]" />
+            <ShieldCheck className="h-4 w-4 text-[#174C40]" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
-              <p className="text-[#768086]">Specialist &amp; Department</p>
-              <p className="font-semibold text-[#14181a] text-sm mt-0.5">
+              <p className="text-[#77817C]">Specialist &amp; Department</p>
+              <p className="font-semibold text-[#242A28] text-sm mt-0.5">
                 {bookingContext.doctor?.name}
               </p>
-              <p className="text-[#0f5c5c]">
+              <p className="text-[#174C40]">
                 {bookingContext.doctor?.specialty} · {bookingContext.doctor?.department_name}
               </p>
               {bookingContext.doctor?.department_floor && (
-                <p className="text-[11px] text-[#768086] mt-0.5 flex items-center gap-1">
-                  <MapPin className="h-3 w-3 text-[#0f5c5c]" />
+                <p className="text-[11px] text-[#77817C] mt-0.5 flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-[#174C40]" />
                   {bookingContext.doctor.department_floor}
                 </p>
               )}
             </div>
 
             <div>
-              <p className="text-[#768086]">Schedule &amp; Format</p>
-              <p className="font-semibold text-[#14181a] text-sm mt-0.5">
+              <p className="text-[#77817C]">Schedule &amp; Format</p>
+              <p className="font-semibold text-[#242A28] text-sm mt-0.5">
                 {bookingContext.date} at {bookingContext.slot}
               </p>
-              <p className="text-[#0f5c5c] font-medium">{bookingContext.visitType}</p>
+              <p className="text-[#174C40] font-medium">{bookingContext.visitType}</p>
             </div>
 
             <div>
-              <p className="text-[#768086]">Patient Identification</p>
-              <p className="font-semibold text-[#14181a] mt-0.5">
+              <p className="text-[#77817C]">Patient Identification</p>
+              <p className="font-semibold text-[#242A28] mt-0.5">
                 {patientName || 'Enter patient name above'}
               </p>
-              <p className="text-[#768086] font-mono text-[11px]">
+              <p className="text-[#77817C] font-mono text-[11px]">
                 {patientPhone || '—'} · {patientEmail || '—'}
               </p>
               {(patientDob || patientGender) && (
-                <p className="text-[11px] text-[#768086] mt-0.5">
+                <p className="text-[11px] text-[#77817C] mt-0.5">
                   DOB: {patientDob || 'N/A'} · Gender: {patientGender || 'N/A'}
                 </p>
               )}
             </div>
 
             <div>
-              <p className="text-[#768086]">Pricing &amp; Coverage</p>
-              <p className="font-bold text-base text-[#0f5c5c] mt-0.5">
+              <p className="text-[#77817C]">Pricing &amp; Coverage</p>
+              <p className="font-bold text-base text-[#174C40] mt-0.5">
                 {bookingContext.doctor?.consultation_fee || '$180'}
               </p>
-              <p className="text-[11px] text-[#768086]">
+              <p className="text-[11px] text-[#77817C]">
                 {insuranceProvider ? `Insurance: ${insuranceProvider}` : 'Self-Pay / Settlement at Clinic Desk'}
               </p>
             </div>
           </div>
 
           {reasonForVisit && (
-            <div className="pt-3 border-t border-[#e6e4dd] text-xs">
-              <span className="text-[#768086] block text-[11px] font-mono uppercase tracking-wider">Clinical Notes:</span>
-              <p className="text-[#14181a] italic mt-0.5">&quot;{reasonForVisit}&quot;</p>
+            <div className="pt-3 border-t border-[#E5E8E6] text-xs">
+              <span className="text-[#77817C] block text-[11px] font-mono uppercase tracking-wider">Clinical Notes:</span>
+              <p className="text-[#242A28] italic mt-0.5">&quot;{reasonForVisit}&quot;</p>
             </div>
           )}
         </div>
 
         {/* Step 6: Patient Confirms Booking (Workflow C - Step 6) */}
-        <div className="pt-4 border-t border-[#e6e4dd] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs text-[#768086]">
-            <Lock className="h-3.5 w-3.5 text-[#0f5c5c]" />
+        <div className="pt-4 border-t border-[#E5E8E6] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs text-[#77817C]">
+            <Lock className="h-3.5 w-3.5 text-[#174C40]" />
             <span>Server-side row lock with audit trail and immediate MRN linkage.</span>
           </div>
 
           <button
             type="submit"
             disabled={submitting || slotStatus === 'conflict'}
-            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-[#0f5c5c] text-white text-xs font-semibold hover:bg-[#0b4747] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm shrink-0"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-[#174C40] text-white text-xs font-semibold hover:bg-[#123C32] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm shrink-0"
           >
             {submitting ? (
               <>
@@ -691,26 +691,26 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
 
       {/* Summary Sidebar */}
       <aside className="lg:col-span-4 lg:sticky lg:top-28">
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-7 space-y-5 shadow-sm">
-          <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#768086]">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-7 space-y-5 shadow-sm">
+          <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#77817C]">
             Appointment Selection
           </p>
 
           {bookingContext.doctor && (
-            <div className="flex items-center gap-4 pb-5 border-b border-[#e6e4dd]">
+            <div className="flex items-center gap-4 pb-5 border-b border-[#E5E8E6]">
               <DoctorAvatar
                 initials={bookingContext.doctor.avatar_initials}
                 tone={bookingContext.doctor.accent_tone}
                 size="md"
               />
               <div className="min-w-0">
-                <p className="text-base font-semibold text-[#14181a] truncate">
+                <p className="text-base font-semibold text-[#242A28] truncate">
                   {bookingContext.doctor.name}
                 </p>
-                <p className="text-xs text-[#0f5c5c] font-medium truncate">
+                <p className="text-xs text-[#174C40] font-medium truncate">
                   {bookingContext.doctor.specialty}
                 </p>
-                <p className="text-xs text-[#768086] truncate">
+                <p className="text-xs text-[#77817C] truncate">
                   {bookingContext.doctor.department_name}
                 </p>
               </div>
@@ -719,42 +719,42 @@ export default function PatientDetailsClient({ doctors }: { doctors: Doctor[] })
 
           <dl className="space-y-3.5 text-xs sm:text-sm">
             <div className="flex items-start justify-between">
-              <dt className="text-xs text-[#768086]">Visit Type</dt>
-              <dd className="font-medium text-[#14181a] text-right max-w-[170px]">
+              <dt className="text-xs text-[#77817C]">Visit Type</dt>
+              <dd className="font-medium text-[#242A28] text-right max-w-[170px]">
                 {bookingContext.visitType}
               </dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-xs text-[#768086]">Date</dt>
-              <dd className="font-mono text-xs text-[#14181a] font-medium">
+              <dt className="text-xs text-[#77817C]">Date</dt>
+              <dd className="font-mono text-xs text-[#242A28] font-medium">
                 {bookingContext.date}
               </dd>
             </div>
             <div className="flex items-center justify-between">
-              <dt className="text-xs text-[#768086]">Time Slot</dt>
-              <dd className="font-mono text-xs text-[#14181a] inline-flex items-center gap-1 font-semibold">
-                <Clock className="h-3.5 w-3.5 text-[#0f5c5c]" />
+              <dt className="text-xs text-[#77817C]">Time Slot</dt>
+              <dd className="font-mono text-xs text-[#242A28] inline-flex items-center gap-1 font-semibold">
+                <Clock className="h-3.5 w-3.5 text-[#174C40]" />
                 {bookingContext.slot}
               </dd>
             </div>
             {bookingContext.doctor?.department_floor && (
               <div className="flex items-center justify-between">
-                <dt className="text-xs text-[#768086]">Clinic Location</dt>
-                <dd className="text-xs text-[#14181a]">
+                <dt className="text-xs text-[#77817C]">Clinic Location</dt>
+                <dd className="text-xs text-[#242A28]">
                   {bookingContext.doctor.department_floor}
                 </dd>
               </div>
             )}
-            <div className="flex items-center justify-between pt-3 border-t border-[#e6e4dd]">
-              <dt className="text-xs text-[#768086] font-medium">Consultation Fee</dt>
-              <dd className="font-mono font-bold text-base text-[#0f5c5c]">
+            <div className="flex items-center justify-between pt-3 border-t border-[#E5E8E6]">
+              <dt className="text-xs text-[#77817C] font-medium">Consultation Fee</dt>
+              <dd className="font-mono font-bold text-base text-[#174C40]">
                 {bookingContext.doctor?.consultation_fee || '$180'}
               </dd>
             </div>
           </dl>
 
-          <div className="rounded-xl bg-[#faf9f6] p-3 text-[11px] text-[#768086] space-y-1">
-            <p className="font-medium text-[#14181a]">Notice:</p>
+          <div className="rounded-xl bg-[#FAFAF7] p-3 text-[11px] text-[#77817C] space-y-1">
+            <p className="font-medium text-[#242A28]">Notice:</p>
             <p>• Unique reference code will be generated upon confirmation.</p>
             <p>• SMS confirmation sent to the patient phone number.</p>
           </div>

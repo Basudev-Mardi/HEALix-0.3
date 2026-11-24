@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -106,14 +106,14 @@ export default function TrackAppointmentClient() {
           e.preventDefault();
           runLookup(queryText);
         }}
-        className="rounded-2xl border border-[#e6e4dd] bg-white p-6 sm:p-8 space-y-4"
+        className="rounded-2xl border border-[#E5E8E6] bg-white p-6 sm:p-8 space-y-4"
       >
-        <label htmlFor="track-input" className="block text-xs font-mono uppercase tracking-[0.14em] text-[#0f5c5c]">
+        <label htmlFor="track-input" className="block text-xs font-mono uppercase tracking-[0.14em] text-[#174C40]">
           Booking Reference or Registered Email
         </label>
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="h-4 w-4 text-[#768086] absolute left-4 top-1/2 -translate-y-1/2" />
+            <Search className="h-4 w-4 text-[#77817C] absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               id="track-input"
               type="text"
@@ -121,19 +121,19 @@ export default function TrackAppointmentClient() {
               value={queryText}
               onChange={(e) => setQueryText(e.target.value)}
               placeholder="e.g., HX-2026-1042 or clara.vance@example.com"
-              className="w-full pl-11 pr-4 py-3 rounded-xl bg-[#faf9f6] border border-[#e6e4dd] text-sm text-[#14181a] focus:outline-none focus:border-[#0f5c5c]"
+              className="w-full pl-11 pr-4 py-3 rounded-xl bg-[#FAFAF7] border border-[#E5E8E6] text-sm text-[#242A28] focus:outline-none focus:border-[#174C40]"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#14181a] text-white text-sm font-medium hover:bg-[#0f5c5c] disabled:opacity-60 transition-colors shrink-0"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#242A28] text-white text-sm font-medium hover:bg-[#174C40] disabled:opacity-60 transition-colors shrink-0"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Track Status'}
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-[#768086]">
+        <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-[#77817C]">
           <span>Sample seeded references:</span>
           <button
             type="button"
@@ -141,7 +141,7 @@ export default function TrackAppointmentClient() {
               setQueryText('HX-2026-1042');
               runLookup('HX-2026-1042');
             }}
-            className="font-mono text-[#0f5c5c] hover:underline"
+            className="font-mono text-[#174C40] hover:underline"
           >
             HX-2026-1042
           </button>
@@ -152,7 +152,7 @@ export default function TrackAppointmentClient() {
               setQueryText('HX-2026-1088');
               runLookup('HX-2026-1088');
             }}
-            className="font-mono text-[#0f5c5c] hover:underline"
+            className="font-mono text-[#174C40] hover:underline"
           >
             HX-2026-1088
           </button>
@@ -170,14 +170,14 @@ export default function TrackAppointmentClient() {
 
       {/* Results */}
       {searched && !loading && results.length === 0 && !error && (
-        <div className="rounded-2xl border border-[#e6e4dd] bg-white p-10 text-center space-y-3">
-          <p className="text-base font-medium text-[#14181a]">No appointment found</p>
-          <p className="text-sm text-[#768086]">
+        <div className="rounded-2xl border border-[#E5E8E6] bg-white p-10 text-center space-y-3">
+          <p className="text-base font-medium text-[#242A28]">No appointment found</p>
+          <p className="text-sm text-[#77817C]">
             Check your booking reference or email address, or schedule a new appointment.
           </p>
           <Link
             href="/appointments/doctors"
-            className="inline-block mt-2 px-5 py-2.5 rounded-full bg-[#14181a] text-white text-xs font-medium hover:bg-[#0f5c5c]"
+            className="inline-block mt-2 px-5 py-2.5 rounded-full bg-[#242A28] text-white text-xs font-medium hover:bg-[#174C40]"
           >
             Book New Appointment
           </Link>
@@ -191,18 +191,18 @@ export default function TrackAppointmentClient() {
             return (
               <article
                 key={appt.booking_reference}
-                className="rounded-2xl border border-[#e6e4dd] bg-white p-7 space-y-6"
+                className="rounded-2xl border border-[#E5E8E6] bg-white p-7 space-y-6"
               >
-                <div className="flex flex-wrap items-start justify-between gap-4 pb-5 border-b border-[#e6e4dd]">
+                <div className="flex flex-wrap items-start justify-between gap-4 pb-5 border-b border-[#E5E8E6]">
                   <div className="flex items-center gap-4">
                     <DoctorAvatar
                       initials={appt.avatar_initials || 'HX'}
                       tone={appt.accent_tone || 'slate'}
                     />
                     <div>
-                      <p className="font-mono text-xs text-[#768086]">{appt.booking_reference}</p>
-                      <h2 className="text-lg font-semibold text-[#14181a]">{appt.doctor_name}</h2>
-                      <p className="text-xs text-[#0f5c5c]">{appt.doctor_specialty}</p>
+                      <p className="font-mono text-xs text-[#77817C]">{appt.booking_reference}</p>
+                      <h2 className="text-lg font-semibold text-[#242A28]">{appt.doctor_name}</h2>
+                      <p className="text-xs text-[#174C40]">{appt.doctor_specialty}</p>
                     </div>
                   </div>
 
@@ -210,7 +210,7 @@ export default function TrackAppointmentClient() {
                     className={`px-3.5 py-1 rounded-full text-xs font-mono font-medium ${
                       isCancelled
                         ? 'bg-[#fef2f2] text-[#b91c1c]'
-                        : 'bg-[#edf5f4] text-[#0f5c5c]'
+                        : 'bg-[#E6EFE9] text-[#174C40]'
                     }`}
                   >
                     {appt.status}
@@ -219,34 +219,34 @@ export default function TrackAppointmentClient() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                   <div className="space-y-1">
-                    <p className="text-xs text-[#768086]">Date</p>
-                    <p className="font-mono text-[#14181a] inline-flex items-center gap-1.5">
-                      <Calendar className="h-3.5 w-3.5 text-[#0f5c5c]" />
+                    <p className="text-xs text-[#77817C]">Date</p>
+                    <p className="font-mono text-[#242A28] inline-flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5 text-[#174C40]" />
                       {appt.appointment_date}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs text-[#768086]">Time</p>
-                    <p className="font-mono text-[#14181a] inline-flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5 text-[#0f5c5c]" />
+                    <p className="text-xs text-[#77817C]">Time</p>
+                    <p className="font-mono text-[#242A28] inline-flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5 text-[#174C40]" />
                       {appt.time_slot}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs text-[#768086]">Format</p>
-                    <p className="text-[#14181a]">{appt.visit_type}</p>
+                    <p className="text-xs text-[#77817C]">Format</p>
+                    <p className="text-[#242A28]">{appt.visit_type}</p>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[#e6e4dd] text-xs text-[#4b555b]">
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[#E5E8E6] text-xs text-[#4A5350]">
                   <div className="space-y-1">
                     <p>
-                      Patient: <strong className="text-[#14181a]">{appt.patient_name}</strong> (
+                      Patient: <strong className="text-[#242A28]">{appt.patient_name}</strong> (
                       {appt.patient_email})
                     </p>
                     {appt.floor_location && (
-                      <p className="inline-flex items-center gap-1 text-[#768086]">
-                        <MapPin className="h-3.5 w-3.5 text-[#0f5c5c]" />
+                      <p className="inline-flex items-center gap-1 text-[#77817C]">
+                        <MapPin className="h-3.5 w-3.5 text-[#174C40]" />
                         {appt.department_name} · {appt.floor_location}
                       </p>
                     )}
