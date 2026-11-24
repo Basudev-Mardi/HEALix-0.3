@@ -20,7 +20,34 @@ router.get(
   asyncHandler(async (req, res) => {
     const { id: patientId, email } = req.patient;
 
-    const [apptRes, rxRes, labRes, billRes, notifRes] = await Promise.all([
+    const [
+      upcomingRes,
+      pastApptRes,
+      rxRes,
+      activeRxRes,
+      labRes,
+      labCountRes,
+      radioRes,
+      radioCountRes,
+      billRes,
+      pendingBillsRes,
+      notifRes,
+    ] = await Promise.all([
+      // 1. Upcoming Appointments
+      query(
+        `SELECT a.id, a.booking_reference, TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS appointment_date,
+                a.time_slot, a.visit_type, a.status, a.reason_for_visit,
+                d.name AS doctor_name, d.specialty AS doctor_specialty, d.avatar_initials, d.accent_tone,
+                dep.name AS department_name, dep.floor_location
+         FROM appointments a
+         JOIN doctors d ON d.slug = a.doctor_slug
+         JOIN departments dep ON dep.slug = a.department_slug
+         WHERE LOWER(a.patient_email) = LOWER($1) AND a.status = 'Confirmed' AND a.appointment_date >= CURRENT_DATE
+         ORDER BY a.appointment_date ASC, a.time_slot ASC
+         LIMIT 3`,
+        [email]
+      ),
+      // 2. Recent Appointment History (Past or Completed)
       query(
         `SELECT a.id, a.booking_reference, TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS appointment_date,
                 a.time_slot, a.visit_type, a.status,
@@ -29,28 +56,74 @@ router.get(
          FROM appointments a
          JOIN doctors d ON d.slug = a.doctor_slug
          JOIN departments dep ON dep.slug = a.department_slug
-         WHERE LOWER(a.patient_email) = LOWER($1)
-         ORDER BY a.appointment_date ASC, a.created_at DESC`,
+         WHERE LOWER(a.patient_email) = LOWER($1) AND (a.appointment_date < CURRENT_DATE OR a.status IN ('Completed', 'Cancelled'))
+         ORDER BY a.appointment_date DESC, a.created_at DESC
+         LIMIT 3`,
         [email]
       ),
+      // 3. Active Prescriptions Count
       query(
         "SELECT COUNT(*)::int AS count FROM patient_prescriptions WHERE patient_id = $1 AND status = 'Active'",
         [patientId]
       ),
+      // 4. Recent Active Prescriptions
       query(
-        `SELECT id, report_code, test_name, category, TO_CHAR(collected_date, 'YYYY-MM-DD') AS collected_date, status
+        `SELECT id, medication_name, dosage, frequency, duration, prescribed_by,
+                TO_CHAR(prescribed_date, 'YYYY-MM-DD') AS prescribed_date, status, refills_remaining, instructions
+         FROM patient_prescriptions
+         WHERE patient_id = $1 AND status = 'Active'
+         ORDER BY prescribed_date DESC
+         LIMIT 3`,
+        [patientId]
+      ),
+      // 5. Released Lab Reports (Recent 3)
+      query(
+        `SELECT id, report_code, test_name, category, TO_CHAR(collected_date, 'YYYY-MM-DD') AS collected_date, ordered_by, status, summary
          FROM patient_lab_reports
-         WHERE patient_id = $1
+         WHERE patient_id = $1 AND status IN ('Finalized', 'Released')
          ORDER BY collected_date DESC
          LIMIT 3`,
         [patientId]
       ),
+      // 6. Total Released Lab Reports Count
+      query(
+        "SELECT COUNT(*)::int AS count FROM patient_lab_reports WHERE patient_id = $1 AND status IN ('Finalized', 'Released')",
+        [patientId]
+      ),
+      // 7. Released Radiology Reports (Recent 3)
+      query(
+        `SELECT id, study_code, modality, study_name, TO_CHAR(study_date, 'YYYY-MM-DD') AS study_date, radiologist_name, status, impression
+         FROM patient_radiology_reports
+         WHERE patient_id = $1 AND status IN ('Finalized', 'Released')
+         ORDER BY study_date DESC
+         LIMIT 3`,
+        [patientId]
+      ),
+      // 8. Total Released Radiology Reports Count
+      query(
+        "SELECT COUNT(*)::int AS count FROM patient_radiology_reports WHERE patient_id = $1 AND status IN ('Finalized', 'Released')",
+        [patientId]
+      ),
+      // 9. Total Balance Due
       query(
         `SELECT COALESCE(SUM(patient_responsibility), 0)::numeric(10,2) AS balance_due
          FROM patient_billing_records
          WHERE patient_id = $1 AND status <> 'Paid'`,
         [patientId]
       ),
+      // 10. Pending Bills List (Unpaid)
+      query(
+        `SELECT id, invoice_number, service_description, department_name,
+                TO_CHAR(billing_date, 'YYYY-MM-DD') AS billing_date,
+                TO_CHAR(due_date, 'YYYY-MM-DD') AS due_date,
+                amount_total, patient_responsibility, status
+         FROM patient_billing_records
+         WHERE patient_id = $1 AND status <> 'Paid'
+         ORDER BY due_date ASC
+         LIMIT 3`,
+        [patientId]
+      ),
+      // 11. Recent Notifications
       query(
         `SELECT id, category, title, message, action_href, is_read, created_at
          FROM portal_notifications
@@ -61,20 +134,23 @@ router.get(
       ),
     ]);
 
-    const upcomingAppointments = apptRes.rows.filter((a) => a.status !== 'Cancelled');
-
     res.json({
       data: {
         patient: req.patient,
         stats: {
-          upcoming_appointments: upcomingAppointments.length,
+          upcoming_appointments: upcomingRes.rows.length,
           active_prescriptions: rxRes.rows[0].count,
-          lab_reports_count: labRes.rows.length,
+          lab_reports_count: labCountRes.rows[0].count,
+          radiology_reports_count: radioCountRes.rows[0].count,
           balance_due: Number(billRes.rows[0].balance_due),
           unread_notifications: notifRes.rows.filter((n) => !n.is_read).length,
         },
-        upcomingAppointments: upcomingAppointments.slice(0, 3),
+        upcomingAppointments: upcomingRes.rows,
+        recentAppointmentHistory: pastApptRes.rows,
+        recentPrescriptions: activeRxRes.rows,
         recentLabReports: labRes.rows,
+        recentRadiologyReports: radioRes.rows,
+        pendingBills: pendingBillsRes.rows,
         recentNotifications: notifRes.rows,
       },
     });
