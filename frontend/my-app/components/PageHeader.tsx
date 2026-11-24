@@ -52,11 +52,11 @@ export default function PageHeader({
           {eyebrow}
         </p>
 
-        <h1 className="font-editorial text-4xl sm:text-5xl lg:text-[54px] leading-[1.08] tracking-[-0.02em] text-[#242A28] max-w-3xl">
+        <h1 className="font-heading text-page-title text-[#242A28] max-w-3xl">
           {title}
         </h1>
 
-        <p className="mt-5 text-base sm:text-lg leading-relaxed text-[#4A5350] max-w-2xl">
+        <p className="mt-5 text-body-standard text-[#4A5350] max-w-2xl">
           {description}
         </p>
       </div>

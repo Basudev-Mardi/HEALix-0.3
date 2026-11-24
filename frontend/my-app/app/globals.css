@@ -31,14 +31,17 @@
 
   --emergency: #B91C1C;
   --emergency-soft: #FEF2F2;
+
+  /* Typography Font Families */
+  --font-headings: var(--font-manrope), system-ui, -apple-system, sans-serif;
+  --font-body: var(--font-inter), system-ui, -apple-system, sans-serif;
 }
 
 @theme inline {
   --color-background: var(--bg-canvas);
   --color-foreground: var(--ink-primary);
-  --font-sans: var(--font-geist-sans);
-  --font-serif: var(--font-newsreader);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-manrope);
 
   --color-forest: #174C40;
   --color-forest-dark: #123C32;
@@ -56,13 +59,96 @@ html {
 body {
   background-color: var(--bg-canvas);
   color: var(--ink-primary);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-size: 1rem; /* 16px (15-17px range) */
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Headings use Manrope with crisp tracking */
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: var(--font-manrope), system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Typography scale as specified in design system:
+  • Hero heading: 52–64px
+  • Section heading: 36–44px
+  • Page heading: 40–48px
+  • Card heading: 20–24px
+  • Body text: 15–17px
+  • Labels: 13–14px
+  • Buttons: 14–16px
+*/
+.text-hero {
+  font-family: var(--font-manrope), system-ui, -apple-system, sans-serif;
+  font-size: 2.5rem; /* 40px mobile */
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+@media (min-width: 1024px) {
+  .text-hero {
+    font-size: 3.5rem; /* 56px desktop, within 52-64px */
+    line-height: 1.1;
+  }
+}
+
+.text-page-title {
+  font-family: var(--font-manrope), system-ui, -apple-system, sans-serif;
+  font-size: 2rem; /* 32px mobile */
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+@media (min-width: 1024px) {
+  .text-page-title {
+    font-size: 2.75rem; /* 44px desktop, within 40-48px */
+    line-height: 1.15;
+  }
+}
+
+.text-section-title {
+  font-family: var(--font-manrope), system-ui, -apple-system, sans-serif;
+  font-size: 1.75rem; /* 28px mobile */
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+@media (min-width: 1024px) {
+  .text-section-title {
+    font-size: 2.5rem; /* 40px desktop, within 36-44px */
+    line-height: 1.2;
+  }
+}
+
+.text-card-title {
+  font-family: var(--font-manrope), system-ui, -apple-system, sans-serif;
+  font-size: 1.375rem; /* 22px desktop, within 20-24px */
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.text-body-standard {
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-size: 1rem; /* 16px, within 15-17px */
+  line-height: 1.6;
+}
+
+.text-label-standard {
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-size: 0.84375rem; /* 13.5px, within 13-14px */
+  line-height: 1.4;
+  font-weight: 500;
+}
+
 .font-editorial {
-  font-family: var(--font-newsreader), Georgia, serif;
+  font-family: var(--font-manrope), system-ui, -apple-system, sans-serif;
 }
 
 .container-editorial {
@@ -104,11 +190,13 @@ body {
   background-color: var(--soft-sage);
 }
 
-/* Primary Button: Deep Forest */
+/* Primary Button: Deep Forest, 14-16px font size */
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-size: 0.9375rem; /* 15px, within 14-16px */
   font-weight: 500;
   border-radius: 0.5rem;
   background-color: #174C40;
@@ -121,11 +209,13 @@ body {
   background-color: #123C32;
 }
 
-/* Secondary Button: White / Green border */
+/* Secondary Button: White / Green border, 14-16px font size */
 .btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-size: 0.9375rem; /* 15px, within 14-16px */
   font-weight: 500;
   border-radius: 0.5rem;
   background-color: #FFFFFF;

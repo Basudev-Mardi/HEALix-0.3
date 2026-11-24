@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -86,12 +86,12 @@ export default async function HomePage() {
                 <span>Established {hospital.founded_year}</span>
               </div>
 
-              <h1 className="font-editorial text-4xl sm:text-6xl lg:text-[66px] leading-[1.05] tracking-tight text-[#242A28]">
+              <h1 className="font-heading text-hero text-[#242A28]">
                 Precision clinical care,
-                <span className="block italic text-[#174C40]">designed around calm.</span>
+                <span className="block text-[#174C40]">designed around calm.</span>
               </h1>
 
-              <p className="text-base sm:text-lg leading-relaxed text-[#4A5350] max-w-2xl font-light">
+              <p className="text-body-standard text-[#4A5350] max-w-2xl">
                 {hospital.about_summary} A 420-bed quaternary academic hospital uniting multidisciplinary expertise, robotic surgical precision, and restorative healing environments.
               </p>
 
