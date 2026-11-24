@@ -165,11 +165,134 @@ CREATE TABLE IF NOT EXISTS appointment_faqs (
   display_order INTEGER NOT NULL DEFAULT 0
 );
 
+-- Patient Account & Portal Tables
+CREATE TABLE IF NOT EXISTS patient_accounts (
+  id SERIAL PRIMARY KEY,
+  mrn TEXT UNIQUE NOT NULL,
+  full_name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  phone TEXT NOT NULL DEFAULT '',
+  date_of_birth DATE,
+  gender TEXT DEFAULT '',
+  blood_group TEXT DEFAULT '',
+  address TEXT DEFAULT '',
+  emergency_contact_name TEXT DEFAULT '',
+  emergency_contact_phone TEXT DEFAULT '',
+  insurance_provider TEXT DEFAULT '',
+  insurance_policy_no TEXT DEFAULT '',
+  allergies TEXT[] NOT NULL DEFAULT '{}',
+  notify_email BOOLEAN NOT NULL DEFAULT TRUE,
+  notify_sms BOOLEAN NOT NULL DEFAULT TRUE,
+  notify_lab_results BOOLEAN NOT NULL DEFAULT TRUE,
+  notify_reminders BOOLEAN NOT NULL DEFAULT TRUE,
+  two_factor_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS patient_sessions (
+  id SERIAL PRIMARY KEY,
+  patient_id INTEGER NOT NULL REFERENCES patient_accounts(id) ON DELETE CASCADE,
+  token TEXT UNIQUE NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id SERIAL PRIMARY KEY,
+  patient_id INTEGER NOT NULL REFERENCES patient_accounts(id) ON DELETE CASCADE,
+  token TEXT UNIQUE NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  used BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS patient_medical_history (
+  id SERIAL PRIMARY KEY,
+  patient_id INTEGER NOT NULL REFERENCES patient_accounts(id) ON DELETE CASCADE,
+  record_type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  recorded_date DATE NOT NULL,
+  doctor_name TEXT NOT NULL,
+  department_name TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Active',
+  summary TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS patient_prescriptions (
+  id SERIAL PRIMARY KEY,
+  patient_id INTEGER NOT NULL REFERENCES patient_accounts(id) ON DELETE CASCADE,
+  medication_name TEXT NOT NULL,
+  dosage TEXT NOT NULL,
+  frequency TEXT NOT NULL,
+  duration TEXT NOT NULL,
+  prescribed_by TEXT NOT NULL,
+  prescribed_date DATE NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Active',
+  refills_remaining INTEGER NOT NULL DEFAULT 0,
+  instructions TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS patient_lab_reports (
+  id SERIAL PRIMARY KEY,
+  patient_id INTEGER NOT NULL REFERENCES patient_accounts(id) ON DELETE CASCADE,
+  report_code TEXT UNIQUE NOT NULL,
+  test_name TEXT NOT NULL,
+  category TEXT NOT NULL,
+  collected_date DATE NOT NULL,
+  ordered_by TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Finalized',
+  summary TEXT NOT NULL,
+  results_json JSONB NOT NULL DEFAULT '[]'::jsonb
+);
+
+CREATE TABLE IF NOT EXISTS patient_radiology_reports (
+  id SERIAL PRIMARY KEY,
+  patient_id INTEGER NOT NULL REFERENCES patient_accounts(id) ON DELETE CASCADE,
+  study_code TEXT UNIQUE NOT NULL,
+  modality TEXT NOT NULL,
+  study_name TEXT NOT NULL,
+  study_date DATE NOT NULL,
+  radiologist_name TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Finalized',
+  findings TEXT NOT NULL,
+  impression TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS patient_billing_records (
+  id SERIAL PRIMARY KEY,
+  patient_id INTEGER NOT NULL REFERENCES patient_accounts(id) ON DELETE CASCADE,
+  invoice_number TEXT UNIQUE NOT NULL,
+  service_description TEXT NOT NULL,
+  department_name TEXT NOT NULL,
+  billing_date DATE NOT NULL,
+  due_date DATE NOT NULL,
+  amount_total NUMERIC(10, 2) NOT NULL,
+  insurance_covered NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  patient_responsibility NUMERIC(10, 2) NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Unpaid',
+  payment_method TEXT DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS portal_notifications (
+  id SERIAL PRIMARY KEY,
+  patient_id INTEGER NOT NULL REFERENCES patient_accounts(id) ON DELETE CASCADE,
+  category TEXT NOT NULL,
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  action_href TEXT DEFAULT '',
+  is_read BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_doctors_department ON doctors(department_slug);
 CREATE INDEX IF NOT EXISTS idx_services_department ON services(department_slug);
 CREATE INDEX IF NOT EXISTS idx_gallery_category ON gallery_items(category);
 CREATE INDEX IF NOT EXISTS idx_appointments_reference ON appointments(booking_reference);
 CREATE INDEX IF NOT EXISTS idx_appointments_email ON appointments(LOWER(patient_email));
+CREATE INDEX IF NOT EXISTS idx_patient_sessions_token ON patient_sessions(token);
+CREATE INDEX IF NOT EXISTS idx_portal_notifications_patient ON portal_notifications(patient_id, is_read);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_active_slot
   ON appointments(doctor_slug, appointment_date, time_slot)
   WHERE status <> 'Cancelled';

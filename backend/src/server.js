@@ -11,6 +11,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import publicRoutes from './routes/public.js';
 import appointmentRoutes from './routes/appointments.js';
+import authRoutes from './routes/auth.js';
+import patientRoutes from './routes/patient.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
@@ -20,7 +22,8 @@ app.use(helmet());
 app.use(
   cors({
     origin: CORS_ORIGIN.split(',').map((origin) => origin.trim()),
-    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 app.use(express.json());
@@ -34,6 +37,8 @@ app.get('/', (_req, res) => {
   });
 });
 
+app.use('/api/auth', authRoutes);
+app.use('/api/patient', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api', publicRoutes);
 

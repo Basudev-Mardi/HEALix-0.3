@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { ChevronDown, Clock, Menu, Phone, Siren, X } from 'lucide-react';
+import { ChevronDown, Clock, Menu, Phone, Siren, UserRound, X } from 'lucide-react';
 
 const ABOUT_LINKS = [
   { href: '/about', label: 'About Hospital', desc: 'Our story, leadership & accreditation' },
@@ -53,6 +53,13 @@ export default function SiteHeader() {
             </span>
           </div>
           <div className="flex items-center gap-4">
+            <Link
+              href="/patient/dashboard"
+              className="inline-flex items-center gap-1.5 hover:text-[#14181a] transition-colors font-medium text-[#0f5c5c]"
+            >
+              <UserRound className="h-3 w-3" />
+              Patient Portal
+            </Link>
             <Link
               href="/visiting-hours"
               className="hidden sm:inline-flex items-center gap-1.5 hover:text-[#14181a] transition-colors"

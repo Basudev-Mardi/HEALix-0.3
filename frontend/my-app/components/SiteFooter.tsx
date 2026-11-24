@@ -116,6 +116,16 @@ export default function SiteFooter() {
             </h3>
             <ul className="space-y-2.5 text-sm text-[#4b555b]">
               <li>
+                <Link href="/patient/dashboard" className="hover:text-[#14181a] transition-colors">
+                  Patient Portal
+                </Link>
+              </li>
+              <li>
+                <Link href="/login" className="hover:text-[#14181a] transition-colors">
+                  Patient Sign In / Register
+                </Link>
+              </li>
+              <li>
                 <Link href="/appointments/doctors" className="hover:text-[#14181a] transition-colors">
                   Find a Doctor &amp; Book
                 </Link>

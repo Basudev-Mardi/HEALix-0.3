@@ -1,0 +1,443 @@
+import { Router } from 'express';
+import { query } from '../db.js';
+import {
+  hashPassword,
+  requirePatientAuth,
+  sanitizePatient,
+  verifyPassword,
+} from '../utils/auth.js';
+
+const router = Router();
+router.use(requirePatientAuth);
+
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+// 25. Patient Dashboard
+router.get(
+  '/dashboard',
+  asyncHandler(async (req, res) => {
+    const { id: patientId, email } = req.patient;
+
+    const [apptRes, rxRes, labRes, billRes, notifRes] = await Promise.all([
+      query(
+        `SELECT a.id, a.booking_reference, TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS appointment_date,
+                a.time_slot, a.visit_type, a.status,
+                d.name AS doctor_name, d.specialty AS doctor_specialty, d.avatar_initials, d.accent_tone,
+                dep.name AS department_name, dep.floor_location
+         FROM appointments a
+         JOIN doctors d ON d.slug = a.doctor_slug
+         JOIN departments dep ON dep.slug = a.department_slug
+         WHERE LOWER(a.patient_email) = LOWER($1)
+         ORDER BY a.appointment_date ASC, a.created_at DESC`,
+        [email]
+      ),
+      query(
+        "SELECT COUNT(*)::int AS count FROM patient_prescriptions WHERE patient_id = $1 AND status = 'Active'",
+        [patientId]
+      ),
+      query(
+        `SELECT id, report_code, test_name, category, TO_CHAR(collected_date, 'YYYY-MM-DD') AS collected_date, status
+         FROM patient_lab_reports
+         WHERE patient_id = $1
+         ORDER BY collected_date DESC
+         LIMIT 3`,
+        [patientId]
+      ),
+      query(
+        `SELECT COALESCE(SUM(patient_responsibility), 0)::numeric(10,2) AS balance_due
+         FROM patient_billing_records
+         WHERE patient_id = $1 AND status <> 'Paid'`,
+        [patientId]
+      ),
+      query(
+        `SELECT id, category, title, message, action_href, is_read, created_at
+         FROM portal_notifications
+         WHERE patient_id = $1
+         ORDER BY created_at DESC
+         LIMIT 4`,
+        [patientId]
+      ),
+    ]);
+
+    const upcomingAppointments = apptRes.rows.filter((a) => a.status !== 'Cancelled');
+
+    res.json({
+      data: {
+        patient: req.patient,
+        stats: {
+          upcoming_appointments: upcomingAppointments.length,
+          active_prescriptions: rxRes.rows[0].count,
+          lab_reports_count: labRes.rows.length,
+          balance_due: Number(billRes.rows[0].balance_due),
+          unread_notifications: notifRes.rows.filter((n) => !n.is_read).length,
+        },
+        upcomingAppointments: upcomingAppointments.slice(0, 3),
+        recentLabReports: labRes.rows,
+        recentNotifications: notifRes.rows,
+      },
+    });
+  })
+);
+
+// 26. My Profile (GET & PATCH)
+router.get('/profile', (req, res) => {
+  res.json({ data: req.patient });
+});
+
+router.patch(
+  '/profile',
+  asyncHandler(async (req, res) => {
+    const {
+      full_name,
+      phone,
+      date_of_birth,
+      gender,
+      blood_group,
+      address,
+      emergency_contact_name,
+      emergency_contact_phone,
+      insurance_provider,
+      insurance_policy_no,
+      allergies,
+    } = req.body || {};
+
+    const allergyArray = Array.isArray(allergies)
+      ? allergies.map((a) => String(a).trim()).filter(Boolean)
+      : req.patient.allergies;
+
+    const updated = await query(
+      `UPDATE patient_accounts
+       SET full_name = COALESCE(NULLIF($1, ''), full_name),
+           phone = COALESCE($2, phone),
+           date_of_birth = COALESCE($3::date, date_of_birth),
+           gender = COALESCE($4, gender),
+           blood_group = COALESCE($5, blood_group),
+           address = COALESCE($6, address),
+           emergency_contact_name = COALESCE($7, emergency_contact_name),
+           emergency_contact_phone = COALESCE($8, emergency_contact_phone),
+           insurance_provider = COALESCE($9, insurance_provider),
+           insurance_policy_no = COALESCE($10, insurance_policy_no),
+           allergies = $11,
+           updated_at = NOW()
+       WHERE id = $12
+       RETURNING *`,
+      [
+        full_name?.trim() || '',
+        phone ?? req.patient.phone,
+        date_of_birth || null,
+        gender ?? req.patient.gender,
+        blood_group ?? req.patient.blood_group,
+        address ?? req.patient.address,
+        emergency_contact_name ?? req.patient.emergency_contact_name,
+        emergency_contact_phone ?? req.patient.emergency_contact_phone,
+        insurance_provider ?? req.patient.insurance_provider,
+        insurance_policy_no ?? req.patient.insurance_policy_no,
+        allergyArray,
+        req.patient.id,
+      ]
+    );
+
+    res.json({ data: sanitizePatient(updated.rows[0]) });
+  })
+);
+
+// 27. My Appointments
+router.get(
+  '/appointments',
+  asyncHandler(async (req, res) => {
+    const result = await query(
+      `SELECT a.id, a.booking_reference, a.doctor_slug, a.department_slug,
+              TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS appointment_date,
+              a.time_slot, a.visit_type, a.reason_for_visit, a.status, a.created_at,
+              d.name AS doctor_name, d.specialty AS doctor_specialty, d.qualification AS doctor_qualification,
+              d.consultation_fee, d.avatar_initials, d.accent_tone,
+              dep.name AS department_name, dep.floor_location, dep.phone_ext
+       FROM appointments a
+       JOIN doctors d ON d.slug = a.doctor_slug
+       JOIN departments dep ON dep.slug = a.department_slug
+       WHERE LOWER(a.patient_email) = LOWER($1)
+       ORDER BY a.appointment_date DESC, a.created_at DESC`,
+      [req.patient.email]
+    );
+    res.json({ data: result.rows });
+  })
+);
+
+// 28. Appointment Details by ID or Booking Reference
+router.get(
+  '/appointments/:id',
+  asyncHandler(async (req, res) => {
+    const param = String(req.params.id || '').trim();
+    const isNumeric = /^\d+$/.test(param);
+
+    const result = await query(
+      `SELECT a.id, a.booking_reference, a.doctor_slug, a.department_slug,
+              TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS appointment_date,
+              a.time_slot, a.visit_type, a.patient_name, a.patient_email, a.patient_phone,
+              a.reason_for_visit, a.insurance_provider, a.status, a.created_at,
+              d.name AS doctor_name, d.title AS doctor_title, d.specialty AS doctor_specialty,
+              d.qualification AS doctor_qualification, d.consultation_fee, d.avatar_initials, d.accent_tone,
+              dep.name AS department_name, dep.floor_location, dep.phone_ext
+       FROM appointments a
+       JOIN doctors d ON d.slug = a.doctor_slug
+       JOIN departments dep ON dep.slug = a.department_slug
+       WHERE LOWER(a.patient_email) = LOWER($1)
+         AND (${isNumeric ? 'a.id = $2::int' : 'UPPER(a.booking_reference) = UPPER($2)'})`,
+      [req.patient.email, param]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Appointment not found.' });
+    }
+    res.json({ data: result.rows[0] });
+  })
+);
+
+router.patch(
+  '/appointments/:id/cancel',
+  asyncHandler(async (req, res) => {
+    const param = String(req.params.id || '').trim();
+    const isNumeric = /^\d+$/.test(param);
+
+    const updated = await query(
+      `UPDATE appointments
+       SET status = 'Cancelled', updated_at = NOW()
+       WHERE LOWER(patient_email) = LOWER($1)
+         AND (${isNumeric ? 'id = $2::int' : 'UPPER(booking_reference) = UPPER($2)'})
+       RETURNING id, booking_reference, status`,
+      [req.patient.email, param]
+    );
+
+    if (updated.rows.length === 0) {
+      return res.status(404).json({ error: 'Appointment not found.' });
+    }
+    res.json({ data: updated.rows[0] });
+  })
+);
+
+// 29. Medical History
+router.get(
+  '/medical-history',
+  asyncHandler(async (req, res) => {
+    const result = await query(
+      `SELECT id, record_type, title, TO_CHAR(recorded_date, 'YYYY-MM-DD') AS recorded_date,
+              doctor_name, department_name, status, summary
+       FROM patient_medical_history
+       WHERE patient_id = $1
+       ORDER BY recorded_date DESC`,
+      [req.patient.id]
+    );
+    res.json({ data: result.rows });
+  })
+);
+
+// 30. Prescriptions
+router.get(
+  '/prescriptions',
+  asyncHandler(async (req, res) => {
+    const result = await query(
+      `SELECT id, medication_name, dosage, frequency, duration, prescribed_by,
+              TO_CHAR(prescribed_date, 'YYYY-MM-DD') AS prescribed_date,
+              status, refills_remaining, instructions
+       FROM patient_prescriptions
+       WHERE patient_id = $1
+       ORDER BY prescribed_date DESC`,
+      [req.patient.id]
+    );
+    res.json({ data: result.rows });
+  })
+);
+
+// 31. Laboratory Reports
+router.get(
+  '/lab-reports',
+  asyncHandler(async (req, res) => {
+    const result = await query(
+      `SELECT id, report_code, test_name, category,
+              TO_CHAR(collected_date, 'YYYY-MM-DD') AS collected_date,
+              ordered_by, status, summary, results_json
+       FROM patient_lab_reports
+       WHERE patient_id = $1
+       ORDER BY collected_date DESC`,
+      [req.patient.id]
+    );
+    res.json({ data: result.rows });
+  })
+);
+
+// 32. Radiology Reports
+router.get(
+  '/radiology-reports',
+  asyncHandler(async (req, res) => {
+    const result = await query(
+      `SELECT id, study_code, modality, study_name,
+              TO_CHAR(study_date, 'YYYY-MM-DD') AS study_date,
+              radiologist_name, status, findings, impression
+       FROM patient_radiology_reports
+       WHERE patient_id = $1
+       ORDER BY study_date DESC`,
+      [req.patient.id]
+    );
+    res.json({ data: result.rows });
+  })
+);
+
+// 33. Billing History & Pay Invoice
+router.get(
+  '/billing',
+  asyncHandler(async (req, res) => {
+    const result = await query(
+      `SELECT id, invoice_number, service_description, department_name,
+              TO_CHAR(billing_date, 'YYYY-MM-DD') AS billing_date,
+              TO_CHAR(due_date, 'YYYY-MM-DD') AS due_date,
+              amount_total::float, insurance_covered::float, patient_responsibility::float,
+              status, payment_method
+       FROM patient_billing_records
+       WHERE patient_id = $1
+       ORDER BY billing_date DESC`,
+      [req.patient.id]
+    );
+    res.json({ data: result.rows });
+  })
+);
+
+router.patch(
+  '/billing/:id/pay',
+  asyncHandler(async (req, res) => {
+    const invoiceId = Number(req.params.id);
+    const updated = await query(
+      `UPDATE patient_billing_records
+       SET status = 'Paid', payment_method = 'Online Portal Card •••• 4242'
+       WHERE id = $1 AND patient_id = $2
+       RETURNING id, invoice_number, status, payment_method`,
+      [invoiceId, req.patient.id]
+    );
+
+    if (updated.rows.length === 0) {
+      return res.status(404).json({ error: 'Invoice not found.' });
+    }
+    res.json({ data: updated.rows[0] });
+  })
+);
+
+// 34. Notifications
+router.get(
+  '/notifications',
+  asyncHandler(async (req, res) => {
+    const result = await query(
+      `SELECT id, category, title, message, action_href, is_read, created_at
+       FROM portal_notifications
+       WHERE patient_id = $1
+       ORDER BY created_at DESC`,
+      [req.patient.id]
+    );
+    res.json({ data: result.rows });
+  })
+);
+
+router.patch(
+  '/notifications/read-all',
+  asyncHandler(async (req, res) => {
+    await query('UPDATE portal_notifications SET is_read = TRUE WHERE patient_id = $1', [
+      req.patient.id,
+    ]);
+    res.json({ data: { updated: true } });
+  })
+);
+
+router.patch(
+  '/notifications/:id/read',
+  asyncHandler(async (req, res) => {
+    const id = Number(req.params.id);
+    const updated = await query(
+      `UPDATE portal_notifications
+       SET is_read = TRUE
+       WHERE id = $1 AND patient_id = $2
+       RETURNING id, is_read`,
+      [id, req.patient.id]
+    );
+    if (updated.rows.length === 0) {
+      return res.status(404).json({ error: 'Notification not found.' });
+    }
+    res.json({ data: updated.rows[0] });
+  })
+);
+
+// 35. Account Settings
+router.get('/settings', (req, res) => {
+  res.json({
+    data: {
+      notify_email: req.patient.notify_email,
+      notify_sms: req.patient.notify_sms,
+      notify_lab_results: req.patient.notify_lab_results,
+      notify_reminders: req.patient.notify_reminders,
+      two_factor_enabled: req.patient.two_factor_enabled,
+    },
+  });
+});
+
+router.patch(
+  '/settings',
+  asyncHandler(async (req, res) => {
+    const {
+      notify_email,
+      notify_sms,
+      notify_lab_results,
+      notify_reminders,
+      two_factor_enabled,
+    } = req.body || {};
+
+    const updated = await query(
+      `UPDATE patient_accounts
+       SET notify_email = COALESCE($1, notify_email),
+           notify_sms = COALESCE($2, notify_sms),
+           notify_lab_results = COALESCE($3, notify_lab_results),
+           notify_reminders = COALESCE($4, notify_reminders),
+           two_factor_enabled = COALESCE($5, two_factor_enabled),
+           updated_at = NOW()
+       WHERE id = $6
+       RETURNING notify_email, notify_sms, notify_lab_results, notify_reminders, two_factor_enabled`,
+      [
+        typeof notify_email === 'boolean' ? notify_email : null,
+        typeof notify_sms === 'boolean' ? notify_sms : null,
+        typeof notify_lab_results === 'boolean' ? notify_lab_results : null,
+        typeof notify_reminders === 'boolean' ? notify_reminders : null,
+        typeof two_factor_enabled === 'boolean' ? two_factor_enabled : null,
+        req.patient.id,
+      ]
+    );
+
+    res.json({ data: updated.rows[0] });
+  })
+);
+
+router.post(
+  '/settings/password',
+  asyncHandler(async (req, res) => {
+    const { current_password, new_password } = req.body || {};
+    if (!current_password || !new_password || new_password.length < 8) {
+      return res.status(400).json({
+        error: 'Current password and a new password of at least 8 characters are required.',
+      });
+    }
+
+    const userRes = await query('SELECT password_hash FROM patient_accounts WHERE id = $1', [
+      req.patient.id,
+    ]);
+    if (!verifyPassword(current_password, userRes.rows[0].password_hash)) {
+      return res.status(401).json({ error: 'Current password is incorrect.' });
+    }
+
+    const newHash = hashPassword(new_password);
+    await query('UPDATE patient_accounts SET password_hash = $1, updated_at = NOW() WHERE id = $2', [
+      newHash,
+      req.patient.id,
+    ]);
+
+    res.json({ data: { message: 'Password updated successfully.' } });
+  })
+);
+
+export default router;
