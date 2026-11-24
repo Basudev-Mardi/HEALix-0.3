@@ -35,6 +35,23 @@
   /* Typography Font Families */
   --font-headings: var(--font-manrope), system-ui, -apple-system, sans-serif;
   --font-body: var(--font-inter), system-ui, -apple-system, sans-serif;
+
+  /* Layout and Spacing Dimensions:
+    • Main content width: 1200–1280px (1240px default)
+    • Navbar height: 76–84px (80px default)
+    • Hero section: 600–700px (640px default min-height)
+    • Section vertical spacing: 80–112px (96px default)
+    • Card radius: 12–18px (16px / 1rem default)
+    • Button height: 44–50px (48px default)
+    • Form input height: 48–54px (50px default)
+    • Desktop page padding: 40–64px (48px / 3rem default)
+    • Mobile page padding: 16–24px (20px / 1.25rem default)
+  */
+  --max-content-width: 1240px;
+  --nav-height: 80px;
+  --card-radius: 16px;
+  --button-height: 48px;
+  --input-height: 50px;
 }
 
 @theme inline {
@@ -151,18 +168,47 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   font-family: var(--font-manrope), system-ui, -apple-system, sans-serif;
 }
 
+/* Layout and Spacing Containers:
+   • Main content width: 1200–1280px (1240px)
+   • Mobile page padding: 16–24px (px-5 = 20px)
+   • Desktop page padding: 40–64px (lg:px-12 = 48px)
+*/
 .container-editorial {
   max-width: 1240px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
+  padding-left: 1.25rem; /* 20px mobile, within 16-24px */
+  padding-right: 1.25rem;
 }
 
 @media (min-width: 1024px) {
   .container-editorial {
-    padding-left: 2.5rem;
-    padding-right: 2.5rem;
+    padding-left: 3rem; /* 48px desktop, within 40-64px */
+    padding-right: 3rem;
+  }
+}
+
+/* Section vertical spacing: 80–112px */
+.section-spacing {
+  padding-top: 5rem;    /* 80px */
+  padding-bottom: 5rem;
+}
+
+@media (min-width: 1024px) {
+  .section-spacing {
+    padding-top: 6rem;    /* 96px, within 80-112px */
+    padding-bottom: 6rem;
+  }
+}
+
+/* Hero section height: 600–700px on desktop */
+.hero-container {
+  min-height: 520px;
+}
+
+@media (min-width: 1024px) {
+  .hero-container {
+    min-height: 640px; /* within 600-700px */
   }
 }
 
@@ -172,11 +218,11 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 
 /* Premium Minimalist Design System Component Classes */
 
-/* Cards: White background, subtle border, gentle restrained hover */
+/* Card radius: 12–18px (rounded-2xl = 16px) */
 .card-minimal {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: 0.75rem;
+  border-radius: 1rem; /* 16px, within 12-18px */
   transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 
@@ -190,7 +236,7 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   background-color: var(--soft-sage);
 }
 
-/* Primary Button: Deep Forest, 14-16px font size */
+/* Primary Button: Deep Forest, 14-16px font size, 44-50px height (h-12 = 48px) */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -198,10 +244,11 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   font-size: 0.9375rem; /* 15px, within 14-16px */
   font-weight: 500;
-  border-radius: 0.5rem;
+  height: 3rem; /* 48px, within 44-50px */
+  border-radius: 0.625rem;
   background-color: #174C40;
   color: #FAFAF7;
-  padding: 0.625rem 1.25rem;
+  padding: 0 1.5rem;
   transition: background-color 150ms ease;
 }
 
@@ -209,7 +256,7 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   background-color: #123C32;
 }
 
-/* Secondary Button: White / Green border, 14-16px font size */
+/* Secondary Button: White / Green border, 14-16px font size, 44-50px height (h-12 = 48px) */
 .btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -217,14 +264,33 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   font-size: 0.9375rem; /* 15px, within 14-16px */
   font-weight: 500;
-  border-radius: 0.5rem;
+  height: 3rem; /* 48px, within 44-50px */
+  border-radius: 0.625rem;
   background-color: #FFFFFF;
   color: #287A64;
   border: 1px solid #287A64;
-  padding: 0.625rem 1.25rem;
+  padding: 0 1.5rem;
   transition: background-color 150ms ease, color 150ms ease;
 }
 
 .btn-secondary:hover {
   background-color: #E6EFE9;
+}
+
+/* Form input height: 48–54px */
+.form-input-standard {
+  height: 3.125rem; /* 50px, within 48-54px */
+  border-radius: 0.625rem;
+  border: 1px solid var(--border-subtle);
+  background-color: #FFFFFF;
+  padding: 0 1rem;
+  font-size: 0.9375rem;
+  color: var(--ink-primary);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.form-input-standard:focus {
+  outline: none;
+  border-color: #287A64;
+  box-shadow: 0 0 0 2px rgba(40, 122, 100, 0.15);
 }

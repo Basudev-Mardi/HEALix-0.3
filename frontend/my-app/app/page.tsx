@@ -72,9 +72,9 @@ export default async function HomePage() {
 
   return (
     <div className="bg-[#FAFAF7] text-[#242A28]">
-      {/* 01. Editorial Hero Section */}
-      <section className="border-b border-[#E5E8E6] bg-white/70 backdrop-blur-xs">
-        <div className="container-editorial py-16 lg:py-24">
+      {/* 01. Editorial Hero Section - 600-700px height */}
+      <section className="border-b border-[#E5E8E6] bg-white/70 backdrop-blur-xs hero-container flex items-center">
+        <div className="container-editorial py-16 lg:py-20 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-[#E5E8E6] bg-white text-xs text-[#4A5350] shadow-xs">

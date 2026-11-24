@@ -35,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       className={`${manrope.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#FAFAF7] text-[#242A28]">
-        <Suspense fallback={<div className="h-[109px] border-b border-[#E5E8E6] bg-[#FAFAF7]" />}>
+        <Suspense fallback={<div className="h-[80px] border-b border-[#E5E8E6] bg-[#FAFAF7]" />}>
           <SiteHeader />
         </Suspense>
         <main className="flex-1">{children}</main>

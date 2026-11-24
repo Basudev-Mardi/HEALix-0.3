@@ -61,7 +61,7 @@ export default function SiteHeader() {
     <header className="sticky top-0 z-50 bg-[#FAFAF7]/90 backdrop-blur-md border-b border-[#E5E8E6]">
       {/* Subtle Utility Strip */}
       <div className="border-b border-[#E5E8E6] bg-[#E6EFE9]/70 text-xs text-[#4A5350]">
-        <div className="container-editorial h-9 flex items-center justify-between gap-4">
+        <div className="container-editorial h-8 flex items-center justify-between gap-4">
           <div className="flex items-center gap-5">
             <a
               href="tel:8009114325"
@@ -101,8 +101,8 @@ export default function SiteHeader() {
         </div>
       </div>
 
-      {/* Primary Navigation */}
-      <div className="container-editorial h-18 flex items-center justify-between gap-6">
+      {/* Primary Navigation - Total navbar height: 32px + 48px = 80px (within 76-84px) */}
+      <div className="container-editorial h-12 flex items-center justify-between gap-6">
         <Link href="/" className="flex items-center gap-3 group" onClick={() => setMobileOpen(false)}>
           <span className="h-8 w-8 rounded-full border border-[#242A28] flex items-center justify-center text-xs font-mono font-semibold tracking-tighter group-hover:bg-[#242A28] group-hover:text-white transition-colors">
             Hx
