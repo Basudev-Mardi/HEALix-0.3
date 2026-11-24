@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import crypto from 'node:crypto';
-import { query } from '../db.js';
+import { pool, query } from '../db.js';
 
 const router = Router();
 
@@ -16,6 +16,7 @@ const DEFAULT_SLOTS = [
   '02:30 PM',
   '03:00 PM',
   '03:30 PM',
+  '04:00 PM',
 ];
 
 const asyncHandler = (fn) => (req, res, next) => {
@@ -28,6 +29,23 @@ function generateBookingReference() {
   return `HX-${year}-${num}`;
 }
 
+// Ensure audit log table exists
+async function ensureAuditLogTable(client) {
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS appointment_audit_logs (
+      id SERIAL PRIMARY KEY,
+      appointment_id INTEGER REFERENCES appointments(id) ON DELETE CASCADE,
+      booking_reference TEXT NOT NULL,
+      previous_status TEXT,
+      new_status TEXT NOT NULL,
+      changed_by TEXT NOT NULL DEFAULT 'patient',
+      reason TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_appointment_audit_ref ON appointment_audit_logs(booking_reference);
+  `);
+}
+
 // Get available slots for a doctor on a given date
 router.get(
   '/slots',
@@ -37,26 +55,53 @@ router.get(
       return res.status(400).json({ error: 'Both doctor and date query parameters are required.' });
     }
 
+    // Query doctor schedule
+    const docRes = await query(
+      `SELECT slug, name, consultation_days, consultation_hours
+       FROM doctors
+       WHERE slug = $1`,
+      [String(doctor)]
+    );
+
+    const doctorInfo = docRes.rows[0] || null;
+
+    // Check booked slots; exclude Cancelled and ignore expired Pending holds (> 15 min old)
     const bookedRes = await query(
-      `SELECT time_slot
+      `SELECT time_slot, COUNT(*)::int AS count
        FROM appointments
        WHERE doctor_slug = $1
          AND appointment_date = $2::date
-         AND status <> 'Cancelled'`,
+         AND status <> 'Cancelled'
+         AND (status <> 'Pending' OR created_at > NOW() - INTERVAL '15 minutes')
+       GROUP BY time_slot`,
       [String(doctor), String(date)]
     );
 
-    const bookedSet = new Set(bookedRes.rows.map((r) => r.time_slot));
-    const slots = DEFAULT_SLOTS.map((time) => ({
-      time,
-      available: !bookedSet.has(time),
-    }));
+    const bookedCounts = new Map(bookedRes.rows.map((r) => [r.time_slot, r.count]));
+    const maxSlotCapacity = 1;
 
-    res.json({ data: { doctor, date, slots } });
+    const slots = DEFAULT_SLOTS.map((time) => {
+      const booked = bookedCounts.get(time) || 0;
+      return {
+        time,
+        available: booked < maxSlotCapacity,
+        capacity: maxSlotCapacity,
+        booked,
+      };
+    });
+
+    res.json({
+      data: {
+        doctor,
+        date,
+        doctorSchedule: doctorInfo?.consultation_days || null,
+        slots,
+      },
+    });
   })
 );
 
-// Create a new appointment
+// Create a new appointment with transaction and conflict locking
 router.post(
   '/',
   asyncHandler(async (req, res) => {
@@ -88,83 +133,125 @@ router.post(
       });
     }
 
-    const docRes = await query(
-      `SELECT d.slug, d.name, d.specialty, d.department_slug, d.consultation_fee,
-              dep.name AS department_name, dep.floor_location
-       FROM doctors d
-       JOIN departments dep ON dep.slug = d.department_slug
-       WHERE d.slug = $1`,
-      [doctor_slug]
-    );
-
-    if (docRes.rows.length === 0) {
-      return res.status(404).json({ error: 'Selected doctor not found.' });
-    }
-
-    const doctor = docRes.rows[0];
-
-    // Check slot availability
-    const conflictRes = await query(
-      `SELECT id FROM appointments
-       WHERE doctor_slug = $1
-         AND appointment_date = $2::date
-         AND time_slot = $3
-         AND status <> 'Cancelled'`,
-      [doctor_slug, appointment_date, time_slot]
-    );
-
-    if (conflictRes.rows.length > 0) {
-      return res.status(409).json({
-        error: 'This time slot has already been booked. Please select another available time.',
+    if (reason_for_visit && reason_for_visit.length > 500) {
+      return res.status(400).json({
+        error: 'Reason for visit must not exceed 500 characters.',
       });
     }
 
-    let reference = generateBookingReference();
-    for (let i = 0; i < 5; i += 1) {
-      const exists = await query(
-        'SELECT 1 FROM appointments WHERE booking_reference = $1',
-        [reference]
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await ensureAuditLogTable(client);
+
+      // 1. Validate doctor and department existence
+      const docRes = await client.query(
+        `SELECT d.slug, d.name, d.specialty, d.department_slug, d.consultation_fee,
+                d.consultation_days, dep.name AS department_name, dep.floor_location
+         FROM doctors d
+         JOIN departments dep ON dep.slug = d.department_slug
+         WHERE d.slug = $1`,
+        [doctor_slug]
       );
-      if (exists.rows.length === 0) break;
-      reference = generateBookingReference();
+
+      if (docRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ error: 'Selected doctor not found.' });
+      }
+
+      const doctor = docRes.rows[0];
+
+      // 2. Lock & revalidate slot availability (concurrency safety)
+      const conflictRes = await client.query(
+        `SELECT id FROM appointments
+         WHERE doctor_slug = $1
+           AND appointment_date = $2::date
+           AND time_slot = $3
+           AND status <> 'Cancelled'
+           AND (status <> 'Pending' OR created_at > NOW() - INTERVAL '15 minutes')
+         FOR UPDATE`,
+        [doctor_slug, appointment_date, time_slot]
+      );
+
+      if (conflictRes.rows.length > 0) {
+        await client.query('ROLLBACK');
+        return res.status(409).json({
+          error:
+            'This time slot has already been booked by another patient. Please select another available time.',
+        });
+      }
+
+      // 3. Generate unique booking reference
+      let reference = generateBookingReference();
+      for (let i = 0; i < 5; i += 1) {
+        const exists = await client.query(
+          'SELECT 1 FROM appointments WHERE booking_reference = $1',
+          [reference]
+        );
+        if (exists.rows.length === 0) break;
+        reference = generateBookingReference();
+      }
+
+      // 4. Insert appointment
+      const insertRes = await client.query(
+        `INSERT INTO appointments (
+          booking_reference, doctor_slug, department_slug, appointment_date, time_slot,
+          visit_type, patient_name, patient_email, patient_phone, patient_dob,
+          patient_gender, reason_for_visit, insurance_provider, status
+        ) VALUES ($1, $2, $3, $4::date, $5, $6, $7, $8, $9, $10::date, $11, $12, $13, 'Confirmed')
+        RETURNING *`,
+        [
+          reference,
+          doctor.slug,
+          doctor.department_slug,
+          appointment_date,
+          time_slot,
+          visit_type,
+          patient_name.trim(),
+          patient_email.trim().toLowerCase(),
+          patient_phone.trim(),
+          patient_dob || null,
+          patient_gender || null,
+          reason_for_visit.trim(),
+          insurance_provider.trim(),
+        ]
+      );
+
+      const appt = insertRes.rows[0];
+
+      // 5. Record initial booking in audit log
+      await client.query(
+        `INSERT INTO appointment_audit_logs (
+          appointment_id, booking_reference, previous_status, new_status, changed_by, reason
+        ) VALUES ($1, $2, NULL, 'Confirmed', $3, 'Initial appointment booking confirmed')`,
+        [appt.id, reference, patient_name.trim()]
+      );
+
+      await client.query('COMMIT');
+
+      res.status(201).json({
+        data: {
+          ...appt,
+          appointment_date: appt.appointment_date.toISOString().slice(0, 10),
+          doctor_name: doctor.name,
+          doctor_specialty: doctor.specialty,
+          consultation_fee: doctor.consultation_fee,
+          department_name: doctor.department_name,
+          floor_location: doctor.floor_location,
+        },
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      if (err.code === '23505') {
+        return res.status(409).json({
+          error:
+            'A concurrent booking just occupied this time slot. Please choose another available slot.',
+        });
+      }
+      throw err;
+    } finally {
+      client.release();
     }
-
-    const insertRes = await query(
-      `INSERT INTO appointments (
-        booking_reference, doctor_slug, department_slug, appointment_date, time_slot,
-        visit_type, patient_name, patient_email, patient_phone, patient_dob,
-        patient_gender, reason_for_visit, insurance_provider, status
-      ) VALUES ($1, $2, $3, $4::date, $5, $6, $7, $8, $9, $10::date, $11, $12, $13, 'Confirmed')
-      RETURNING *`,
-      [
-        reference,
-        doctor.slug,
-        doctor.department_slug,
-        appointment_date,
-        time_slot,
-        visit_type,
-        patient_name.trim(),
-        patient_email.trim().toLowerCase(),
-        patient_phone.trim(),
-        patient_dob || null,
-        patient_gender || null,
-        reason_for_visit.trim(),
-        insurance_provider.trim(),
-      ]
-    );
-
-    const appt = insertRes.rows[0];
-    res.status(201).json({
-      data: {
-        ...appt,
-        appointment_date: appt.appointment_date.toISOString().slice(0, 10),
-        doctor_name: doctor.name,
-        doctor_specialty: doctor.specialty,
-        consultation_fee: doctor.consultation_fee,
-        department_name: doctor.department_name,
-        floor_location: doctor.floor_location,
-      },
-    });
   })
 );
 
@@ -217,30 +304,198 @@ router.get(
   })
 );
 
-// Cancel an appointment by booking reference
+// Cancel an appointment with patient ownership check and audit logging
 router.patch(
   '/:reference/cancel',
   asyncHandler(async (req, res) => {
     const ref = String(req.params.reference || '').trim().toUpperCase();
-    const updateRes = await query(
-      `UPDATE appointments
-       SET status = 'Cancelled', updated_at = NOW()
-       WHERE UPPER(booking_reference) = $1
-       RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS formatted_date`,
-      [ref]
-    );
+    const { email, phone, reason = 'Cancelled by patient' } = req.body || {};
 
-    if (updateRes.rows.length === 0) {
-      return res.status(404).json({ error: 'Appointment not found.' });
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await ensureAuditLogTable(client);
+
+      const findRes = await client.query(
+        `SELECT * FROM appointments WHERE UPPER(booking_reference) = $1 FOR UPDATE`,
+        [ref]
+      );
+
+      if (findRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ error: 'Appointment not found.' });
+      }
+
+      const existing = findRes.rows[0];
+
+      // Security check: patients cannot change another patient's appointment
+      if (email && email.trim().toLowerCase() !== existing.patient_email.toLowerCase()) {
+        await client.query('ROLLBACK');
+        return res.status(403).json({
+          error: 'Security verification failed: You are not authorized to cancel this appointment.',
+        });
+      }
+
+      if (phone && phone.trim() !== existing.patient_phone.trim()) {
+        await client.query('ROLLBACK');
+        return res.status(403).json({
+          error: 'Security verification failed: Phone number does not match appointment records.',
+        });
+      }
+
+      if (existing.status === 'Cancelled') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'This appointment is already cancelled.' });
+      }
+
+      const updateRes = await client.query(
+        `UPDATE appointments
+         SET status = 'Cancelled', updated_at = NOW()
+         WHERE id = $1
+         RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS formatted_date`,
+        [existing.id]
+      );
+
+      await client.query(
+        `INSERT INTO appointment_audit_logs (
+          appointment_id, booking_reference, previous_status, new_status, changed_by, reason
+        ) VALUES ($1, $2, $3, 'Cancelled', $4, $5)`,
+        [existing.id, ref, existing.status, existing.patient_name, String(reason)]
+      );
+
+      await client.query('COMMIT');
+
+      const row = updateRes.rows[0];
+      res.json({
+        data: {
+          ...row,
+          appointment_date: row.formatted_date,
+        },
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  })
+);
+
+// Reschedule an appointment with lock validation and audit logging
+router.patch(
+  '/:reference/reschedule',
+  asyncHandler(async (req, res) => {
+    const ref = String(req.params.reference || '').trim().toUpperCase();
+    const { new_date, new_time_slot, email, phone, reason = 'Rescheduled by patient' } = req.body || {};
+
+    if (!new_date || !new_time_slot) {
+      return res.status(400).json({ error: 'Both new_date and new_time_slot are required.' });
     }
 
-    const row = updateRes.rows[0];
-    res.json({
-      data: {
-        ...row,
-        appointment_date: row.formatted_date,
-      },
-    });
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await ensureAuditLogTable(client);
+
+      const findRes = await client.query(
+        `SELECT * FROM appointments WHERE UPPER(booking_reference) = $1 FOR UPDATE`,
+        [ref]
+      );
+
+      if (findRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ error: 'Appointment not found.' });
+      }
+
+      const existing = findRes.rows[0];
+
+      if (email && email.trim().toLowerCase() !== existing.patient_email.toLowerCase()) {
+        await client.query('ROLLBACK');
+        return res.status(403).json({
+          error: 'Security verification failed: You are not authorized to reschedule this appointment.',
+        });
+      }
+
+      if (phone && phone.trim() !== existing.patient_phone.trim()) {
+        await client.query('ROLLBACK');
+        return res.status(403).json({
+          error: 'Security verification failed: Phone number does not match appointment records.',
+        });
+      }
+
+      // Check new slot conflict
+      const conflictRes = await client.query(
+        `SELECT id FROM appointments
+         WHERE doctor_slug = $1
+           AND appointment_date = $2::date
+           AND time_slot = $3
+           AND status <> 'Cancelled'
+           AND id <> $4
+         FOR UPDATE`,
+        [existing.doctor_slug, new_date, new_time_slot, existing.id]
+      );
+
+      if (conflictRes.rows.length > 0) {
+        await client.query('ROLLBACK');
+        return res.status(409).json({
+          error: 'The requested new slot is not available. Please pick another date or time.',
+        });
+      }
+
+      const updateRes = await client.query(
+        `UPDATE appointments
+         SET appointment_date = $1::date,
+             time_slot = $2,
+             updated_at = NOW()
+         WHERE id = $3
+         RETURNING *, TO_CHAR(appointment_date, 'YYYY-MM-DD') AS formatted_date`,
+        [new_date, new_time_slot, existing.id]
+      );
+
+      await client.query(
+        `INSERT INTO appointment_audit_logs (
+          appointment_id, booking_reference, previous_status, new_status, changed_by, reason
+        ) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          existing.id,
+          ref,
+          existing.status,
+          existing.status,
+          existing.patient_name,
+          `Rescheduled from ${existing.appointment_date.toISOString().slice(0, 10)} ${existing.time_slot} to ${new_date} ${new_time_slot}. Reason: ${reason}`,
+        ]
+      );
+
+      await client.query('COMMIT');
+
+      const row = updateRes.rows[0];
+      res.json({
+        data: {
+          ...row,
+          appointment_date: row.formatted_date,
+        },
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  })
+);
+
+// Get appointment audit history
+router.get(
+  '/:reference/audit',
+  asyncHandler(async (req, res) => {
+    const ref = String(req.params.reference || '').trim().toUpperCase();
+    const result = await query(
+      `SELECT * FROM appointment_audit_logs
+       WHERE UPPER(booking_reference) = $1
+       ORDER BY created_at ASC`,
+      [ref]
+    );
+    res.json({ data: result.rows });
   })
 );
 

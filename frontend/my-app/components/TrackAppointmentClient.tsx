@@ -63,23 +63,33 @@ export default function TrackAppointmentClient() {
     }
   }, [initialRef]);
 
-  async function handleCancel(reference: string) {
+  async function handleCancel(item: AppointmentRecord) {
+    const reference = item.booking_reference;
     setCancellingRef(reference);
     setError('');
     try {
       const apiBase = getPublicApiBase();
       const res = await fetch(
         `${apiBase}/appointments/${encodeURIComponent(reference)}/cancel`,
-        { method: 'PATCH' }
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: item.patient_email,
+            phone: item.patient_phone,
+            reason: 'Cancelled via online tracking portal',
+          }),
+        }
       );
       if (res.ok) {
         setResults((prev) =>
-          prev.map((item) =>
-            item.booking_reference === reference ? { ...item, status: 'Cancelled' } : item
+          prev.map((r) =>
+            r.booking_reference === reference ? { ...r, status: 'Cancelled' } : r
           )
         );
       } else {
-        setError('Unable to cancel this appointment right now.');
+        const json = await res.json().catch(() => null);
+        setError(json?.error || 'Unable to cancel this appointment right now.');
       }
     } catch {
       setError('Network error while cancelling appointment.');
@@ -246,7 +256,7 @@ export default function TrackAppointmentClient() {
                     <button
                       type="button"
                       disabled={cancellingRef === appt.booking_reference}
-                      onClick={() => handleCancel(appt.booking_reference)}
+                      onClick={() => handleCancel(appt)}
                       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#f0d5d5] text-[#b91c1c] hover:bg-[#fef2f2] font-medium transition-colors"
                     >
                       <XCircle className="h-3.5 w-3.5" />

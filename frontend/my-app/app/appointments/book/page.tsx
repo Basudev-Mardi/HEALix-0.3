@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import AppointmentStepper from '@/components/AppointmentStepper';
 import BookAppointmentClient from '@/components/BookAppointmentClient';
 import PageHeader from '@/components/PageHeader';
-import { getDoctors } from '@/lib/api';
+import { getDepartments, getDoctors } from '@/lib/api';
 
 export const metadata: Metadata = {
   title: 'Book Appointment',
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BookAppointmentPage() {
-  const doctors = await getDoctors();
+  const [doctors, departments] = await Promise.all([getDoctors(), getDepartments()]);
 
   return (
     <div>
@@ -35,7 +35,7 @@ export default async function BookAppointmentPage() {
             </div>
           }
         >
-          <BookAppointmentClient doctors={doctors} />
+          <BookAppointmentClient doctors={doctors} departments={departments} />
         </Suspense>
       </section>
     </div>

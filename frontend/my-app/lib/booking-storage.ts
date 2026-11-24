@@ -4,10 +4,14 @@ const DRAFT_KEY = 'healix_booking_draft';
 const CONFIRMED_KEY = 'healix_confirmed_booking';
 
 export interface BookingDraft {
+  department_slug?: string;
+  department_name?: string;
   doctor_slug: string;
   appointment_date: string;
   time_slot: string;
   visit_type: string;
+  appointment_type?: string;
+  consultation_fee?: string;
 }
 
 export function saveBookingDraft(draft: BookingDraft): void {
