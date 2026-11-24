@@ -221,6 +221,17 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS patient_otp_verifications (
+  id SERIAL PRIMARY KEY,
+  identifier TEXT NOT NULL,
+  otp_code TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  used BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_patient_otp_ident ON patient_otp_verifications(identifier, used, expires_at);
+
 CREATE TABLE IF NOT EXISTS patient_medical_history (
   id SERIAL PRIMARY KEY,
   patient_id INTEGER NOT NULL REFERENCES patient_accounts(id) ON DELETE CASCADE,
