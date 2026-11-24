@@ -221,8 +221,8 @@ export default function PatientDashboardPage() {
                 <div
                   key={n.id}
                   className={`rounded-xl border p-3.5 ${n.is_read
-                      ? 'border-[#e6e4dd] bg-white'
-                      : 'border-[#cde4de] bg-[#edf5f4]/50'
+                    ? 'border-[#e6e4dd] bg-white'
+                    : 'border-[#cde4de] bg-[#edf5f4]/50'
                     }`}
                 >
                   <p className="text-xs font-semibold text-[#14181a]">{n.title}</p>
