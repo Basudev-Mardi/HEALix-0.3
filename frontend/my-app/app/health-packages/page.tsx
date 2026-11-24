@@ -33,8 +33,18 @@ export default async function HealthPackagesPage() {
 
       {/* Trust Badges Strip */}
       <section className="border-b border-[#e6e4dd] bg-white py-6">
-        <div className="container-editorial">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-[#4b555b]">
+        <div className="container-editorial space-y-4">
+          <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 flex items-start gap-3">
+            <ShieldCheck className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold">Package Availability &amp; Confirmation Policy</p>
+              <p className="mt-0.5 text-amber-800 leading-relaxed">
+                All package bookings and preferred dates selected through the portal are provisional. Package availability, specialist clinic schedules, and diagnostic slots are only guaranteed once formally reviewed and confirmed by authorized hospital personnel.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-[#4b555b] pt-1">
             <div className="flex items-center gap-2.5">
               <ShieldCheck className="h-4 w-4 text-[#0f5c5c] shrink-0" />
               <span>Certified CAP/NABL Laboratories</span>

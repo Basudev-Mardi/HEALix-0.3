@@ -68,6 +68,17 @@ export default async function HealthPackageDetailPage({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           {/* Main Package Scope */}
           <div className="lg:col-span-8 space-y-12">
+            {/* Clinical Availability Disclaimer */}
+            <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 flex items-start gap-3">
+              <ShieldAlert className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Hospital Confirmation Required</p>
+                <p className="mt-0.5 text-amber-800 leading-relaxed">
+                  Submitting a package booking or enquiry does not constitute guaranteed slot availability. To ensure specialist coverage and diagnostic suite readiness, package availability is strictly provisional until reviewed, verified, and officially confirmed by authorized hospital personnel.
+                </p>
+              </div>
+            </div>
+
             {/* Quick Specs Strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="rounded-xl border border-[#e6e4dd] bg-white p-4">

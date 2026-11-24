@@ -379,7 +379,9 @@ export default function HealthPackagesClient({
                       <Clock className="h-3 w-3" />
                       Results: {pkg.turnaround}
                     </span>
-                    <span>Frequency: {pkg.recommended_frequency}</span>
+                    <span className="text-[10px] text-amber-800 font-sans font-medium">
+                      Slots provisional until hospital confirmation
+                    </span>
                   </div>
 
                   {/* 3 Action Buttons: Details, Enquire, Book Package */}
@@ -403,9 +405,10 @@ export default function HealthPackagesClient({
                     <Link
                       href={`/appointments/book?package=${pkg.slug}`}
                       className="text-center py-2.5 rounded-full bg-[#14181a] text-white text-xs font-medium hover:bg-[#0f5c5c] transition-colors inline-flex items-center justify-center gap-1.5"
+                      title="Provisional request subject to hospital confirmation"
                     >
                       <Calendar className="h-3.5 w-3.5" />
-                      Book Now
+                      Request Slot
                     </Link>
                   </div>
                 </div>

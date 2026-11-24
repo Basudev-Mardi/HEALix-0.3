@@ -70,7 +70,7 @@ export default function HealthPackageDetailActions({
           </p>
           <p className="flex items-center gap-2">
             <CheckCircle2 className="h-3.5 w-3.5 text-[#0f5c5c] shrink-0" />
-            <span>Zero Booking Deposit Required</span>
+            <span>Provisional Booking · Final Confirmation by Hospital</span>
           </p>
           <p className="flex items-center gap-2">
             <ShieldCheck className="h-3.5 w-3.5 text-[#0f5c5c] shrink-0" />
@@ -85,8 +85,11 @@ export default function HealthPackageDetailActions({
             className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#14181a] text-white text-xs font-medium hover:bg-[#0f5c5c] transition-colors shadow-xs"
           >
             <Calendar className="h-4 w-4" />
-            Book This Package Now
+            Request Package Booking
           </Link>
+          <p className="text-[10px] text-center text-amber-800 font-medium">
+            Slots are provisional until confirmed by the hospital.
+          </p>
 
           <button
             type="button"

@@ -68,12 +68,12 @@ export default function PackageEnquiryModal({
 
       setSuccessMsg(
         data.data?.message ||
-          'Your package enquiry has been received! Our Preventive Health Coordinator will contact you shortly.'
+          'Your package enquiry has been received. Please note that package date and slot availability are provisional until officially confirmed by authorized hospital personnel.'
       );
     } catch {
       // Graceful fallback for local offline testing
       setSuccessMsg(
-        `Thank you, ${name.trim()}! Your enquiry for ${pkg?.name} has been received. Our team will contact you at ${email.trim()} within 2 hours.`
+        `Thank you, ${name.trim()}! Your enquiry for ${pkg?.name} has been received. Please note that package date and slot availability are provisional until officially confirmed by the hospital.`
       );
     } finally {
       setSubmitting(false);
@@ -119,12 +119,16 @@ export default function PackageEnquiryModal({
           <p className="text-xs text-[#768086]">
             Have questions about preparation, fasting protocols, or corporate group pricing? Speak with a certified Healix wellness coordinator.
           </p>
+          <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-2.5 text-[11px] text-amber-900 mt-2">
+            <span className="font-semibold">Hospital Availability Notice: </span>
+            Package availability and appointment slots are provisional until formally verified and confirmed by authorized hospital scheduling staff.
+          </div>
         </div>
 
         {successMsg ? (
           <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-6 text-center space-y-3">
             <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
-            <h3 className="font-editorial text-lg text-emerald-900">Enquiry Confirmed</h3>
+            <h3 className="font-editorial text-lg text-emerald-900">Enquiry Received (Pending Hospital Confirmation)</h3>
             <p className="text-xs text-emerald-800 leading-relaxed">{successMsg}</p>
             <div className="pt-2">
               <button

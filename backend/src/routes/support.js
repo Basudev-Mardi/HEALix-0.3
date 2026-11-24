@@ -148,7 +148,7 @@ router.post(
     res.status(201).json({
       data: {
         message:
-          'Your package enquiry has been received. A Healix Preventive Healthcare Coordinator will reach out within 2 hours.',
+          'Your package enquiry has been received. Please note that package date and slot availability are provisional until officially confirmed by authorized hospital personnel.',
         inquiry_id: result.rows[0].id,
       },
     });
