@@ -153,11 +153,10 @@ export default function PatientShell({ children }: { children: React.ReactNode }
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-colors ${
-                    active
-                      ? 'bg-[#edf5f4] text-[#0f5c5c] font-medium'
-                      : 'text-[#4b555b] hover:bg-[#faf9f6] hover:text-[#14181a]'
-                  }`}
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-colors ${active
+                    ? 'bg-[#edf5f4] text-[#0f5c5c] font-medium'
+                    : 'text-[#4b555b] hover:bg-[#faf9f6] hover:text-[#14181a]'
+                    }`}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
                   <span>{item.label}</span>

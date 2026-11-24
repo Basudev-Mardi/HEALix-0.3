@@ -45,11 +45,10 @@ export default function PrescriptionsPage() {
                     <Pill className="h-4 w-4" />
                   </span>
                   <span
-                    className={`px-3 py-1 rounded-full text-[11px] font-mono ${
-                      rx.status === 'Active'
-                        ? 'bg-[#edf5f4] text-[#0f5c5c]'
-                        : 'bg-[#f2f1ec] text-[#768086]'
-                    }`}
+                    className={`px-3 py-1 rounded-full text-[11px] font-mono ${rx.status === 'Active'
+                      ? 'bg-[#edf5f4] text-[#0f5c5c]'
+                      : 'bg-[#f2f1ec] text-[#768086]'
+                      }`}
                   >
                     {rx.status}
                   </span>
