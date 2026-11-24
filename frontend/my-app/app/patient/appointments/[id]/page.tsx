@@ -91,9 +91,8 @@ export default function PatientAppointmentDetailPage() {
           </div>
 
           <span
-            className={`px-4 py-1.5 rounded-full text-xs font-mono font-medium ${
-              isCancelled ? 'bg-[#fef2f2] text-[#b91c1c]' : 'bg-[#edf5f4] text-[#0f5c5c]'
-            }`}
+            className={`px-4 py-1.5 rounded-full text-xs font-mono font-medium ${isCancelled ? 'bg-[#fef2f2] text-[#b91c1c]' : 'bg-[#edf5f4] text-[#0f5c5c]'
+              }`}
           >
             {appt.status}
           </span>

@@ -51,11 +51,10 @@ export default function PatientAppointmentsPage() {
             key={tab}
             type="button"
             onClick={() => setFilter(tab)}
-            className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${
-              filter === tab
-                ? 'bg-[#14181a] text-white'
-                : 'bg-white border border-[#e6e4dd] text-[#4b555b] hover:border-[#14181a]'
-            }`}
+            className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${filter === tab
+              ? 'bg-[#14181a] text-white'
+              : 'bg-white border border-[#e6e4dd] text-[#4b555b] hover:border-[#14181a]'
+              }`}
           >
             {tab}
           </button>
@@ -97,11 +96,10 @@ export default function PatientAppointmentsPage() {
                         {appt.booking_reference}
                       </span>
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono ${
-                          isCancelled
-                            ? 'bg-[#fef2f2] text-[#b91c1c]'
-                            : 'bg-[#edf5f4] text-[#0f5c5c]'
-                        }`}
+                        className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono ${isCancelled
+                          ? 'bg-[#fef2f2] text-[#b91c1c]'
+                          : 'bg-[#edf5f4] text-[#0f5c5c]'
+                          }`}
                       >
                         {appt.status}
                       </span>
