@@ -201,7 +201,14 @@ export function verifySignedReportToken(signedToken) {
   }
 
   const expectedSig = crypto.createHmac('sha256', secret).update(payloadStr).digest('hex');
-  if (!crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expectedSig, 'hex'))) {
+  const sigBuf = Buffer.from(signature, 'hex');
+  const expectedBuf = Buffer.from(expectedSig, 'hex');
+
+  if (sigBuf.length !== expectedBuf.length) {
+    return { valid: false, error: 'Tampered download signature length' };
+  }
+
+  if (!crypto.timingSafeEqual(sigBuf, expectedBuf)) {
     return { valid: false, error: 'Tampered download signature' };
   }
 
