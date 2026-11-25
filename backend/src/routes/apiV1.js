@@ -6,6 +6,7 @@ import appointmentRoutes from './appointments.js';
 import supportRoutes from './support.js';
 import publicRoutes from './public.js';
 import privacyRoutes from './privacy.js';
+import integrationRoutes from './integrations.js';
 import { query } from '../db.js';
 
 const router = Router();
@@ -646,6 +647,9 @@ router.get(
 
 // 20. Privacy, Compliance & DPDP Act: /api/v1/privacy/*
 router.use('/privacy', privacyRoutes);
+
+// 21. External Integrations (Payments, Maps, Storage, Analytics): /api/v1/integrations/*
+router.use('/integrations', integrationRoutes);
 
 // Fallback to legacy public endpoints for backward compatibility
 router.use('/', publicRoutes);
