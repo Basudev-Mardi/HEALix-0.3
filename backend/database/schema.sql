@@ -294,9 +294,77 @@ CREATE TABLE IF NOT EXISTS appointments (
   reason_for_visit TEXT,
   insurance_provider TEXT,
   status TEXT NOT NULL DEFAULT 'Confirmed',
+  patient_id TEXT REFERENCES patients(id) ON DELETE SET NULL,
+  doctor_id INTEGER REFERENCES doctors(id) ON DELETE SET NULL,
+  department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,
+  slot_id INTEGER REFERENCES appointment_slots(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Ensure Section 8.D fields exist if appointments table already existed
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS patient_id TEXT REFERENCES patients(id) ON DELETE SET NULL;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS doctor_id INTEGER REFERENCES doctors(id) ON DELETE SET NULL;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS slot_id INTEGER REFERENCES appointment_slots(id) ON DELETE SET NULL;
+
+-- ============================================================================
+-- Section 8.D: Appointments Normalized Relational Blueprint
+-- ============================================================================
+
+-- 1. appointment_types: id, name, description
+CREATE TABLE IF NOT EXISTS appointment_types (
+  id SERIAL PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  description TEXT NOT NULL,
+  default_duration_minutes INTEGER NOT NULL DEFAULT 30,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 2. appointment_status_history: id, appointment_id, old_status, new_status
+CREATE TABLE IF NOT EXISTS appointment_status_history (
+  id SERIAL PRIMARY KEY,
+  appointment_id INTEGER NOT NULL REFERENCES appointments(id) ON DELETE CASCADE,
+  old_status TEXT,
+  new_status TEXT NOT NULL,
+  changed_by TEXT NOT NULL DEFAULT 'Patient / System',
+  reason TEXT DEFAULT '',
+  changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_appt_status_hist ON appointment_status_history(appointment_id, changed_at DESC);
+
+-- 3. appointment_payments: id, appointment_id, amount, payment_status
+CREATE TABLE IF NOT EXISTS appointment_payments (
+  id SERIAL PRIMARY KEY,
+  appointment_id INTEGER NOT NULL REFERENCES appointments(id) ON DELETE CASCADE,
+  amount NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+  payment_status TEXT NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'refunded', 'waived', 'failed')),
+  currency TEXT NOT NULL DEFAULT 'USD',
+  transaction_ref TEXT DEFAULT '',
+  payment_method TEXT DEFAULT '',
+  paid_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_appt_payments_appt ON appointment_payments(appointment_id);
+CREATE INDEX IF NOT EXISTS idx_appt_payments_status ON appointment_payments(payment_status);
+
+-- 4. appointment_cancellations: id, appointment_id, reason, cancelled_at
+CREATE TABLE IF NOT EXISTS appointment_cancellations (
+  id SERIAL PRIMARY KEY,
+  appointment_id INTEGER NOT NULL REFERENCES appointments(id) ON DELETE CASCADE,
+  reason TEXT NOT NULL,
+  cancelled_by TEXT NOT NULL DEFAULT 'Patient',
+  cancelled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  refund_eligible BOOLEAN NOT NULL DEFAULT FALSE,
+  refund_status TEXT DEFAULT 'not_applicable' CHECK (refund_status IN ('not_applicable', 'pending', 'processed', 'declined')),
+  audit_logged BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE INDEX IF NOT EXISTS idx_appt_cancellations_appt ON appointment_cancellations(appointment_id);
 
 CREATE TABLE IF NOT EXISTS appointment_audit_logs (
   id SERIAL PRIMARY KEY,

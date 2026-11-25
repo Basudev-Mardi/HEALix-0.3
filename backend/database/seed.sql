@@ -1,6 +1,10 @@
 -- Healix Hospital Management System — Seed Data (Idempotent)
 
 TRUNCATE TABLE
+  appointment_cancellations,
+  appointment_payments,
+  appointment_status_history,
+  appointment_types,
   appointment_slots,
   doctor_leaves,
   doctor_schedules,
@@ -965,3 +969,49 @@ SELECT d.id, (CURRENT_DATE + INTERVAL '2 days')::date, '10:00:00'::time, '10:30:
 UNION ALL
 SELECT d.id, (CURRENT_DATE + INTERVAL '2 days')::date, '10:30:00'::time, '11:00:00'::time, 1, 0, 'available' FROM doctors d WHERE d.slug = 'dr-mei-ling-chen'
 ON CONFLICT (doctor_id, date, start_time) DO NOTHING;
+
+-- ============================================================================
+-- Section 8.D Normalized Appointments, Types, Status History, and Payments Seeds
+-- ============================================================================
+
+-- Backfill appointments relational foreign keys (patient_id, doctor_id, department_id, slot_id)
+UPDATE appointments a
+SET 
+  doctor_id = d.id,
+  department_id = dep.id
+FROM doctors d, departments dep
+WHERE d.slug = a.doctor_slug AND dep.slug = a.department_slug;
+
+UPDATE appointments a
+SET patient_id = p.id
+FROM patients p
+WHERE p.patient_number = 'HX-MRN-402819' AND LOWER(a.patient_email) = 'clara.vance@example.com';
+
+-- 1. appointment_types
+INSERT INTO appointment_types (name, description, default_duration_minutes) VALUES
+('In-Person Consultation', 'Comprehensive face-to-face physician evaluation at hospital clinic suite.', 30),
+('Telehealth Video Visit', 'Secure HIPAA-compliant HD video consultation with attending specialist.', 20),
+('Post-Operative Follow-Up', 'Surgical recovery examination, wound check, and rehabilitation review.', 30),
+('Preventive Health Assessment', 'Multi-system screening, diagnostic review, and preventive counseling.', 45)
+ON CONFLICT (name) DO NOTHING;
+
+-- 2. appointment_status_history
+INSERT INTO appointment_status_history (appointment_id, old_status, new_status, changed_by, reason)
+SELECT a.id, 'Pending', 'Confirmed', 'Automated Scheduling Engine', 'Real-time slot verified and reserved'
+FROM appointments a
+WHERE a.status = 'Confirmed'
+LIMIT 5;
+
+-- 3. appointment_payments
+INSERT INTO appointment_payments (appointment_id, amount, payment_status, currency, transaction_ref, payment_method, paid_at)
+SELECT a.id, 220.00, 'paid', 'USD', 'TXN-HEALIX-89410', 'Visa ending in 4242', NOW() - INTERVAL '2 days'
+FROM appointments a
+WHERE a.status = 'Confirmed'
+LIMIT 2;
+
+-- 4. appointment_cancellations
+INSERT INTO appointment_cancellations (appointment_id, reason, cancelled_by, refund_eligible, refund_status)
+SELECT a.id, 'Patient schedule conflict; rescheduled to following week', 'Patient via Portal', TRUE, 'processed'
+FROM appointments a
+WHERE a.status = 'Cancelled'
+LIMIT 1;
