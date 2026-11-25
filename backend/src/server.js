@@ -14,6 +14,7 @@ import appointmentRoutes from './routes/appointments.js';
 import authRoutes from './routes/auth.js';
 import patientRoutes from './routes/patient.js';
 import supportRoutes from './routes/support.js';
+import apiV1Routes from './routes/apiV1.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
@@ -34,10 +35,15 @@ app.get('/', (_req, res) => {
   res.json({
     name: 'Healix Hospital Management System API',
     version: '1.0.0',
+    api_v1: '/api/v1',
     docs: '/api/health',
   });
 });
 
+// Versioned REST API v1 (Recommended Architecture)
+app.use('/api/v1', apiV1Routes);
+
+// Backward-compatible API mounts
 app.use('/api/auth', authRoutes);
 app.use('/api/patient', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
