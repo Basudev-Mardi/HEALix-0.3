@@ -7,6 +7,13 @@ import {
   sanitizePatient,
   verifyPassword,
 } from '../utils/auth.js';
+import {
+  ALLOWED_DOCUMENT_MIME_TYPES,
+  generateSignedReportToken,
+  logSensitiveAccess,
+  validateUploadedDocument,
+  verifySignedReportToken,
+} from '../utils/security.js';
 
 const router = Router();
 router.use(requirePatientAuth);
@@ -492,7 +499,59 @@ router.get(
       });
     }
 
+    await logSensitiveAccess({
+      patientId: req.patient.id,
+      action: 'VIEW_LAB_REPORT',
+      entityType: 'lab_reports',
+      entityId: result.rows[0].id,
+      details: { report_code: result.rows[0].report_code, test_name: result.rows[0].test_name },
+      req,
+    });
+
     res.json({ data: result.rows[0] });
+  })
+);
+
+// Secure time-limited signed download link for Laboratory Report
+router.post(
+  '/lab-reports/:id/download-link',
+  asyncHandler(async (req, res) => {
+    const param = String(req.params.id || '').trim();
+    const isNumeric = /^\d+$/.test(param);
+
+    const result = await query(
+      `SELECT id, report_code, test_name
+       FROM patient_lab_reports
+       WHERE patient_id = $1
+         AND status IN ('Finalized', 'Released')
+         AND (${isNumeric ? 'id = $2::int' : 'UPPER(report_code) = UPPER($2)'})`,
+      [req.patient.id, param]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Report not found or not authorized for export.',
+      });
+    }
+
+    const report = result.rows[0];
+    const signedData = generateSignedReportToken(req.patient.id, 'lab', report.id, 15);
+
+    await logSensitiveAccess({
+      patientId: req.patient.id,
+      action: 'REQUEST_SIGNED_DOWNLOAD_LINK',
+      entityType: 'lab_reports',
+      entityId: report.id,
+      details: { report_code: report.report_code, valid_minutes: 15 },
+      req,
+    });
+
+    res.json({
+      data: {
+        ...signedData,
+        download_url: `/api/v1/patients/lab-reports/download?token=${signedData.download_token}`,
+      },
+    });
   })
 );
 
@@ -536,6 +595,62 @@ router.get(
         error: 'Radiology report not found or not yet approved/released for patient access.',
       });
     }
+
+    await logSensitiveAccess({
+      patientId: req.patient.id,
+      action: 'VIEW_RADIOLOGY_REPORT',
+      entityType: 'radiology_reports',
+      entityId: result.rows[0].id,
+      details: { study_code: result.rows[0].study_code, study_name: result.rows[0].study_name },
+      req,
+    });
+
+    res.json({ data: result.rows[0] });
+  })
+);
+
+// Secure time-limited signed download link for Radiology Report
+router.post(
+  '/radiology-reports/:id/download-link',
+  asyncHandler(async (req, res) => {
+    const param = String(req.params.id || '').trim();
+    const isNumeric = /^\d+$/.test(param);
+
+    const result = await query(
+      `SELECT id, study_code, study_name
+       FROM patient_radiology_reports
+       WHERE patient_id = $1
+         AND status IN ('Finalized', 'Released')
+         AND (${isNumeric ? 'id = $2::int' : 'UPPER(study_code) = UPPER($2)'})`,
+      [req.patient.id, param]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Study not found or not authorized for export.',
+      });
+    }
+
+    const report = result.rows[0];
+    const signedData = generateSignedReportToken(req.patient.id, 'radiology', report.id, 15);
+
+    await logSensitiveAccess({
+      patientId: req.patient.id,
+      action: 'REQUEST_SIGNED_DOWNLOAD_LINK',
+      entityType: 'radiology_reports',
+      entityId: report.id,
+      details: { study_code: report.study_code, valid_minutes: 15 },
+      req,
+    });
+
+    res.json({
+      data: {
+        ...signedData,
+        download_url: `/api/v1/patients/radiology-reports/download?token=${signedData.download_token}`,
+      },
+    });
+  })
+);
 
     res.json({ data: result.rows[0] });
   })

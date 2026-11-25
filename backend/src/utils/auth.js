@@ -2,18 +2,36 @@ import crypto from 'node:crypto';
 import { query } from '../db.js';
 
 export function hashPassword(password) {
-  const salt = crypto.randomBytes(16).toString('hex');
-  const derived = crypto.scryptSync(password, salt, 64).toString('hex');
-  return `${salt}:${derived}`;
+  // Uses crypto scrypt with high work factor (N=16384, r=8, p=1) and 32-byte salt
+  const salt = crypto.randomBytes(32).toString('hex');
+  const derived = crypto.scryptSync(password, salt, 64, { N: 16384, r: 8, p: 1 }).toString('hex');
+  return `scrypt:${salt}:${derived}`;
 }
 
 export function verifyPassword(password, storedHash) {
-  if (!storedHash || !storedHash.includes(':')) return false;
-  const [salt, keyHex] = storedHash.split(':');
-  const keyBuf = Buffer.from(keyHex, 'hex');
-  const derivedBuf = crypto.scryptSync(password, salt, 64);
-  if (keyBuf.length !== derivedBuf.length) return false;
-  return crypto.timingSafeEqual(keyBuf, derivedBuf);
+  if (!storedHash) return false;
+  
+  // Support scrypt format with prefix
+  if (storedHash.startsWith('scrypt:')) {
+    const parts = storedHash.split(':');
+    if (parts.length !== 3) return false;
+    const [, salt, keyHex] = parts;
+    const keyBuf = Buffer.from(keyHex, 'hex');
+    const derivedBuf = crypto.scryptSync(password, salt, 64, { N: 16384, r: 8, p: 1 });
+    if (keyBuf.length !== derivedBuf.length) return false;
+    return crypto.timingSafeEqual(keyBuf, derivedBuf);
+  }
+
+  // Legacy format support (salt:keyHex)
+  if (storedHash.includes(':')) {
+    const [salt, keyHex] = storedHash.split(':');
+    const keyBuf = Buffer.from(keyHex, 'hex');
+    const derivedBuf = crypto.scryptSync(password, salt, 64);
+    if (keyBuf.length !== derivedBuf.length) return false;
+    return crypto.timingSafeEqual(keyBuf, derivedBuf);
+  }
+
+  return false;
 }
 
 export function generateToken(bytes = 32) {
@@ -27,7 +45,7 @@ export function generateMrn() {
 
 export function sanitizePatient(row) {
   if (!row) return null;
-  const { password_hash, ...safe } = row;
+  const { password_hash, token_hash, ...safe } = row;
   if (safe.date_of_birth instanceof Date) {
     safe.date_of_birth = safe.date_of_birth.toISOString().slice(0, 10);
   }
@@ -37,7 +55,15 @@ export function sanitizePatient(row) {
 export async function requirePatientAuth(req, res, next) {
   try {
     const authHeader = req.headers.authorization || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+    let token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+
+    // Also check HTTP-only cookie if Authorization header is not set
+    if (!token && req.cookies && req.cookies.hx_session) {
+      token = req.cookies.hx_session;
+    } else if (!token && req.headers.cookie) {
+      const match = req.headers.cookie.match(/hx_session=([^;]+)/);
+      if (match) token = match[1];
+    }
 
     if (!token) {
       return res.status(401).json({ error: 'Authentication required. Please sign in.' });

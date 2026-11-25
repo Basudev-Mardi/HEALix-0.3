@@ -10,6 +10,12 @@ import {
   sanitizePatient,
   verifyPassword,
 } from '../utils/auth.js';
+import {
+  getSessionCookieOptions,
+  logSensitiveAccess,
+  rateLimit,
+  securityLimiter,
+} from '../utils/security.js';
 
 const router = Router();
 
@@ -39,6 +45,7 @@ async function ensureOtpTable() {
 // 0. Pre-Registration Validation & OTP Dispatch (Workflow B, Step 3 & 4)
 router.post(
   '/register/send-otp',
+  rateLimit({ windowSeconds: 60, maxRequests: 5, message: 'Too many OTP requests. Please wait a minute before requesting another code.' }),
   asyncHandler(async (req, res) => {
     await ensureOtpTable();
     const {
@@ -149,6 +156,7 @@ router.post(
 // 1. Patient Registration (Workflow B, Steps 5 & 6)
 router.post(
   '/register',
+  rateLimit({ windowSeconds: 60, maxRequests: 5, message: 'Too many registration attempts. Please wait a minute.' }),
   asyncHandler(async (req, res) => {
     await ensureOtpTable();
     const {
@@ -293,6 +301,10 @@ router.post(
       [patient.id, token]
     );
 
+    // Set secure HTTP-only cookie
+    const cookieOpts = getSessionCookieOptions(req);
+    res.cookie('hx_session', token, cookieOpts);
+
     res.status(201).json({
       data: {
         token,
@@ -306,12 +318,23 @@ router.post(
 // 2. Patient Login (Supports both Email and Mobile Phone)
 router.post(
   '/login',
+  rateLimit({ windowSeconds: 60, maxRequests: 5, message: 'Too many login attempts. Please wait a minute.' }),
   asyncHandler(async (req, res) => {
     const { identifier, email, phone, password } = req.body || {};
     const loginTarget = (identifier || email || phone || '').trim();
 
     if (!loginTarget || !password) {
       return res.status(400).json({ error: 'Email or mobile number, and password are required.' });
+    }
+
+    // Check account lockout status
+    const lockout = securityLimiter.isAccountLocked(loginTarget);
+    if (lockout.locked) {
+      return res.status(429).json({
+        error: `Account is temporarily locked due to repeated failed login attempts. Please retry in ${lockout.remainingSec} seconds or reset your password.`,
+        locked: true,
+        retry_after_seconds: lockout.remainingSec,
+      });
     }
 
     const normalizedTarget = loginTarget.toLowerCase();
@@ -324,8 +347,20 @@ router.post(
     );
 
     if (userRes.rows.length === 0 || !verifyPassword(password, userRes.rows[0].password_hash)) {
+      securityLimiter.recordLoginFailure(loginTarget);
+      await logSensitiveAccess({
+        patientId: userRes.rows[0]?.id || null,
+        action: 'FAILED_LOGIN_ATTEMPT',
+        entityType: 'auth_session',
+        entityId: loginTarget,
+        details: { target: loginTarget, reason: 'Invalid password or user not found' },
+        req,
+      });
       return res.status(401).json({ error: 'Invalid login credentials. Please check your email/mobile and password.' });
     }
+
+    // Reset login failures on success
+    securityLimiter.clearLoginFailure(loginTarget);
 
     const account = userRes.rows[0];
 
@@ -345,6 +380,19 @@ router.post(
       [patient.id, token]
     );
 
+    // Set secure HTTP-only cookie
+    const cookieOpts = getSessionCookieOptions(req);
+    res.cookie('hx_session', token, cookieOpts);
+
+    await logSensitiveAccess({
+      patientId: patient.id,
+      action: 'SUCCESSFUL_LOGIN',
+      entityType: 'auth_session',
+      entityId: patient.id,
+      details: { mrn: patient.mrn, method: 'password' },
+      req,
+    });
+
     res.json({
       data: {
         token,
@@ -357,6 +405,7 @@ router.post(
 // 3. Send Login OTP (Email or Mobile)
 router.post(
   '/otp/send',
+  rateLimit({ windowSeconds: 60, maxRequests: 5, message: 'Too many OTP requests. Please wait a minute.' }),
   asyncHandler(async (req, res) => {
     await ensureOtpTable();
     const { identifier } = req.body || {};
@@ -455,6 +504,19 @@ router.post(
       [patient.id, token]
     );
 
+    // Set secure HTTP-only cookie
+    const cookieOpts = getSessionCookieOptions(req);
+    res.cookie('hx_session', token, cookieOpts);
+
+    await logSensitiveAccess({
+      patientId: patient.id,
+      action: 'OTP_LOGIN',
+      entityType: 'auth_session',
+      entityId: patient.id,
+      details: { mrn: patient.mrn, method: 'otp' },
+      req,
+    });
+
     res.json({
       data: {
         token,
@@ -470,19 +532,29 @@ router.get('/me', requirePatientAuth, (req, res) => {
   res.json({ data: { patient: req.patient } });
 });
 
-// 6. Logout
+// 6. Logout (Invalidates session in DB and clears cookie)
 router.post(
   '/logout',
   requirePatientAuth,
   asyncHandler(async (req, res) => {
     await query('DELETE FROM patient_sessions WHERE token = $1', [req.sessionToken]);
+    res.clearCookie('hx_session', { path: '/' });
+    await logSensitiveAccess({
+      patientId: req.patient.id,
+      action: 'LOGOUT',
+      entityType: 'auth_session',
+      entityId: req.patient.id,
+      details: { reason: 'User initiated logout' },
+      req,
+    });
     res.json({ data: { loggedOut: true } });
   })
 );
 
-// 7. Forgot Password
+// 7. Forgot Password (Expiring single-use token with rate limit)
 router.post(
   '/forgot-password',
+  rateLimit({ windowSeconds: 60, maxRequests: 3, message: 'Too many password reset requests. Please wait a minute.' }),
   asyncHandler(async (req, res) => {
     const { email } = req.body || {};
     if (!email?.trim()) {
@@ -497,12 +569,21 @@ router.post(
     let resetToken = null;
     if (userRes.rows.length > 0) {
       const user = userRes.rows[0];
-      resetToken = generateToken(20);
+      resetToken = generateToken(32);
       await query(
         `INSERT INTO password_reset_tokens (patient_id, token, expires_at)
          VALUES ($1, $2, NOW() + INTERVAL '1 hour')`,
         [user.id, resetToken]
       );
+
+      await logSensitiveAccess({
+        patientId: user.id,
+        action: 'PASSWORD_RESET_REQUESTED',
+        entityType: 'auth_security',
+        entityId: user.id,
+        details: { email: normalizedEmail },
+        req,
+      });
 
       // Workflow F: Password reset -> Security notification (Email & SMS)
       await dispatchNotification({
@@ -518,16 +599,17 @@ router.post(
     res.json({
       data: {
         message:
-          'If an account matches that email, a password reset link has been generated (valid for 1 hour).',
+          'If an account matches that email, a single-use password reset link has been dispatched (valid for 1 hour).',
         demo_reset_token: resetToken,
       },
     });
   })
 );
 
-// 8. Reset Password
+// 8. Reset Password (Single-use token consumption)
 router.post(
   '/reset-password',
+  rateLimit({ windowSeconds: 60, maxRequests: 5, message: 'Too many attempts. Please try again shortly.' }),
   asyncHandler(async (req, res) => {
     const { token, new_password, confirm_password } = req.body || {};
     if (!token?.trim() || !new_password || new_password.length < 8) {
@@ -557,8 +639,20 @@ router.post(
       newHash,
       record.patient_id,
     ]);
+    // Single-use token invalidation
     await query('UPDATE password_reset_tokens SET used = TRUE WHERE id = $1', [record.id]);
+    // Invalidate all existing sessions on password change
     await query('DELETE FROM patient_sessions WHERE patient_id = $1', [record.patient_id]);
+    res.clearCookie('hx_session', { path: '/' });
+
+    await logSensitiveAccess({
+      patientId: record.patient_id,
+      action: 'PASSWORD_RESET_COMPLETED',
+      entityType: 'auth_security',
+      entityId: record.patient_id,
+      details: { outcome: 'All existing sessions terminated' },
+      req,
+    });
 
     // Workflow F: Password reset -> Security notification (Password changed confirmation)
     await dispatchNotification({
