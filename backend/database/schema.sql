@@ -1,5 +1,66 @@
 -- Healix Hospital Management System — Public Portal Schema (Neon PostgreSQL)
 
+-- ============================================================================
+-- Section 8.B: Hospital Information Schema Blueprint
+-- ============================================================================
+
+-- 1. hospital_settings: name, address, contact, timings
+CREATE TABLE IF NOT EXISTS hospital_settings (
+  id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  name TEXT NOT NULL,
+  address TEXT NOT NULL,
+  contact JSONB NOT NULL DEFAULT '{"phone": "+1 (800) 432-5490", "emergency": "+1 (800) 911-4325", "email": "concierge@healixhospital.org"}'::jsonb,
+  timings JSONB NOT NULL DEFAULT '{"opd": "Mon - Sat: 08:00 AM - 08:00 PM", "emergency": "24/7 Level I Trauma", "visiting_hours": "10:00 AM - 08:00 PM"}'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 2. hospital_branches: id, name, address, contact
+CREATE TABLE IF NOT EXISTS hospital_branches (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  address TEXT NOT NULL,
+  contact JSONB NOT NULL DEFAULT '{"phone": "", "emergency": "", "email": ""}'::jsonb,
+  is_main_campus BOOLEAN NOT NULL DEFAULT FALSE,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'under_expansion')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_hospital_branches_status ON hospital_branches(status);
+
+-- 3. Ensure status and description fields on departments, services, facilities
+ALTER TABLE departments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
+ALTER TABLE departments ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive'));
+
+ALTER TABLE services ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
+ALTER TABLE services ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive'));
+
+ALTER TABLE facilities ADD COLUMN IF NOT EXISTS slug TEXT DEFAULT '';
+ALTER TABLE facilities ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive'));
+
+-- 4. hospital_gallery: id, image_url, caption, category
+CREATE TABLE IF NOT EXISTS hospital_gallery (
+  id SERIAL PRIMARY KEY,
+  image_url TEXT NOT NULL,
+  caption TEXT NOT NULL,
+  category TEXT NOT NULL,
+  display_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_hospital_gallery_category ON hospital_gallery(category);
+
+-- 5. hospital_statistics: id, metric_name, metric_value
+CREATE TABLE IF NOT EXISTS hospital_statistics (
+  id SERIAL PRIMARY KEY,
+  metric_name TEXT NOT NULL,
+  metric_value TEXT NOT NULL,
+  sublabel TEXT DEFAULT '',
+  display_order INTEGER NOT NULL DEFAULT 0,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Backward-compatible Hospital Profile Table
 CREATE TABLE IF NOT EXISTS hospital_info (
   id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
   name TEXT NOT NULL,

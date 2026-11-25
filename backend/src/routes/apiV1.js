@@ -16,6 +16,55 @@ const asyncHandler = (fn) => (req, res, next) => {
 // 1. Authentication module: /api/v1/auth/*
 router.use('/auth', authRoutes);
 
+// Hospital Settings & Institutional Information: /api/v1/hospital/settings
+router.get(
+  '/hospital/settings',
+  asyncHandler(async (_req, res) => {
+    const result = await query('SELECT * FROM hospital_settings WHERE id = 1');
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Hospital settings not found' });
+    }
+    res.json({ data: result.rows[0] });
+  })
+);
+
+// Hospital Branches: /api/v1/hospital/branches
+router.get(
+  '/hospital/branches',
+  asyncHandler(async (_req, res) => {
+    const result = await query(
+      "SELECT * FROM hospital_branches WHERE status = 'active' ORDER BY is_main_campus DESC, id ASC"
+    );
+    res.json({ data: result.rows });
+  })
+);
+
+// Hospital Gallery: /api/v1/hospital/gallery
+router.get(
+  '/hospital/gallery',
+  asyncHandler(async (req, res) => {
+    const { category } = req.query;
+    let sql = 'SELECT * FROM hospital_gallery';
+    const params = [];
+    if (category && category !== 'All') {
+      sql += ' WHERE category = $1';
+      params.push(category);
+    }
+    sql += ' ORDER BY display_order ASC';
+    const result = await query(sql, params);
+    res.json({ data: result.rows });
+  })
+);
+
+// Hospital Statistics: /api/v1/hospital/statistics
+router.get(
+  '/hospital/statistics',
+  asyncHandler(async (_req, res) => {
+    const result = await query('SELECT * FROM hospital_statistics ORDER BY display_order ASC');
+    res.json({ data: result.rows });
+  })
+);
+
 // 2. Patient Account & Profile module (Authenticated): /api/v1/patients/*
 router.use('/patients', patientRoutes);
 

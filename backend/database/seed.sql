@@ -1,6 +1,10 @@
 -- Healix Hospital Management System — Seed Data (Idempotent)
 
 TRUNCATE TABLE
+  hospital_statistics,
+  hospital_gallery,
+  hospital_branches,
+  hospital_settings,
   appointment_faqs,
   appointments,
   emergency_protocols,
@@ -13,6 +17,75 @@ TRUNCATE TABLE
   departments,
   hospital_info
 RESTART IDENTITY CASCADE;
+
+-- 1. hospital_settings
+INSERT INTO hospital_settings (
+  id, name, address, contact, timings
+) VALUES (
+  1,
+  'Healix Medical Center',
+  '480 Meridian Avenue, Health Sciences District, Boston, MA 02115',
+  '{
+    "phone": "+1 (800) 432-5490",
+    "emergency": "+1 (800) 911-4325",
+    "ambulance": "+1 (800) 911-2628",
+    "email": "care@healixmedical.org"
+  }'::jsonb,
+  '{
+    "opd": "Mon - Sat: 08:00 AM - 08:00 PM",
+    "emergency": "24/7 Level I Trauma & Resuscitation",
+    "visiting_hours": "General: 10:00 AM - 08:00 PM | ICU: 11:00 AM - 01:00 PM & 05:00 PM - 07:00 PM",
+    "pharmacy": "24/7 In-House Clinical Dispensary"
+  }'::jsonb
+);
+
+-- 2. hospital_branches
+INSERT INTO hospital_branches (
+  name, address, contact, is_main_campus, status
+) VALUES
+(
+  'Healix Main Quaternary Campus',
+  '480 Meridian Avenue, Health Sciences District, Boston, MA 02115',
+  '{"phone": "+1 (800) 432-5490", "emergency": "+1 (800) 911-4325", "email": "main@healixmedical.org"}'::jsonb,
+  TRUE,
+  'active'
+),
+(
+  'Healix West Suburban Ambulatory Center',
+  '120 Route 9 West, Natick, MA 01760',
+  '{"phone": "+1 (508) 555-4100", "emergency": "+1 (508) 555-9111", "email": "west@healixmedical.org"}'::jsonb,
+  FALSE,
+  'active'
+),
+(
+  'Healix Seaport Preventive & Executive Health Suite',
+  '250 Northern Avenue, Boston Seaport, MA 02210',
+  '{"phone": "+1 (617) 555-7200", "emergency": "+1 (800) 911-4325", "email": "seaport@healixmedical.org"}'::jsonb,
+  FALSE,
+  'active'
+);
+
+-- 3. hospital_gallery
+INSERT INTO hospital_gallery (
+  image_url, caption, category, display_order
+) VALUES
+('/images/hospital-exterior.png', 'Healix Quaternary Hospital Exterior & Campus Gardens', 'Architecture', 1),
+('/images/robotic-operating-suite.png', 'Sub-millimeter Hybrid Robotic Operating Suite', 'Surgical Theatres', 2),
+('/images/inpatient-recovery-suite.png', 'Daylight-driven Acoustic Inpatient Recovery Suite', 'Inpatient Rooms', 3),
+('/images/mri-imaging-suite.png', 'Diagnostic Imaging & 3T Wide-Bore MRI Core', 'Diagnostic Wings', 4),
+('/images/emergency-trauma-bay.png', 'Level 1 Emergency & Acute Trauma Resuscitation Bay', 'Emergency Care', 5),
+('/images/doctor-consultation.png', 'Empathetic Outpatient Clinical Consultation Suite', 'Outpatient Clinics', 6);
+
+-- 4. hospital_statistics
+INSERT INTO hospital_statistics (
+  metric_name, metric_value, sublabel, display_order
+) VALUES
+('Inpatient Capacity', '420', 'Licensed Quaternary Acute Beds', 1),
+('Medical Specialists', '185+', 'Board-Certified Attending Physicians', 2),
+('Clinical Specialties', '24', 'Centers of Excellence', 3),
+('Patients Served', '1.4M+', 'Since Campus Inception in 2004', 4),
+('Surgical Success Rate', '99.4%', 'Robotic & Minimally Invasive Procedures', 5),
+('Average Door-to-Balloon', '46 min', 'Level 1 STEMI Emergency Response', 6);
 
 INSERT INTO hospital_info (
   id, name, tagline, founded_year, beds_count, doctors_count, specialties_count,
