@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import DepartmentIcon from '@/components/DepartmentIcon';
 import DoctorAvatar from '@/components/DoctorAvatar';
+import { getDepartmentImage } from '@/components/HospitalCards';
 import { getHomeData } from '@/lib/api';
 import { getHealthArticles, getHealthPackages } from '@/lib/support-api';
 
@@ -417,36 +418,57 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {departments.map((dept) => (
-            <Link
-              key={dept.slug}
-              href={`/departments/${dept.slug}`}
-              className="card-minimal rounded-2xl p-7 flex flex-col justify-between group"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="h-11 w-11 rounded-xl bg-[#E6EFE9] text-[#174C40] flex items-center justify-center">
-                    <DepartmentIcon name={dept.icon} className="h-5 w-5" />
-                  </span>
-                  <span className="text-[11px] font-mono text-[#77817C]">{dept.floor_location}</span>
+        {/* Single-column mobile layout, two-column tablet, three-column desktop grid with white background */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {departments.map((dept) => {
+            const deptImage = getDepartmentImage(dept.slug || dept.name);
+            return (
+              <Link
+                key={dept.slug}
+                href={`/departments/${dept.slug}`}
+                className="card-minimal rounded-2xl overflow-hidden flex flex-col justify-between group hover:border-[#174C40] hover:-translate-y-0.5 transition-all duration-200 bg-white shadow-xs"
+              >
+                <div>
+                  {/* 16:9 Image at the top with 120-140px height, 100% width, matching rounded top corners */}
+                  <div className="relative w-full h-[130px] overflow-hidden bg-[#FAFAF7]">
+                    <Image
+                      src={deptImage}
+                      alt={dept.name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+
+                  {/* Department Details placed below the image */}
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-3.5">
+                      {/* Retained smaller green icon */}
+                      <span className="h-9 w-9 rounded-xl bg-[#E6EFE9] text-[#174C40] flex items-center justify-center shrink-0">
+                        <DepartmentIcon name={dept.icon} className="h-4 w-4" />
+                      </span>
+                      <span className="text-[11px] font-mono text-[#77817C]">{dept.floor_location}</span>
+                    </div>
+
+                    <h3 className="text-lg font-medium text-[#242A28] group-hover:text-[#174C40] transition-colors font-editorial leading-snug">
+                      {dept.name}
+                    </h3>
+                    <p className="mt-2 text-xs sm:text-sm leading-relaxed text-[#4A5350] font-light line-clamp-2">
+                      {dept.short_description}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-lg font-medium text-[#242A28] group-hover:text-[#174C40] transition-colors font-editorial">
-                  {dept.name}
-                </h3>
-                <p className="mt-2.5 text-xs sm:text-sm leading-relaxed text-[#4A5350] font-light">
-                  {dept.short_description}
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#E5E8E6] flex items-center justify-between text-xs text-[#77817C]">
-                <span className="font-mono">{dept.beds_allocated} Dedicated Beds</span>
-                <span className="inline-flex items-center gap-1 text-[#242A28] font-medium group-hover:translate-x-0.5 transition-transform">
-                  Department Details
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </span>
-              </div>
-            </Link>
-          ))}
+
+                <div className="px-6 pb-5 pt-3 border-t border-[#E5E8E6] flex items-center justify-between text-xs text-[#77817C]">
+                  <span className="font-mono">{dept.beds_allocated} Dedicated Beds</span>
+                  <span className="inline-flex items-center gap-1 text-[#174C40] font-medium group-hover:translate-x-0.5 transition-transform">
+                    Department Details
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
