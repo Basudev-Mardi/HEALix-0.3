@@ -182,6 +182,29 @@ async function seedDemoPatient(db) {
     ($1, 'Prescription', 'Refill Available — Lisinopril 10 mg', 'You have 3 refills remaining at the Healix 24/7 Clinical Pharmacy.', '/patient/prescriptions', TRUE)`,
     [patientId]
   );
+
+  // Seed Section 8.F feedback, notifications, and audit_logs tied to demo patient
+  await db.query(
+    `INSERT INTO feedback (patient_id, patient_account_id, patient_name, email, rating, message, department_visited, doctor_care_rating, cleanliness_rating, staff_courtesy_rating, would_recommend, status)
+     VALUES ($1, $2, 'Clara Vance', 'clara.vance@example.com', 5, 'Exceptional clinical care by Dr. Thorne and the entire cardiology team. The facility is world-class, clean, and the patient portal made managing appointments and lab results completely effortless.', 'Cardiovascular Medicine', 5, 5, 5, TRUE, 'published')`,
+    [normalizedPatientId, patientId]
+  );
+
+  await db.query(
+    `INSERT INTO notifications (user_id, patient_id, patient_account_id, category, title, message, action_href, read_at)
+     VALUES 
+       ($1, $2, $3, 'Clinical Results', 'Advanced Lipid & Apolipoprotein B Panel Verified', 'Your diagnostic biochemistry results ordered by Dr. Aris Thorne are finalized and available for review.', '/patient-portal/records?tab=lab-reports', NOW() - INTERVAL '18 days'),
+       ($1, $2, $3, 'Appointment Reminder', 'Upcoming Follow-up with Dr. Aris Thorne', 'Reminder: Your scheduled cardiology follow-up consultation is confirmed for next Monday at 10:00 AM.', '/patient-portal/appointments', NULL)`,
+    [userId, normalizedPatientId, patientId]
+  );
+
+  await db.query(
+    `INSERT INTO audit_logs (user_id, patient_id, patient_account_id, action, entity_type, entity_id, details, ip_address)
+     VALUES 
+       ($1, $2, $3, 'VIEW_LAB_REPORT', 'lab_reports', 'LAB-REP-8812', '{"event": "Patient viewed lipid profile diagnostic summary", "browser": "Chrome/131.0 on macOS"}'::jsonb, '192.168.1.104'),
+       ($1, $2, $3, 'DOWNLOAD_RADIOLOGY_REPORT', 'radiology_reports', 'RAD-REP-3012', '{"event": "Patient downloaded Echocardiogram diagnostic report PDF", "file_size": "1.4MB"}'::jsonb, '192.168.1.104')`,
+    [userId, normalizedPatientId, patientId]
+  );
 }
 
 async function run() {

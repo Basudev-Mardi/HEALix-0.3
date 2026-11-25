@@ -878,6 +878,210 @@ CREATE TABLE IF NOT EXISTS patient_feedbacks (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ============================================================================
+-- Section 8.F: Content and Support Normalized Blueprint
+-- ============================================================================
+
+-- 1. blog_categories: id, name, slug
+CREATE TABLE IF NOT EXISTS blog_categories (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  description TEXT DEFAULT '',
+  display_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_blog_categories_slug ON blog_categories(slug);
+
+-- 2. blog_articles: id, title, slug, content, author, status
+CREATE TABLE IF NOT EXISTS blog_articles (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  content TEXT NOT NULL,
+  author TEXT NOT NULL,
+  author_title TEXT DEFAULT '',
+  author_doctor_slug TEXT REFERENCES doctors(slug) ON DELETE SET NULL,
+  category_id INTEGER REFERENCES blog_categories(id) ON DELETE SET NULL,
+  category_slug TEXT DEFAULT '',
+  excerpt TEXT DEFAULT '',
+  read_minutes INTEGER NOT NULL DEFAULT 5,
+  tags TEXT[] NOT NULL DEFAULT '{}',
+  key_takeaways TEXT[] NOT NULL DEFAULT '{}',
+  is_featured BOOLEAN NOT NULL DEFAULT FALSE,
+  status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('draft', 'published', 'archived')),
+  published_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_blog_articles_slug ON blog_articles(slug);
+CREATE INDEX IF NOT EXISTS idx_blog_articles_status ON blog_articles(status, published_at DESC);
+CREATE INDEX IF NOT EXISTS idx_blog_articles_category ON blog_articles(category_id);
+
+-- 3. health_packages: id, name, description, price, status
+-- (Ensure health_packages has all required Section 8.F columns)
+CREATE TABLE IF NOT EXISTS health_packages (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  category TEXT NOT NULL DEFAULT 'General Health',
+  description TEXT NOT NULL DEFAULT '',
+  price NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+  original_price NUMERIC(10, 2),
+  duration TEXT NOT NULL DEFAULT 'Half Day (3-4 hours)',
+  fasting_required BOOLEAN NOT NULL DEFAULT TRUE,
+  target_audience TEXT NOT NULL DEFAULT 'Adults 18+',
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'archived')),
+  is_featured BOOLEAN NOT NULL DEFAULT FALSE,
+  display_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Ensure all Section 8.F columns exist if health_packages was already created
+ALTER TABLE health_packages ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'archived'));
+ALTER TABLE health_packages ADD COLUMN IF NOT EXISTS price NUMERIC(10, 2) NOT NULL DEFAULT 0.00;
+ALTER TABLE health_packages ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
+ALTER TABLE health_packages ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+CREATE INDEX IF NOT EXISTS idx_health_packages_status ON health_packages(status);
+CREATE INDEX IF NOT EXISTS idx_health_packages_slug ON health_packages(slug);
+
+-- 4. health_package_tests: id, package_id, test_name
+CREATE TABLE IF NOT EXISTS health_package_tests (
+  id SERIAL PRIMARY KEY,
+  package_id INTEGER NOT NULL REFERENCES health_packages(id) ON DELETE CASCADE,
+  test_name TEXT NOT NULL,
+  category TEXT DEFAULT 'Diagnostic Investigation',
+  display_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_package_tests_package ON health_package_tests(package_id);
+
+-- 5. insurance_providers: id, name, description, status
+CREATE TABLE IF NOT EXISTS insurance_providers (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  code TEXT UNIQUE,
+  category TEXT NOT NULL DEFAULT 'Private Health Insurer',
+  description TEXT NOT NULL DEFAULT '',
+  network_tier TEXT NOT NULL DEFAULT 'Preferred In-Network Tier 1',
+  cashless_available BOOLEAN NOT NULL DEFAULT TRUE,
+  preauth_turnaround TEXT NOT NULL DEFAULT '2-4 hours',
+  co_pay_percentage TEXT NOT NULL DEFAULT '0% - 10%',
+  helpline TEXT NOT NULL DEFAULT '',
+  website TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'pending_renewal')),
+  display_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Ensure all Section 8.F columns exist if insurance_providers was already created
+ALTER TABLE insurance_providers ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'pending_renewal'));
+ALTER TABLE insurance_providers ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
+ALTER TABLE insurance_providers ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+CREATE INDEX IF NOT EXISTS idx_insurance_providers_status ON insurance_providers(status);
+
+-- 6. faqs: id, question, answer, category
+CREATE TABLE IF NOT EXISTS faqs (
+  id SERIAL PRIMARY KEY,
+  question TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'General',
+  display_order INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_faqs_category ON faqs(category, display_order);
+
+-- 7. enquiries: id, name, email, subject, message, status
+CREATE TABLE IF NOT EXISTS enquiries (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT DEFAULT '',
+  subject TEXT NOT NULL,
+  message TEXT NOT NULL,
+  department TEXT DEFAULT 'General Enquiries',
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'resolved', 'closed')),
+  assigned_to TEXT DEFAULT '',
+  resolution_notes TEXT DEFAULT '',
+  resolved_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_enquiries_status ON enquiries(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_enquiries_email ON enquiries(LOWER(email));
+
+-- 8. feedback: id, patient_id, rating, message
+CREATE TABLE IF NOT EXISTS feedback (
+  id SERIAL PRIMARY KEY,
+  patient_id TEXT REFERENCES patients(id) ON DELETE SET NULL,
+  patient_account_id INTEGER REFERENCES patient_accounts(id) ON DELETE SET NULL,
+  patient_name TEXT DEFAULT '',
+  email TEXT DEFAULT '',
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  message TEXT NOT NULL,
+  department_visited TEXT DEFAULT '',
+  doctor_care_rating INTEGER DEFAULT 5,
+  cleanliness_rating INTEGER DEFAULT 5,
+  staff_courtesy_rating INTEGER DEFAULT 5,
+  would_recommend BOOLEAN NOT NULL DEFAULT TRUE,
+  status TEXT NOT NULL DEFAULT 'reviewed' CHECK (status IN ('submitted', 'reviewed', 'published', 'archived')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_feedback_patient ON feedback(patient_id);
+CREATE INDEX IF NOT EXISTS idx_feedback_rating ON feedback(rating);
+
+-- 9. notifications: id, user_id, title, message, read_at
+CREATE TABLE IF NOT EXISTS notifications (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  patient_id TEXT REFERENCES patients(id) ON DELETE CASCADE,
+  patient_account_id INTEGER REFERENCES patient_accounts(id) ON DELETE CASCADE,
+  category TEXT NOT NULL DEFAULT 'System',
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  action_href TEXT DEFAULT '',
+  read_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, read_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_patient ON notifications(patient_id, read_at);
+
+-- 10. audit_logs: id, user_id, action, entity_type, entity_id, created_at
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  patient_id TEXT REFERENCES patients(id) ON DELETE SET NULL,
+  patient_account_id INTEGER REFERENCES patient_accounts(id) ON DELETE SET NULL,
+  action TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  details JSONB NOT NULL DEFAULT '{}'::jsonb,
+  ip_address TEXT DEFAULT '',
+  user_agent TEXT DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Ensure all Section 8.F audit_logs columns exist
+ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS entity_type TEXT NOT NULL DEFAULT 'clinical_record';
+ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS entity_id TEXT NOT NULL DEFAULT 'system';
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON audit_logs(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_patient ON audit_logs(patient_id, created_at DESC);
+
 CREATE INDEX IF NOT EXISTS idx_doctors_department ON doctors(department_slug);
 CREATE INDEX IF NOT EXISTS idx_services_department ON services(department_slug);
 CREATE INDEX IF NOT EXISTS idx_gallery_category ON gallery_items(category);

@@ -1,6 +1,12 @@
 -- Healix Hospital Management System — Seed Data (Idempotent)
 
 TRUNCATE TABLE
+  feedback,
+  enquiries,
+  faqs,
+  health_package_tests,
+  blog_articles,
+  blog_categories,
   invoice_items,
   invoices,
   patient_documents,
@@ -1134,3 +1140,332 @@ SELECT
   inv.id, 'Venipuncture & Specimen Handling Fee', 60.00, 'CPT-36415', 'Central Phlebotomy Core'
 FROM invoices inv
 WHERE inv.invoice_number = 'INV-2026-4410';
+
+-- ============================================================================
+-- Section 8.F: Content and Support Seed Data
+-- ============================================================================
+
+-- 1. blog_categories
+INSERT INTO blog_categories (name, slug, description, display_order)
+VALUES
+  ('Cardiology & Heart Health', 'cardiology-heart-health', 'Preventative cardiology, clinical guidance, and advanced vascular care insights.', 1),
+  ('Neurology & Brain Wellness', 'neurology-brain-wellness', 'Neuroscience updates, cognitive health, stroke recovery, and cranial microsurgery.', 2),
+  ('Orthopaedics & Joint Health', 'orthopaedics-joint-health', 'Robotic joint replacement, mobility maintenance, and sports medicine rehabilitation.', 3),
+  ('Preventative Wellness', 'preventative-wellness', 'Executive wellness checks, longevity, biomarker monitoring, and lifestyle medicine.', 4),
+  ('Pediatrics & Child Care', 'pediatrics-child-care', 'Child development milestones, pediatric immunizations, and family health guidance.', 5)
+ON CONFLICT (slug) DO UPDATE
+SET name = EXCLUDED.name, description = EXCLUDED.description;
+
+-- 2. blog_articles
+INSERT INTO blog_articles (
+  title, slug, content, author, author_title, author_doctor_slug, category_id, category_slug, excerpt, read_minutes, tags, key_takeaways, is_featured, status, published_at
+)
+SELECT
+  'Advancements in Robotic-Assisted Minimally Invasive Valve Reconstruction',
+  'robotic-valve-reconstruction',
+  'Minimally invasive cardiac surgery represents a paradigm shift in structural heart disease management. Through sub-centimeter thoracic ports and high-definition stereoscopic 3D cameras, our surgical teams achieve precise leaflet repair with negligible operative trauma. Patients routinely experience shorter ICU lengths of stay, reduced blood transfusions, and rapid resumption of physical activity within two weeks post-procedure.',
+  'Dr. Aris Thorne, MD',
+  'Chief of Cardiothoracic Surgery',
+  'dr-aris-thorne',
+  c.id,
+  c.slug,
+  'How robotic micro-instrumentation is transforming mitral and aortic valve repairs with 99.2% repair durability and 48-hour hospital discharge.',
+  6,
+  ARRAY['Cardiology', 'Robotic Surgery', 'Minimally Invasive', 'Structural Heart'],
+  ARRAY[
+    'Robotic port-access repairs reduce ICU stay from 3 days to under 24 hours.',
+    'Over 99% 5-year leaflet repair durability without sternotomy.',
+    'Significantly lower incidence of post-operative atrial fibrillation.'
+  ],
+  TRUE,
+  'published',
+  NOW() - INTERVAL '12 days'
+FROM blog_categories c WHERE c.slug = 'cardiology-heart-health'
+ON CONFLICT (slug) DO NOTHING;
+
+INSERT INTO blog_articles (
+  title, slug, content, author, author_title, author_doctor_slug, category_id, category_slug, excerpt, read_minutes, tags, key_takeaways, is_featured, status, published_at
+)
+SELECT
+  'The Golden Hour in Acute Ischemic Stroke: Modern Endovascular Thrombectomy',
+  'stroke-thrombectomy-golden-hour',
+  'Rapid revascularization of occluded cerebral arteries remains the cornerstone of modern neuro-interventional acute care. With our biplane neuro-angiography suite and AI-assisted CT perfusion gating, door-to-groin puncture times at Healix average 22 minutes, yielding unmatched functional independence rates in large vessel occlusion strokes.',
+  'Dr. Samuel Keller, MD',
+  'Senior Spine & Cranial Neurosurgeon',
+  'dr-samuel-keller',
+  c.id,
+  c.slug,
+  'Understanding early stroke warning signs, tissue window expansion, and emergent catheter-directed clot extraction protocols.',
+  5,
+  ARRAY['Neurology', 'Stroke Intervention', 'Endovascular', 'Critical Care'],
+  ARRAY[
+    'BE-FAST recognition enables timely activation of code stroke teams.',
+    'Endovascular thrombectomy extends therapeutic window up to 24 hours in selected patients.',
+    'AI CT perfusion triage reduces triage-to-recanalization delay by 40%.'
+  ],
+  TRUE,
+  'published',
+  NOW() - INTERVAL '25 days'
+FROM blog_categories c WHERE c.slug = 'neurology-brain-wellness'
+ON CONFLICT (slug) DO NOTHING;
+
+-- 3. health_packages (ensure updated status, price, and description)
+INSERT INTO health_packages (
+  name, slug, category, description, price, original_price, duration, fasting_required, target_audience, status, is_featured, display_order
+) VALUES
+  (
+    'Executive Comprehensive Health Evaluation',
+    'executive-comprehensive-package',
+    'Executive Wellness',
+    'Complete clinical, biochemical, and imaging audit designed for busy professionals seeking thorough baseline longevity evaluation.',
+    450.00,
+    650.00,
+    'Half Day (4 hours)',
+    TRUE,
+    'Men and Women aged 30+',
+    'active',
+    TRUE,
+    1
+  ),
+  (
+    'Advanced Cardiac Longevity & Vascular Screen',
+    'advanced-cardiac-package',
+    'Cardiovascular Health',
+    'Multi-marker cardiometabolic assessment featuring high-sensitivity biomarkers, echocardiogram, and stress testing.',
+    380.00,
+    520.00,
+    'Morning session (3 hours)',
+    TRUE,
+    'Adults with family history of cardiovascular disease or hypertension',
+    'active',
+    TRUE,
+    2
+  ),
+  (
+    'Master Metabolic & Diabetes Defense Screen',
+    'metabolic-defense-package',
+    'Metabolic Health',
+    'Targeted glycemic, endocrine, and lipid metabolic audit to prevent and manage insulin resistance and cardiometabolic risk.',
+    260.00,
+    380.00,
+    'Morning session (2.5 hours)',
+    TRUE,
+    'Adults seeking proactive metabolic health management',
+    'active',
+    FALSE,
+    3
+  )
+ON CONFLICT (slug) DO UPDATE
+SET
+  name = EXCLUDED.name,
+  description = EXCLUDED.description,
+  price = EXCLUDED.price,
+  status = EXCLUDED.status;
+
+-- 4. health_package_tests
+INSERT INTO health_package_tests (package_id, test_name, category, display_order)
+SELECT p.id, 'Advanced Lipid & Apolipoprotein B Panel', 'Biochemistry Core', 1
+FROM health_packages p WHERE p.slug = 'executive-comprehensive-package'
+UNION ALL
+SELECT p.id, 'Complete Metabolic Panel & eGFR', 'Biochemistry Core', 2
+FROM health_packages p WHERE p.slug = 'executive-comprehensive-package'
+UNION ALL
+SELECT p.id, 'Resting 12-Lead Electrocardiogram (ECG)', 'Cardiology Diagnostic', 3
+FROM health_packages p WHERE p.slug = 'executive-comprehensive-package'
+UNION ALL
+SELECT p.id, 'High-Resolution Abdominal & Pelvic Ultrasound', 'Imaging Core', 4
+FROM health_packages p WHERE p.slug = 'executive-comprehensive-package'
+UNION ALL
+SELECT p.id, 'High-Sensitivity C-Reactive Protein (hs-CRP)', 'Vascular Biomarkers', 1
+FROM health_packages p WHERE p.slug = 'advanced-cardiac-package'
+UNION ALL
+SELECT p.id, 'Transthoracic Echocardiogram (TTE) with Color Doppler', 'Cardiology Imaging', 2
+FROM health_packages p WHERE p.slug = 'advanced-cardiac-package'
+UNION ALL
+SELECT p.id, 'Treadmill Exercise Stress Test (TMT)', 'Functional Stress Core', 3
+FROM health_packages p WHERE p.slug = 'advanced-cardiac-package';
+
+-- 5. insurance_providers
+INSERT INTO insurance_providers (
+  name, code, category, description, network_tier, cashless_available, preauth_turnaround, co_pay_percentage, helpline, website, status, display_order
+) VALUES
+  (
+    'Blue Cross Blue Shield Healthcare',
+    'BCBS-01',
+    'Major Commercial Payer',
+    'Preferred in-network hospital partner providing seamless digital cashless pre-authorization and tier 1 inpatient coverage.',
+    'Preferred In-Network Tier 1',
+    TRUE,
+    '2 - 4 hours',
+    '0% - 10%',
+    '+1 (800) 555-2227',
+    'https://www.bcbs.com',
+    'active',
+    1
+  ),
+  (
+    'Aetna Health & Life Assurance',
+    'AET-02',
+    'Commercial Managed Care',
+    'Comprehensive inpatient and surgical cashless network partner with automated electronic pre-authorization portal.',
+    'Tier 1 Premier Network',
+    TRUE,
+    '2 - 3 hours',
+    '10%',
+    '+1 (800) 872-3862',
+    'https://www.aetna.com',
+    'active',
+    2
+  ),
+  (
+    'UnitedHealthcare Global',
+    'UHC-03',
+    'Commercial & International',
+    'Worldwide healthcare coverage with dedicated on-site hospital liaison coordinator for fast claims processing.',
+    'Choice Plus & Select Network',
+    TRUE,
+    '1 - 3 hours',
+    '0% - 15%',
+    '+1 (800) 386-4832',
+    'https://www.uhc.com',
+    'active',
+    3
+  ),
+  (
+    'Cigna Global Health Benefits',
+    'CIG-04',
+    'International & Corporate',
+    'Specialized coverage for corporate executives and expatriates with round-the-clock international concierge coordination.',
+    'Global Platinum Network',
+    TRUE,
+    '2 - 4 hours',
+    '0%',
+    '+1 (800) 997-1654',
+    'https://www.cigna.com',
+    'active',
+    4
+  )
+ON CONFLICT (code) DO UPDATE
+SET
+  name = EXCLUDED.name,
+  description = EXCLUDED.description,
+  status = EXCLUDED.status;
+
+-- 6. faqs
+INSERT INTO faqs (question, answer, category, display_order, status)
+VALUES
+  (
+    'How do I schedule an outpatient consultation with a specialist?',
+    'You can book directly via our online appointment portal 24/7, select your desired doctor and preferred time slot, or phone our central concierge desk at +1 (800) 432-5490.',
+    'Appointments & Scheduling',
+    1,
+    'active'
+  ),
+  (
+    'What documentation should I present on arrival for cashless admission?',
+    'Please bring a government-issued photo ID, your active health insurance card/e-card, and prior medical records or doctor referral notes. Our Insurance Helpdesk will initiate pre-authorization immediately.',
+    'Insurance & Billing',
+    2,
+    'active'
+  ),
+  (
+    'How do I access and download my medical lab and radiology reports?',
+    'Authenticated patients can access verified clinical records instantly within the Patient Portal under the Clinical Records & Diagnostic Reports tab, downloadable in high-resolution PDF format.',
+    'Patient Portal & Records',
+    3,
+    'active'
+  ),
+  (
+    'What are the designated visiting hours for inpatient rooms and ICU?',
+    'General inpatient visiting hours are daily from 10:00 AM to 08:00 PM (maximum 2 visitors simultaneously). Critical Care and ICU visitation is restricted to immediate family from 11:00 AM - 12:00 PM and 05:00 PM - 06:00 PM.',
+    'Hospital Facilities & Visiting',
+    4,
+    'active'
+  ),
+  (
+    'Is emergency trauma care available without prior appointment?',
+    'Yes. Our Level I Emergency & Trauma Center operates 24 hours a day, 365 days a year with on-site trauma surgeons, cardiologists, and rapid diagnostic imaging suites.',
+    'Emergency & Urgent Care',
+    5,
+    'active'
+  );
+
+-- 7. enquiries
+INSERT INTO enquiries (name, email, phone, subject, message, department, status, created_at)
+VALUES
+  (
+    'Jonathan Miller',
+    'jonathan.miller@example.com',
+    '+1 (617) 555-8910',
+    'Inquiry regarding robotic mitral valve repair evaluation',
+    'I was diagnosed with severe mitral regurgitation and would like to know if Dr. Aris Thorne reviews second opinions for out-of-state patients.',
+    'Cardiology & Heart Center',
+    'in_progress',
+    NOW() - INTERVAL '1 day'
+  ),
+  (
+    'Sarah Jenkins',
+    'sjenkins@example.org',
+    '+1 (617) 555-2349',
+    'Corporate Executive Wellness Package Booking for 15 Employees',
+    'Our company is looking to schedule annual executive wellness screenings for our senior management team in December. Please send corporate rates.',
+    'Executive Wellness & Corporate Care',
+    'resolved',
+    NOW() - INTERVAL '3 days'
+  );
+
+-- 8. feedback
+INSERT INTO feedback (
+  patient_id, patient_name, email, rating, message, department_visited, doctor_care_rating, cleanliness_rating, staff_courtesy_rating, would_recommend, status, created_at
+)
+SELECT
+  p.id, p.first_name || ' ' || p.last_name, 'clara.vance@example.com', 5,
+  'Exceptional clinical care by Dr. Thorne and the entire cardiology team. The facility is world-class, clean, and the patient portal made managing appointments and lab results completely effortless.',
+  'Cardiovascular Medicine', 5, 5, 5, TRUE, 'published', NOW() - INTERVAL '15 days'
+FROM patients p
+WHERE p.patient_number = 'HX-MRN-402819';
+
+-- 9. notifications
+INSERT INTO notifications (user_id, patient_id, category, title, message, action_href, read_at, created_at)
+SELECT
+  u.id, p.id, 'Clinical Results',
+  'Advanced Lipid & Apolipoprotein B Panel Verified',
+  'Your diagnostic biochemistry results ordered by Dr. Aris Thorne are finalized and available for review.',
+  '/patient-portal/records?tab=lab-reports',
+  NOW() - INTERVAL '18 days',
+  NOW() - INTERVAL '20 days'
+FROM users u
+JOIN patients p ON p.user_id = u.id
+WHERE p.patient_number = 'HX-MRN-402819'
+UNION ALL
+SELECT
+  u.id, p.id, 'Appointment Reminder',
+  'Upcoming Follow-up with Dr. Aris Thorne',
+  'Reminder: Your scheduled cardiology follow-up consultation is confirmed for next Monday at 10:00 AM.',
+  '/patient-portal/appointments',
+  NULL,
+  NOW() - INTERVAL '2 days'
+FROM users u
+JOIN patients p ON p.user_id = u.id
+WHERE p.patient_number = 'HX-MRN-402819';
+
+-- 10. audit_logs
+INSERT INTO audit_logs (user_id, patient_id, action, entity_type, entity_id, details, ip_address, created_at)
+SELECT
+  u.id, p.id, 'VIEW_LAB_REPORT', 'lab_reports', 'LAB-REP-8812',
+  '{"event": "Patient viewed lipid profile diagnostic summary", "browser": "Chrome/131.0 on macOS"}'::jsonb,
+  '192.168.1.104',
+  NOW() - INTERVAL '18 days'
+FROM users u
+JOIN patients p ON p.user_id = u.id
+WHERE p.patient_number = 'HX-MRN-402819'
+UNION ALL
+SELECT
+  u.id, p.id, 'DOWNLOAD_RADIOLOGY_REPORT', 'radiology_reports', 'RAD-REP-3012',
+  '{"event": "Patient downloaded Echocardiogram diagnostic report PDF", "file_size": "1.4MB"}'::jsonb,
+  '192.168.1.104',
+  NOW() - INTERVAL '15 days'
+FROM users u
+JOIN patients p ON p.user_id = u.id
+WHERE p.patient_number = 'HX-MRN-402819';
+
