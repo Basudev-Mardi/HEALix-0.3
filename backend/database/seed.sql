@@ -1,6 +1,14 @@
 -- Healix Hospital Management System — Seed Data (Idempotent)
 
 TRUNCATE TABLE
+  invoice_items,
+  invoices,
+  patient_documents,
+  radiology_reports,
+  lab_reports,
+  prescription_items,
+  prescriptions,
+  medical_records,
   appointment_cancellations,
   appointment_payments,
   appointment_status_history,
@@ -1015,3 +1023,114 @@ SELECT a.id, 'Patient schedule conflict; rescheduled to following week', 'Patien
 FROM appointments a
 WHERE a.status = 'Cancelled'
 LIMIT 1;
+
+-- ============================================================================
+-- Section 8.E Normalized Patient Health Information Seeds
+-- ============================================================================
+
+-- 1. medical_records
+INSERT INTO medical_records (patient_id, record_type, record_date, title, doctor_id, doctor_name, department_id, department_name, summary, clinical_notes, status)
+SELECT 
+  p.id, 'Diagnosis', '2026-08-14'::date, 'Essential Hypertension, Stage 1 (Well-Controlled)',
+  d.id, d.name, dep.id, dep.name,
+  'Blood pressure well-maintained on Lisinopril 10 mg once daily. Target BP < 125/80 mmHg achieved consistently over 6 months.',
+  'Ambulatory BP monitoring indicates stable daytime and nocturnal dipping pattern. Next review in 6 months.',
+  'Active'
+FROM patients p, doctors d, departments dep
+WHERE p.patient_number = 'HX-MRN-402819' AND d.slug = 'dr-aris-thorne' AND dep.slug = 'cardiology'
+UNION ALL
+SELECT 
+  p.id, 'Immunization', '2026-09-20'::date, 'Recombinant Influenza Vaccine (Quadrivalent 2026-2027)',
+  d.id, d.name, dep.id, dep.name,
+  'Annual preventive vaccination administered via deltoid intramuscular route. No immediate adverse reactions noted.',
+  'Patient advised on mild arm soreness. Batch: FLU-2026-994.',
+  'Resolved'
+FROM patients p, doctors d, departments dep
+WHERE p.patient_number = 'HX-MRN-402819' AND d.slug = 'dr-aris-thorne' AND dep.slug = 'cardiology';
+
+-- 2. prescriptions & prescription_items
+INSERT INTO prescriptions (prescription_number, patient_id, patient_uuid, doctor_id, doctor_name, prescribed_at, prescribed_date, diagnosis, status, refills_allowed, refills_remaining, medication_name, dosage, frequency, duration, prescribed_by, instructions)
+SELECT 
+  'RX-2026-7819', pa.id, p.id, d.id, d.name, NOW() - INTERVAL '30 days', (CURRENT_DATE - INTERVAL '30 days')::date,
+  'Primary Hypercholesterolemia & Essential Hypertension', 'Active', 3, 2,
+  'Atorvastatin Calcium & Lisinopril', 'Multi-agent', 'Daily', '90 days', d.name, 'Follow specific instructions for each medication item.'
+FROM patients p
+JOIN patient_accounts pa ON pa.email = 'clara.vance@example.com',
+doctors d
+WHERE p.patient_number = 'HX-MRN-402819' AND d.slug = 'dr-aris-thorne'
+RETURNING id;
+
+INSERT INTO prescription_items (prescription_id, medicine_name, dosage, frequency, duration, instructions, route)
+SELECT 
+  pr.id, 'Atorvastatin Calcium', '20 mg', 'Once daily at bedtime', '90 days', 'Avoid grapefruit consumption while taking this medication.', 'Oral'
+FROM prescriptions pr
+WHERE pr.prescription_number = 'RX-2026-7819'
+UNION ALL
+SELECT 
+  pr.id, 'Lisinopril', '10 mg', 'Once daily in the morning', '90 days', 'Take with or without food. Monitor home blood pressure weekly.', 'Oral'
+FROM prescriptions pr
+WHERE pr.prescription_number = 'RX-2026-7819';
+
+-- 3. lab_reports
+INSERT INTO lab_reports (id, report_code, patient_id, patient_name, test_name, category, report_file, specimen_type, collected_date, released_date, doctor_id, ordered_by, status, results_summary, results_json)
+SELECT
+  'LAB-REP-8812', 'LAB-2026-8812', p.id, p.first_name || ' ' || p.last_name, 'Advanced Lipid & Apolipoprotein B Panel', 'Clinical Biochemistry',
+  '/api/v1/patients/lab-reports/download?id=1', 'Serum Venous Blood', '2026-11-04'::date, NOW() - INTERVAL '20 days',
+  d.id, d.name, 'Released',
+  'ApoB decreased to 74 mg/dL indicating optimal response to current lipid-lowering therapy. Normal renal markers.',
+  '[
+    {"test": "Total Cholesterol", "value": 164, "unit": "mg/dL", "ref_range": "< 200", "flag": "Normal"},
+    {"test": "HDL Cholesterol", "value": 58, "unit": "mg/dL", "ref_range": "> 50", "flag": "Optimal"},
+    {"test": "LDL Cholesterol", "value": 86, "unit": "mg/dL", "ref_range": "< 100", "flag": "Normal"},
+    {"test": "Triglycerides", "value": 100, "unit": "mg/dL", "ref_range": "< 150", "flag": "Normal"},
+    {"test": "Apolipoprotein B", "value": 74, "unit": "mg/dL", "ref_range": "< 80", "flag": "Optimal"}
+  ]'::jsonb
+FROM patients p, doctors d
+WHERE p.patient_number = 'HX-MRN-402819' AND d.slug = 'dr-aris-thorne'
+ON CONFLICT (id) DO NOTHING;
+
+-- 4. radiology_reports
+INSERT INTO radiology_reports (id, study_code, patient_id, patient_name, study_type, report_file, study_name, study_date, radiologist_name, findings, impression, status)
+SELECT
+  'RAD-REP-3012', 'RAD-2026-3012', p.id, p.first_name || ' ' || p.last_name, 'Echocardiogram (TTE)',
+  '/api/v1/patients/radiology-reports/download?id=1', 'Comprehensive Transthoracic Echocardiogram with Doppler',
+  '2026-07-28'::date, 'Dr. Sarah Lin, MD (Chief of Diagnostic Imaging)',
+  'Left ventricular internal dimensions are normal. Ejection fraction estimated at 64% with normal wall motion throughout. Right ventricle normal in size and function. No hemodynamically significant valvular regurgitation.',
+  'Normal resting transthoracic echocardiogram. Preserved LV systolic function (LVEF 64%). No structural abnormalities.',
+  'Released'
+FROM patients p
+WHERE p.patient_number = 'HX-MRN-402819'
+ON CONFLICT (id) DO NOTHING;
+
+-- 5. patient_documents
+INSERT INTO patient_documents (patient_id, document_type, title, file_url, mime_type, file_size_bytes)
+SELECT 
+  p.id, 'Insurance Card', 'Blue Cross Blue Shield Primary Medical ID (Front & Back)',
+  '/documents/patients/HX-MRN-402819/bcbs-insurance-card.pdf', 'application/pdf', 245000
+FROM patients p
+WHERE p.patient_number = 'HX-MRN-402819'
+UNION ALL
+SELECT 
+  p.id, 'Consent Form', 'Healix Electronic Health Record & Telehealth Clinical Consent',
+  '/documents/patients/HX-MRN-402819/general-consent-signed.pdf', 'application/pdf', 182000
+FROM patients p
+WHERE p.patient_number = 'HX-MRN-402819';
+
+-- 6. invoices & invoice_items
+INSERT INTO invoices (invoice_number, patient_id, amount, insurance_covered, patient_responsibility, status, invoice_date, due_date, payment_method, payment_reference)
+SELECT 
+  'INV-2026-4410', p.id, 320.00, 275.00, 45.00, 'Unpaid', '2026-11-05'::date, '2026-12-05'::date, '', ''
+FROM patients p
+WHERE p.patient_number = 'HX-MRN-402819'
+RETURNING id;
+
+INSERT INTO invoice_items (invoice_id, description, amount, item_code, department_name)
+SELECT 
+  inv.id, 'Advanced Lipid & Apolipoprotein B Diagnostic Panel', 260.00, 'CPT-80061', 'Automated Pathology Laboratory'
+FROM invoices inv
+WHERE inv.invoice_number = 'INV-2026-4410'
+UNION ALL
+SELECT 
+  inv.id, 'Venipuncture & Specimen Handling Fee', 60.00, 'CPT-36415', 'Central Phlebotomy Core'
+FROM invoices inv
+WHERE inv.invoice_number = 'INV-2026-4410';

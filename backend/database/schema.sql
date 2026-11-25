@@ -561,6 +561,218 @@ CREATE TABLE IF NOT EXISTS patient_otp_verifications (
 
 CREATE INDEX IF NOT EXISTS idx_patient_otp_ident ON patient_otp_verifications(identifier, used, expires_at);
 
+-- ============================================================================
+-- Section 8.E: Patient Health Information Normalized Relational Blueprint
+-- ============================================================================
+
+-- 1. medical_records: id, patient_id, record_type, record_date
+CREATE TABLE IF NOT EXISTS medical_records (
+  id SERIAL PRIMARY KEY,
+  patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  record_type TEXT NOT NULL, -- 'Diagnosis', 'Surgery', 'Immunization', 'Allergy', 'Discharge Summary'
+  record_date DATE NOT NULL,
+  title TEXT NOT NULL,
+  doctor_id INTEGER REFERENCES doctors(id) ON DELETE SET NULL,
+  doctor_name TEXT DEFAULT '',
+  department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,
+  department_name TEXT DEFAULT '',
+  summary TEXT NOT NULL,
+  clinical_notes TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Resolved', 'Historical', 'Inactive')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_medical_records_patient ON medical_records(patient_id, record_date DESC);
+CREATE INDEX IF NOT EXISTS idx_medical_records_type ON medical_records(record_type);
+
+-- 2. prescriptions: id, patient_id, doctor_id, prescribed_at
+CREATE TABLE IF NOT EXISTS prescriptions (
+  id SERIAL PRIMARY KEY,
+  prescription_number TEXT UNIQUE,
+  patient_id INTEGER, -- Legacy / patient_accounts FK
+  patient_uuid TEXT REFERENCES patients(id) ON DELETE SET NULL, -- Section 8.E normalized patient FK
+  doctor_id INTEGER REFERENCES doctors(id) ON DELETE SET NULL,
+  doctor_name TEXT DEFAULT '',
+  prescribed_at TIMESTAMPTZ DEFAULT NOW(),
+  diagnosis TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'Active',
+  refills_allowed INTEGER NOT NULL DEFAULT 0,
+  refills_remaining INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Ensure all Section 8.E columns exist if prescriptions table already existed
+ALTER TABLE prescriptions ALTER COLUMN medication_name DROP NOT NULL;
+ALTER TABLE prescriptions ALTER COLUMN dosage DROP NOT NULL;
+ALTER TABLE prescriptions ALTER COLUMN frequency DROP NOT NULL;
+ALTER TABLE prescriptions ALTER COLUMN duration DROP NOT NULL;
+ALTER TABLE prescriptions ALTER COLUMN prescribed_by DROP NOT NULL;
+ALTER TABLE prescriptions ALTER COLUMN prescribed_date DROP NOT NULL;
+ALTER TABLE prescriptions ALTER COLUMN instructions DROP NOT NULL;
+ALTER TABLE prescriptions ADD COLUMN IF NOT EXISTS prescription_number TEXT UNIQUE;
+ALTER TABLE prescriptions ADD COLUMN IF NOT EXISTS patient_uuid TEXT REFERENCES patients(id) ON DELETE SET NULL;
+ALTER TABLE prescriptions ADD COLUMN IF NOT EXISTS doctor_id INTEGER REFERENCES doctors(id) ON DELETE SET NULL;
+ALTER TABLE prescriptions ADD COLUMN IF NOT EXISTS doctor_name TEXT DEFAULT '';
+ALTER TABLE prescriptions ADD COLUMN IF NOT EXISTS prescribed_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE prescriptions ADD COLUMN IF NOT EXISTS diagnosis TEXT DEFAULT '';
+ALTER TABLE prescriptions ADD COLUMN IF NOT EXISTS refills_allowed INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE prescriptions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+CREATE INDEX IF NOT EXISTS idx_prescriptions_patient ON prescriptions(patient_id);
+CREATE INDEX IF NOT EXISTS idx_prescriptions_doctor ON prescriptions(doctor_id);
+
+-- 3. prescription_items: id, prescription_id, medicine_name, dosage
+CREATE TABLE IF NOT EXISTS prescription_items (
+  id SERIAL PRIMARY KEY,
+  prescription_id INTEGER NOT NULL REFERENCES prescriptions(id) ON DELETE CASCADE,
+  medicine_name TEXT NOT NULL,
+  dosage TEXT NOT NULL,
+  frequency TEXT NOT NULL, -- e.g., 'Once daily with morning meal'
+  duration TEXT NOT NULL,  -- e.g., '90 days'
+  instructions TEXT DEFAULT '',
+  route TEXT DEFAULT 'Oral',
+  is_substitution_allowed BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_prescription_items_rx ON prescription_items(prescription_id);
+
+-- 4. lab_reports: id, patient_id, test_name, report_file
+CREATE TABLE IF NOT EXISTS lab_reports (
+  id SERIAL PRIMARY KEY,
+  report_code TEXT UNIQUE,
+  patient_id TEXT,
+  test_name TEXT,
+  category TEXT DEFAULT 'Clinical Pathology',
+  report_file TEXT DEFAULT '', -- Path/URL to authorized laboratory PDF/document
+  specimen_type TEXT DEFAULT 'Blood',
+  collected_date DATE,
+  released_date TIMESTAMPTZ,
+  doctor_id INTEGER REFERENCES doctors(id) ON DELETE SET NULL,
+  ordered_by TEXT DEFAULT '',
+  pathologist_name TEXT DEFAULT 'Dr. Eleanor Vance, MD (Laboratory Director)',
+  status TEXT NOT NULL DEFAULT 'Finalized',
+  results_summary TEXT DEFAULT '',
+  results_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Ensure all Section 8.E columns exist if lab_reports table already existed
+ALTER TABLE lab_reports ALTER COLUMN id SET DEFAULT gen_random_uuid()::text;
+ALTER TABLE lab_reports ALTER COLUMN request_id DROP NOT NULL;
+ALTER TABLE lab_reports ALTER COLUMN patient_name DROP NOT NULL;
+ALTER TABLE lab_reports ALTER COLUMN referring_doctor DROP NOT NULL;
+ALTER TABLE lab_reports ALTER COLUMN verified_by DROP NOT NULL;
+ALTER TABLE lab_reports ALTER COLUMN generated_by DROP NOT NULL;
+ALTER TABLE lab_reports ALTER COLUMN report_snapshot DROP NOT NULL;
+ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS report_code TEXT UNIQUE;
+ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS test_name TEXT DEFAULT 'Diagnostic Lab Test';
+ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'Clinical Pathology';
+ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS report_file TEXT DEFAULT '';
+ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS specimen_type TEXT DEFAULT 'Blood';
+ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS collected_date DATE DEFAULT CURRENT_DATE;
+ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS released_date TIMESTAMPTZ;
+ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS doctor_id INTEGER REFERENCES doctors(id) ON DELETE SET NULL;
+ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS ordered_by TEXT DEFAULT '';
+ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS pathologist_name TEXT DEFAULT 'Dr. Eleanor Vance, MD (Laboratory Director)';
+ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'Finalized';
+ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS results_summary TEXT DEFAULT '';
+ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS results_json JSONB NOT NULL DEFAULT '[]'::jsonb;
+
+CREATE INDEX IF NOT EXISTS idx_lab_reports_patient ON lab_reports(patient_id);
+CREATE INDEX IF NOT EXISTS idx_lab_reports_status ON lab_reports(status);
+
+-- 5. radiology_reports: id, patient_id, study_type, report_file
+CREATE TABLE IF NOT EXISTS radiology_reports (
+  id SERIAL PRIMARY KEY,
+  study_code TEXT UNIQUE,
+  patient_id TEXT,
+  study_type TEXT, -- e.g., '3T MRI', '256-Slice CT', 'Ultrasound', 'Digital X-Ray'
+  report_file TEXT DEFAULT '', -- Path/URL to authorized radiology report / DICOM preview
+  study_name TEXT DEFAULT '',
+  study_date DATE DEFAULT CURRENT_DATE,
+  radiologist_name TEXT DEFAULT '',
+  findings TEXT DEFAULT '',
+  impression TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'Finalized',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Ensure all Section 8.E columns exist if radiology_reports table already existed
+ALTER TABLE radiology_reports ALTER COLUMN id SET DEFAULT gen_random_uuid()::text;
+ALTER TABLE radiology_reports ALTER COLUMN request_id DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN examination_id DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN patient_name DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN modality DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN exam_type DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN body_region DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN referring_doctor DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN image_ids DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN findings DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN observations DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN impression DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN conclusion DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN radiologist_name DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN status DROP NOT NULL;
+ALTER TABLE radiology_reports ALTER COLUMN report_history DROP NOT NULL;
+ALTER TABLE radiology_reports ADD COLUMN IF NOT EXISTS study_code TEXT UNIQUE;
+ALTER TABLE radiology_reports ADD COLUMN IF NOT EXISTS study_type TEXT DEFAULT 'Diagnostic Radiology';
+ALTER TABLE radiology_reports ADD COLUMN IF NOT EXISTS report_file TEXT DEFAULT '';
+ALTER TABLE radiology_reports ADD COLUMN IF NOT EXISTS study_name TEXT DEFAULT '';
+ALTER TABLE radiology_reports ADD COLUMN IF NOT EXISTS study_date DATE DEFAULT CURRENT_DATE;
+
+CREATE INDEX IF NOT EXISTS idx_radiology_reports_patient ON radiology_reports(patient_id, study_date DESC);
+CREATE INDEX IF NOT EXISTS idx_radiology_reports_study ON radiology_reports(study_type);
+
+-- 6. patient_documents: id, patient_id, document_type, file_url
+CREATE TABLE IF NOT EXISTS patient_documents (
+  id SERIAL PRIMARY KEY,
+  patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  document_type TEXT NOT NULL, -- 'Insurance Card', 'Government ID', 'Prior Hospital Summary', 'Consent Form'
+  title TEXT NOT NULL,
+  file_url TEXT NOT NULL,
+  mime_type TEXT DEFAULT 'application/pdf',
+  file_size_bytes INTEGER DEFAULT 0,
+  uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_patient_documents_patient ON patient_documents(patient_id);
+
+-- 7. invoices: id, patient_id, invoice_number, amount, status
+CREATE TABLE IF NOT EXISTS invoices (
+  id SERIAL PRIMARY KEY,
+  invoice_number TEXT UNIQUE NOT NULL,
+  patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  amount NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+  insurance_covered NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+  patient_responsibility NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+  status TEXT NOT NULL DEFAULT 'Unpaid' CHECK (status IN ('Unpaid', 'Paid', 'Partially_Paid', 'Claim_In_Process', 'Waived')),
+  invoice_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  due_date DATE NOT NULL DEFAULT CURRENT_DATE + INTERVAL '30 days',
+  payment_method TEXT DEFAULT '',
+  payment_reference TEXT DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_invoices_patient ON invoices(patient_id, status);
+CREATE INDEX IF NOT EXISTS idx_invoices_number ON invoices(invoice_number);
+
+-- 8. invoice_items: id, invoice_id, description, amount
+CREATE TABLE IF NOT EXISTS invoice_items (
+  id SERIAL PRIMARY KEY,
+  invoice_id INTEGER NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+  description TEXT NOT NULL,
+  amount NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+  item_code TEXT DEFAULT '',
+  department_name TEXT DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id);
+
 CREATE TABLE IF NOT EXISTS patient_medical_history (
   id SERIAL PRIMARY KEY,
   patient_id INTEGER NOT NULL REFERENCES patient_accounts(id) ON DELETE CASCADE,
