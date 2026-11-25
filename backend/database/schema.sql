@@ -178,6 +178,126 @@ CREATE TABLE IF NOT EXISTS appointment_faqs (
   display_order INTEGER NOT NULL DEFAULT 0
 );
 
+-- ============================================================================
+-- Section 8.A: User and Patient Management Normalized Schema Blueprint
+-- ============================================================================
+
+-- 1. users: id, email, phone, password_hash, status
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  phone TEXT NOT NULL DEFAULT '',
+  password_hash TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'pending_verification', 'suspended', 'deactivated')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(LOWER(email));
+CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
+
+-- 2. patients: id, user_id, patient_number, first_name, last_name, dob
+-- (Note: patients.id is text/UUID/MRN compatible to support hospital EMR systems)
+CREATE TABLE IF NOT EXISTS patients (
+  id TEXT PRIMARY KEY,
+  user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  patient_number TEXT UNIQUE, -- Unique MRN (e.g., MRN-2026-XXXX)
+  first_name TEXT DEFAULT '',
+  last_name TEXT DEFAULT '',
+  dob DATE,
+  gender TEXT DEFAULT '',
+  blood_group TEXT DEFAULT '',
+  insurance_provider TEXT DEFAULT '',
+  insurance_policy_no TEXT DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Ensure all Section 8.A fields exist if table was previously created
+ALTER TABLE patients ALTER COLUMN full_name DROP NOT NULL;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS patient_number TEXT UNIQUE;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS first_name TEXT DEFAULT '';
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS last_name TEXT DEFAULT '';
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS dob DATE;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_provider TEXT DEFAULT '';
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS insurance_policy_no TEXT DEFAULT '';
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+CREATE INDEX IF NOT EXISTS idx_patients_user_id ON patients(user_id);
+CREATE INDEX IF NOT EXISTS idx_patients_number ON patients(patient_number);
+CREATE INDEX IF NOT EXISTS idx_patients_names ON patients(LOWER(last_name), LOWER(first_name));
+
+-- 3. patient_addresses: id, patient_id, address, city, state, postal_code
+CREATE TABLE IF NOT EXISTS patient_addresses (
+  id SERIAL PRIMARY KEY,
+  patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  address TEXT NOT NULL,
+  city TEXT NOT NULL,
+  state TEXT NOT NULL,
+  postal_code TEXT NOT NULL,
+  is_primary BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_patient_addresses_patient ON patient_addresses(patient_id);
+
+-- 4. patient_contacts: id, patient_id, contact_name, relationship, phone
+CREATE TABLE IF NOT EXISTS patient_contacts (
+  id SERIAL PRIMARY KEY,
+  patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  contact_name TEXT NOT NULL,
+  relationship TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  is_emergency BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_patient_contacts_patient ON patient_contacts(patient_id);
+
+-- 5. email_verifications: id, user_id, token_hash, expires_at
+CREATE TABLE IF NOT EXISTS email_verifications (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  verified_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_verif_user ON email_verifications(user_id, expires_at);
+CREATE INDEX IF NOT EXISTS idx_email_verif_token ON email_verifications(token_hash);
+
+-- 6. password_resets: id, user_id, token_hash, expires_at
+CREATE TABLE IF NOT EXISTS password_resets (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  used BOOLEAN NOT NULL DEFAULT FALSE,
+  used_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_pwd_resets_user ON password_resets(user_id, used, expires_at);
+CREATE INDEX IF NOT EXISTS idx_pwd_resets_hash ON password_resets(token_hash);
+
+-- 7. user_sessions: id, user_id, expires_at
+CREATE TABLE IF NOT EXISTS user_sessions (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT UNIQUE NOT NULL,
+  ip_address TEXT,
+  user_agent TEXT,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_sessions_user ON user_sessions(user_id, expires_at);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(token_hash);
+
 -- Patient Account & Portal Tables
 CREATE TABLE IF NOT EXISTS patient_accounts (
   id SERIAL PRIMARY KEY,

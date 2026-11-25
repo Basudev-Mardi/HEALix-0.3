@@ -24,6 +24,13 @@ const client = new pg.Client({
 async function seedDemoPatient(db) {
   await db.query(`
     TRUNCATE TABLE
+      user_sessions,
+      password_resets,
+      email_verifications,
+      patient_contacts,
+      patient_addresses,
+      patients,
+      users,
       portal_notifications,
       patient_billing_records,
       patient_radiology_reports,
@@ -37,6 +44,41 @@ async function seedDemoPatient(db) {
   `);
 
   const demoPasswordHash = hashPassword('Healix2026!');
+
+  // Seed Section 8.A Normalized User & Patient
+  const userRes = await db.query(
+    `INSERT INTO users (email, phone, password_hash, status)
+     VALUES ('clara.vance@example.com', '+1 (617) 555-0148', $1, 'active')
+     RETURNING id`,
+    [demoPasswordHash]
+  );
+  const userId = userRes.rows[0].id;
+
+  const normalizedPatientRes = await db.query(
+    `INSERT INTO patients (id, user_id, patient_number, first_name, last_name, full_name, dob, gender, blood_group, insurance_provider, insurance_policy_no)
+     VALUES ('HX-PT-402819', $1, 'HX-MRN-402819', 'Clara', 'Vance', 'Clara Vance', '1984-06-14', 'Female', 'O+', 'Blue Cross Blue Shield', 'BCBS-MA-8849201')
+     ON CONFLICT (id) DO UPDATE SET
+       user_id = EXCLUDED.user_id,
+       patient_number = EXCLUDED.patient_number,
+       first_name = EXCLUDED.first_name,
+       last_name = EXCLUDED.last_name,
+       full_name = EXCLUDED.full_name
+     RETURNING id`,
+    [userId]
+  );
+  const normalizedPatientId = normalizedPatientRes.rows[0].id;
+
+  await db.query(
+    `INSERT INTO patient_addresses (patient_id, address, city, state, postal_code, is_primary)
+     VALUES ($1, '214 Commonwealth Ave, Apt 4B', 'Boston', 'MA', '02116', TRUE)`,
+    [normalizedPatientId]
+  );
+
+  await db.query(
+    `INSERT INTO patient_contacts (patient_id, contact_name, relationship, phone, is_emergency)
+     VALUES ($1, 'Arthur Vance', 'Spouse', '+1 (617) 555-0190', TRUE)`,
+    [normalizedPatientId]
+  );
 
   const patientRes = await db.query(
     `INSERT INTO patient_accounts (
