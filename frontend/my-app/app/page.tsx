@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import DepartmentIcon from '@/components/DepartmentIcon';
 import DoctorAvatar from '@/components/DoctorAvatar';
-import { getDepartmentImage } from '@/components/HospitalCards';
+import { getDepartmentImage } from '@/lib/department-utils';
 import { getHomeData } from '@/lib/api';
 import { getHealthArticles, getHealthPackages } from '@/lib/support-api';
 

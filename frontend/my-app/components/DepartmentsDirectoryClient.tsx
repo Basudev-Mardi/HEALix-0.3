@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -14,7 +14,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import DepartmentIcon from '@/components/DepartmentIcon';
-import { getDepartmentImage } from '@/components/HospitalCards';
+import { getDepartmentImage } from '@/lib/department-utils';
 import type { Department } from '@/lib/types';
 
 export default function DepartmentsDirectoryClient({

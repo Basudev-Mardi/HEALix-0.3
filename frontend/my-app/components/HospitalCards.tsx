@@ -9,19 +9,10 @@ import {
 import Image from 'next/image';
 import DoctorAvatar from '@/components/DoctorAvatar';
 import DepartmentIcon from '@/components/DepartmentIcon';
+import { getDepartmentImage } from '@/lib/department-utils';
 import type { Department, Doctor } from '@/lib/types';
 
-// Department Image Mapping
-export function getDepartmentImage(slugOrName: string): string {
-  const key = slugOrName.toLowerCase();
-  if (key.includes('cardio')) return '/Images/Cardiology%20&%20Heart%20Institute.png';
-  if (key.includes('oncol')) return '/Images/Comprehensive%20Oncology.png';
-  if (key.includes('neuro')) return '/Images/Neurology%20&%20Neurosciences.png';
-  if (key.includes('ortho')) return '/Images/Orthopedics%20&%20Joint%20Reconstruction.png';
-  if (key.includes('pediat') || key.includes('neonat')) return '/Images/Pediatrics%20&%20Neonatology.png';
-  if (key.includes('emerg') || key.includes('critical') || key.includes('trauma')) return '/Images/Emergency%20&%20Critical%20Care.png';
-  return '/Images/hospital-exterior.png';
-}
+export { getDepartmentImage };
 
 // 1. Doctor Card
 export interface DoctorCardProps {
