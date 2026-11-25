@@ -35,6 +35,8 @@ export default async function HomePage() {
 
   const featuredPackages = healthPackages.slice(0, 3);
   const recentArticles = healthArticles.slice(0, 3);
+  // Display strictly top 4 signature services on homepage
+  const signatureServices = (featuredServices || []).slice(0, 4);
 
   const testimonials = [
     {
@@ -520,7 +522,7 @@ export default async function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {featuredServices.map((service) => (
+          {signatureServices.map((service) => (
             <Link
               key={service.slug}
               href={`/services/${service.slug}`}
