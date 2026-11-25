@@ -1,6 +1,11 @@
 -- Healix Hospital Management System — Seed Data (Idempotent)
 
 TRUNCATE TABLE
+  appointment_slots,
+  doctor_leaves,
+  doctor_schedules,
+  doctor_specializations,
+  doctor_qualifications,
   hospital_statistics,
   hospital_gallery,
   hospital_branches,
@@ -883,3 +888,80 @@ INSERT INTO appointment_faqs (category, question, answer, display_order) VALUES
   'Standard co-pays or self-pay consultation fees are settled at check-in on the day of your visit. No upfront payment is required to reserve your slot online.',
   8
 );
+
+-- ============================================================================
+-- Section 8.C Normalized Doctors, Qualifications, Schedules, and Slots Seeds
+-- ============================================================================
+
+-- Backfill department_id on doctors
+UPDATE doctors d
+SET department_id = dep.id
+FROM departments dep
+WHERE dep.slug = d.department_slug;
+
+-- 1. doctor_qualifications
+INSERT INTO doctor_qualifications (doctor_id, qualification, institution, year_obtained)
+SELECT d.id, 'Doctor of Medicine (MD)', 'Harvard Medical School', 2004 FROM doctors d WHERE d.slug = 'dr-aris-thorne'
+UNION ALL
+SELECT d.id, 'Fellow of American College of Cardiology (FACC)', 'American College of Cardiology', 2009 FROM doctors d WHERE d.slug = 'dr-aris-thorne'
+UNION ALL
+SELECT d.id, 'MD/PhD in Neuroscience', 'Johns Hopkins University', 2006 FROM doctors d WHERE d.slug = 'dr-mei-ling-chen'
+UNION ALL
+SELECT d.id, 'Fellow of American Academy of Neurology (FAAN)', 'AAN', 2011 FROM doctors d WHERE d.slug = 'dr-mei-ling-chen'
+UNION ALL
+SELECT d.id, 'Doctor of Medicine (MD)', 'Stanford University School of Medicine', 2008 FROM doctors d WHERE d.slug = 'dr-marcus-sterling'
+UNION ALL
+SELECT d.id, 'Adult Reconstruction Fellowship', 'Rothman Orthopaedic Institute', 2013 FROM doctors d WHERE d.slug = 'dr-marcus-sterling';
+
+-- 2. doctor_specializations
+INSERT INTO doctor_specializations (doctor_id, specialization, is_primary)
+SELECT d.id, 'Interventional Cardiology', TRUE FROM doctors d WHERE d.slug = 'dr-aris-thorne'
+UNION ALL
+SELECT d.id, 'Transcatheter Aortic Valve Replacement (TAVR)', FALSE FROM doctors d WHERE d.slug = 'dr-aris-thorne'
+UNION ALL
+SELECT d.id, 'Cerebrovascular & Endovascular Neurology', TRUE FROM doctors d WHERE d.slug = 'dr-mei-ling-chen'
+UNION ALL
+SELECT d.id, 'Acute Ischemic Stroke Mechanical Thrombectomy', FALSE FROM doctors d WHERE d.slug = 'dr-mei-ling-chen'
+UNION ALL
+SELECT d.id, 'Robotic Orthopedic Surgery', TRUE FROM doctors d WHERE d.slug = 'dr-marcus-sterling'
+UNION ALL
+SELECT d.id, 'Minimally Invasive Total Hip Arthroplasty', FALSE FROM doctors d WHERE d.slug = 'dr-marcus-sterling';
+
+-- 3. doctor_schedules
+INSERT INTO doctor_schedules (doctor_id, day, start_time, end_time, room_or_cabin, slot_duration_minutes)
+SELECT d.id, 'Monday', '09:00:00'::time, '13:00:00'::time, 'Suite 302, Heart Center', 30 FROM doctors d WHERE d.slug = 'dr-aris-thorne'
+UNION ALL
+SELECT d.id, 'Wednesday', '09:00:00'::time, '13:00:00'::time, 'Suite 302, Heart Center', 30 FROM doctors d WHERE d.slug = 'dr-aris-thorne'
+UNION ALL
+SELECT d.id, 'Friday', '09:00:00'::time, '13:00:00'::time, 'Suite 302, Heart Center', 30 FROM doctors d WHERE d.slug = 'dr-aris-thorne'
+UNION ALL
+SELECT d.id, 'Tuesday', '10:00:00'::time, '16:00:00'::time, 'Suite 410, Neurosciences', 30 FROM doctors d WHERE d.slug = 'dr-mei-ling-chen'
+UNION ALL
+SELECT d.id, 'Thursday', '10:00:00'::time, '16:00:00'::time, 'Suite 410, Neurosciences', 30 FROM doctors d WHERE d.slug = 'dr-mei-ling-chen'
+UNION ALL
+SELECT d.id, 'Tuesday', '08:30:00'::time, '14:30:00'::time, 'Suite 205, Orthopedics', 30 FROM doctors d WHERE d.slug = 'dr-marcus-sterling';
+
+-- 4. doctor_leaves
+INSERT INTO doctor_leaves (doctor_id, start_date, end_date, reason, approved_by, status)
+SELECT d.id, (CURRENT_DATE + INTERVAL '45 days')::date, (CURRENT_DATE + INTERVAL '50 days')::date, 'Annual Clinical Cardiology Symposium Attendance', 'Chief Medical Officer', 'approved'
+FROM doctors d WHERE d.slug = 'dr-aris-thorne'
+UNION ALL
+SELECT d.id, (CURRENT_DATE + INTERVAL '60 days')::date, (CURRENT_DATE + INTERVAL '65 days')::date, 'World Stroke Congress Keynote Address', 'Chief Medical Officer', 'approved'
+FROM doctors d WHERE d.slug = 'dr-mei-ling-chen';
+
+-- 5. appointment_slots (Pre-generated live capacity slots for upcoming 7 days)
+INSERT INTO appointment_slots (doctor_id, date, start_time, end_time, capacity, booked_count, status)
+SELECT d.id, (CURRENT_DATE + INTERVAL '1 day')::date, '09:00:00'::time, '09:30:00'::time, 1, 0, 'available' FROM doctors d WHERE d.slug = 'dr-aris-thorne'
+UNION ALL
+SELECT d.id, (CURRENT_DATE + INTERVAL '1 day')::date, '09:30:00'::time, '10:00:00'::time, 1, 0, 'available' FROM doctors d WHERE d.slug = 'dr-aris-thorne'
+UNION ALL
+SELECT d.id, (CURRENT_DATE + INTERVAL '1 day')::date, '10:00:00'::time, '10:30:00'::time, 1, 0, 'available' FROM doctors d WHERE d.slug = 'dr-aris-thorne'
+UNION ALL
+SELECT d.id, (CURRENT_DATE + INTERVAL '1 day')::date, '10:30:00'::time, '11:00:00'::time, 1, 0, 'available' FROM doctors d WHERE d.slug = 'dr-aris-thorne'
+UNION ALL
+SELECT d.id, (CURRENT_DATE + INTERVAL '1 day')::date, '11:00:00'::time, '11:30:00'::time, 1, 1, 'booked' FROM doctors d WHERE d.slug = 'dr-aris-thorne'
+UNION ALL
+SELECT d.id, (CURRENT_DATE + INTERVAL '2 days')::date, '10:00:00'::time, '10:30:00'::time, 1, 0, 'available' FROM doctors d WHERE d.slug = 'dr-mei-ling-chen'
+UNION ALL
+SELECT d.id, (CURRENT_DATE + INTERVAL '2 days')::date, '10:30:00'::time, '11:00:00'::time, 1, 0, 'available' FROM doctors d WHERE d.slug = 'dr-mei-ling-chen'
+ON CONFLICT (doctor_id, date, start_time) DO NOTHING;

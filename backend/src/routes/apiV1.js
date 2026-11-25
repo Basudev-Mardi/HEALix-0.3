@@ -122,7 +122,24 @@ router.get(
       return res.status(404).json({ error: 'Doctor not found' });
     }
     const doctor = docRes.rows[0];
-    res.json({ data: doctor });
+
+    // Fetch normalized sub-records
+    const [qualRes, specRes, schedRes, leaveRes] = await Promise.all([
+      query('SELECT qualification, institution, year_obtained FROM doctor_qualifications WHERE doctor_id = $1', [doctor.id]),
+      query('SELECT specialization, is_primary FROM doctor_specializations WHERE doctor_id = $1', [doctor.id]),
+      query('SELECT day, start_time, end_time, room_or_cabin FROM doctor_schedules WHERE doctor_id = $1 ORDER BY id ASC', [doctor.id]),
+      query('SELECT start_date, end_date, reason FROM doctor_leaves WHERE doctor_id = $1 AND end_date >= CURRENT_DATE', [doctor.id]),
+    ]);
+
+    res.json({
+      data: {
+        ...doctor,
+        qualifications: qualRes.rows,
+        specializations: specRes.rows,
+        schedules: schedRes.rows,
+        leaves: leaveRes.rows,
+      },
+    });
   })
 );
 

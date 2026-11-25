@@ -111,6 +111,8 @@ CREATE TABLE IF NOT EXISTS doctors (
   title TEXT NOT NULL,
   specialty TEXT NOT NULL,
   department_slug TEXT NOT NULL REFERENCES departments(slug) ON DELETE RESTRICT,
+  department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,
+  profile_image TEXT DEFAULT '',
   qualification TEXT NOT NULL,
   experience_years INTEGER NOT NULL,
   languages TEXT[] NOT NULL DEFAULT '{}',
@@ -125,6 +127,84 @@ CREATE TABLE IF NOT EXISTS doctors (
   is_featured BOOLEAN NOT NULL DEFAULT FALSE,
   display_order INTEGER NOT NULL DEFAULT 0
 );
+
+-- Ensure Section 8.C columns exist on doctors
+ALTER TABLE doctors ADD COLUMN IF NOT EXISTS department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL;
+ALTER TABLE doctors ADD COLUMN IF NOT EXISTS profile_image TEXT DEFAULT '';
+
+-- ============================================================================
+-- Section 8.C: Doctors and Schedules Normalized Blueprint
+-- ============================================================================
+
+-- 1. doctor_qualifications: id, doctor_id, qualification
+CREATE TABLE IF NOT EXISTS doctor_qualifications (
+  id SERIAL PRIMARY KEY,
+  doctor_id INTEGER NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+  qualification TEXT NOT NULL,
+  institution TEXT DEFAULT '',
+  year_obtained INTEGER,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_doc_qual_doctor ON doctor_qualifications(doctor_id);
+
+-- 2. doctor_specializations: id, doctor_id, specialization
+CREATE TABLE IF NOT EXISTS doctor_specializations (
+  id SERIAL PRIMARY KEY,
+  doctor_id INTEGER NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+  specialization TEXT NOT NULL,
+  is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_doc_spec_doctor ON doctor_specializations(doctor_id);
+CREATE INDEX IF NOT EXISTS idx_doc_spec_name ON doctor_specializations(LOWER(specialization));
+
+-- 3. doctor_schedules: id, doctor_id, day, start_time, end_time
+CREATE TABLE IF NOT EXISTS doctor_schedules (
+  id SERIAL PRIMARY KEY,
+  doctor_id INTEGER NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+  day TEXT NOT NULL CHECK (day IN ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')),
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  room_or_cabin TEXT DEFAULT '',
+  slot_duration_minutes INTEGER NOT NULL DEFAULT 30,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_doc_schedules_doc_day ON doctor_schedules(doctor_id, day);
+
+-- 4. doctor_leaves: id, doctor_id, start_date, end_date, reason
+CREATE TABLE IF NOT EXISTS doctor_leaves (
+  id SERIAL PRIMARY KEY,
+  doctor_id INTEGER NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  reason TEXT NOT NULL,
+  approved_by TEXT DEFAULT 'Medical Director Office',
+  status TEXT NOT NULL DEFAULT 'approved' CHECK (status IN ('requested', 'approved', 'cancelled')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT check_leave_dates CHECK (end_date >= start_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_doc_leaves_doctor ON doctor_leaves(doctor_id, start_date, end_date);
+
+-- 5. appointment_slots: id, doctor_id, date, start_time, end_time, capacity
+CREATE TABLE IF NOT EXISTS appointment_slots (
+  id SERIAL PRIMARY KEY,
+  doctor_id INTEGER NOT NULL REFERENCES doctors(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  capacity INTEGER NOT NULL DEFAULT 1,
+  booked_count INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'booked', 'blocked')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT check_slot_capacity CHECK (booked_count <= capacity),
+  CONSTRAINT unique_doctor_slot UNIQUE (doctor_id, date, start_time)
+);
+
+CREATE INDEX IF NOT EXISTS idx_appt_slots_lookup ON appointment_slots(doctor_id, date, status);
 
 CREATE TABLE IF NOT EXISTS services (
   id SERIAL PRIMARY KEY,
