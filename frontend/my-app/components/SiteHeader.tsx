@@ -32,9 +32,6 @@ const NAV_LINKS = [
   { href: '/departments', label: 'Departments' },
   { href: '/doctors', label: 'Doctors' },
   { href: '/services', label: 'Services' },
-  { href: '/facilities', label: 'Facilities' },
-  { href: '/gallery', label: 'Gallery' },
-  { href: '/visiting-hours', label: 'Timings' },
 ];
 
 export default function SiteHeader() {

@@ -48,7 +48,5 @@ export { default as ConfirmationClient } from './ConfirmationClient';
 export { default as DoctorsDirectoryClient } from './DoctorsDirectoryClient';
 export { default as DepartmentsDirectoryClient } from './DepartmentsDirectoryClient';
 export { default as ServicesDirectoryClient } from './ServicesDirectoryClient';
-export { default as FacilitiesClient } from './FacilitiesClient';
-export { default as GalleryGrid } from './GalleryGrid';
 export { default as HealthPackagesClient } from './HealthPackagesClient';
 export { default as HealthLibraryClient } from './HealthLibraryClient';

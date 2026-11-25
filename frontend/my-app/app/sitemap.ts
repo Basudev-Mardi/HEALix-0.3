@@ -11,7 +11,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/doctors',
     '/departments',
     '/services',
-    '/facilities',
     '/book-appointment',
     '/health-packages',
     '/insurance',

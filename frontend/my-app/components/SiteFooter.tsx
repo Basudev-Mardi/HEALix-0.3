@@ -66,21 +66,6 @@ export default function SiteFooter() {
                   Infrastructure
                 </Link>
               </li>
-              <li>
-                <Link href="/gallery" className="hover:text-[#242A28] transition-colors">
-                  Hospital Gallery
-                </Link>
-              </li>
-              <li>
-                <Link href="/facilities" className="hover:text-[#242A28] transition-colors">
-                  Facilities
-                </Link>
-              </li>
-              <li>
-                <Link href="/visiting-hours" className="hover:text-[#242A28] transition-colors">
-                  Visiting Timings
-                </Link>
-              </li>
             </ul>
           </div>
 

@@ -18,7 +18,7 @@ import {
   Users,
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
-import { getGallery, getHospitalInfo, getInfrastructure } from '@/lib/api';
+import { getHospitalInfo, getInfrastructure } from '@/lib/api';
 
 export const metadata: Metadata = {
   title: 'About Healix Hospital | History, Leadership & Accreditation',
@@ -27,13 +27,11 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const [hospital, infrastructure, gallery] = await Promise.all([
+  const [hospital, infrastructure] = await Promise.all([
     getHospitalInfo(),
     getInfrastructure(),
-    getGallery(),
   ]);
 
-  const previewGallery = gallery.slice(0, 4);
   const keyInfrastructure = infrastructure.slice(0, 4);
 
   const clinicalLeaders = [
@@ -460,51 +458,6 @@ export default async function AboutPage() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* 09. Hospital Gallery Preview */}
-      <section className="container-editorial py-16 lg:py-20">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div>
-            <span className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40] block mb-2">
-              Visual Campus Tour
-            </span>
-            <h2 className="font-editorial text-3xl sm:text-4xl text-[#242A28]">
-              Healing Architecture &amp; Clinical Spaces
-            </h2>
-          </div>
-          <Link
-            href="/gallery"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#242A28] hover:text-[#174C40] transition-colors"
-          >
-            View complete hospital gallery
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {previewGallery.map((item) => (
-            <div
-              key={item.id}
-              className="rounded-2xl border border-[#E5E8E6] bg-white p-6 flex flex-col justify-between shadow-xs hover:border-[#174C40] transition-all"
-            >
-              <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#174C40] block mb-1.5 font-semibold">
-                  {item.category}
-                </span>
-                <h3 className="font-editorial text-lg text-[#242A28] font-medium leading-snug">
-                  {item.title}
-                </h3>
-                <p className="text-xs text-[#77817C] mt-2 leading-relaxed">{item.description}</p>
-              </div>
-
-              <div className="mt-6 pt-3 border-t border-[#E5E8E6] text-[11px] font-mono text-[#4A5350] flex items-center justify-between">
-                <span>{item.location}</span>
-                <span className="text-[#174C40]">Verified Space</span>
-              </div>
-            </div>
-          ))}
         </div>
       </section>
     </div>

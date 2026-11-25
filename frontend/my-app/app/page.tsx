@@ -22,21 +22,19 @@ import {
 } from 'lucide-react';
 import DepartmentIcon from '@/components/DepartmentIcon';
 import DoctorAvatar from '@/components/DoctorAvatar';
-import { getFacilities, getHomeData } from '@/lib/api';
+import { getHomeData } from '@/lib/api';
 import { getHealthArticles, getHealthPackages } from '@/lib/support-api';
 
 export default async function HomePage() {
   const { hospital, departments, featuredDoctors, featuredServices, infrastructureHighlights } =
     await getHomeData();
-  const [facilities, healthPackages, healthArticles] = await Promise.all([
-    getFacilities(),
+  const [healthPackages, healthArticles] = await Promise.all([
     getHealthPackages(),
     getHealthArticles(),
   ]);
 
   const featuredPackages = healthPackages.slice(0, 3);
   const recentArticles = healthArticles.slice(0, 3);
-  const previewFacilities = facilities.slice(0, 4);
 
   const testimonials = [
     {
@@ -595,47 +593,6 @@ export default async function HomePage() {
               </p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* 09. Facilities & Infrastructure Preview */}
-      <section className="container-editorial py-20 lg:py-24 border-b border-[#E5E8E6]">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div>
-            <p className="text-xs font-mono uppercase tracking-[0.16em] text-[#174C40] mb-2">
-              Campus Facilities
-            </p>
-            <h2 className="font-editorial text-3xl sm:text-4xl text-[#242A28]">
-              Healing infrastructure built for safety
-            </h2>
-          </div>
-          <Link
-            href="/facilities"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#242A28] hover:text-[#174C40] transition-colors"
-          >
-            Explore all campus facilities
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {previewFacilities.map((fac) => (
-            <div
-              key={fac.id}
-              className="rounded-2xl border border-[#E5E8E6] bg-white p-6 flex flex-col justify-between shadow-xs"
-            >
-              <div>
-                <span className="text-[11px] font-mono text-[#174C40] block mb-2">
-                  {fac.floor_location}
-                </span>
-                <h3 className="font-editorial text-lg text-[#242A28] font-medium">{fac.name}</h3>
-                <p className="text-xs text-[#77817C] mt-2 leading-relaxed">{fac.description}</p>
-              </div>
-              <div className="mt-5 pt-3 border-t border-[#E5E8E6] text-[11px] font-mono text-[#4A5350]">
-                Availability: {fac.availability}
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 
