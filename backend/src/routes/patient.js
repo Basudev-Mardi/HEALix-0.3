@@ -652,10 +652,6 @@ router.post(
   })
 );
 
-    res.json({ data: result.rows[0] });
-  })
-);
-
 // Workflow E: Hospital Staff Medical Report Release Simulation
 // Simulates staff recording, clinical verification by authorized clinician, patient release, and notification dispatch
 router.post(
