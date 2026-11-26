@@ -54,6 +54,11 @@ export default function SiteHeader() {
     pathname === '/terms' ||
     pathname === '/patient-rights';
 
+  // Completely remove navbar for receptionist dashboard
+  if (pathname.startsWith('/staff/receptionist')) {
+    return null;
+  }
+
   return (
     <header className="sticky top-0 z-50 bg-[#FAFAF7]/90 backdrop-blur-md border-b border-[#E5E8E6]">
       {/* Subtle Utility Strip */}

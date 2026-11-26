@@ -1,7 +1,16 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ArrowUpRight, MapPin, Phone, Siren } from 'lucide-react';
 
 export default function SiteFooter() {
+  const pathname = usePathname();
+
+  // Completely remove footer on receptionist dashboard
+  if (pathname.startsWith('/staff/receptionist')) {
+    return null;
+  }
   return (
     <footer className="border-t border-[#E5E8E6] bg-[#E6EFE9]/60 mt-24">
       <div className="container-editorial py-16 lg:py-20">

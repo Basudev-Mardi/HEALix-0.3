@@ -2,11 +2,18 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ArrowLeft, KeyRound, LogOut, UserCheck } from 'lucide-react';
 import { clearStaffSession, getStaffSession, type StaffUser } from '@/lib/staff-auth';
 
 export default function StaffTopBar() {
+  const pathname = usePathname();
   const [currentStaff, setCurrentStaff] = useState<StaffUser | null>(null);
+
+  // Completely remove navbar for receptionist dashboard
+  if (pathname.startsWith('/staff/receptionist')) {
+    return null;
+  }
 
   useEffect(() => {
     setCurrentStaff(getStaffSession());

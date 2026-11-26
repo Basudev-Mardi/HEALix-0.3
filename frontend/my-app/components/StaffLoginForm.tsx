@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Lock,
   Mail,
@@ -42,6 +43,7 @@ export default function StaffLoginForm({
 }: {
   onLoginSuccess?: (staff: StaffUser) => void;
 }) {
+  const router = useRouter();
   const [selectedRole, setSelectedRole] = useState<string>('receptionist');
   const [identifier, setIdentifier] = useState<string>('reception@healix.org');
   const [password, setPassword] = useState<string>('staff123');
@@ -103,8 +105,12 @@ export default function StaffLoginForm({
       if (res.ok && res.staff) {
         setSuccessMsg(`Welcome, ${res.staff.name}! Authorized for ${res.staff.roleName} dashboard.`);
         setTimeout(() => {
-          onLoginSuccess?.(res.staff!);
-        }, 500);
+          if (res.staff?.role === 'receptionist') {
+            router.push('/staff/receptionist');
+          } else {
+            onLoginSuccess?.(res.staff!);
+          }
+        }, 400);
       } else {
         setError(res.error || 'Authentication denied. Please verify your credentials and selected role.');
       }
