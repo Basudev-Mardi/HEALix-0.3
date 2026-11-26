@@ -67,3 +67,6 @@ app.use((err, _req, res, _next) => {
 app.listen(PORT, () => {
   console.log(`Healix Express API listening on http://localhost:${PORT}`);
 });
+
+export default app;
+

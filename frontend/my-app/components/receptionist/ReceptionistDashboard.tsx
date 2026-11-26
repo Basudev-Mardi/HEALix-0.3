@@ -832,7 +832,9 @@ export default function ReceptionistDashboard() {
               )}
 
               {/* VIEW 9: REPORTS */}
-              {activeView === 'reports' && <ReceptionReportsView data={data} />}
+              {activeView === 'reports' && (
+                <ReceptionReportsView data={data} session={session} />
+              )}
 
               {/* VIEW 10: SETTINGS */}
               {activeView === 'settings' && (

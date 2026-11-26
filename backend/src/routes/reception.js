@@ -4446,4 +4446,617 @@ router.patch(
   })
 );
 
+// ============================================================================
+// RECEPTION REPORTS & ANALYTICS MODULE
+// ============================================================================
+
+/**
+ * GET /api/v1/reception/reports/analytics
+ * Generates comprehensive reception operational reports and analytics.
+ * Supports:
+ * - Date range filtering (start_date, end_date)
+ * - Department filtering (department_id)
+ * - Daily registrations
+ * - Total consultations & queue statuses (waiting vs completed)
+ * - Department-wise volume
+ * - Doctor-wise volume
+ * - Appointment statistics
+ * - Emergency registrations
+ * - Revenue & payment status (RBAC restricted)
+ */
+router.get(
+  '/reports/analytics',
+  asyncHandler(async (req, res) => {
+    const {
+      start_date,
+      end_date,
+      department_id = 'all',
+      staff_role = 'receptionist',
+    } = req.query;
+
+    // 1. Resolve Date Range (default to current date if omitted)
+    const client = await pool.connect();
+    try {
+      const todayRes = await client.query('SELECT CURRENT_DATE::text AS today');
+      const todayStr = todayRes.rows[0]?.today || new Date().toISOString().slice(0, 10);
+
+      const effectiveStartDate = (start_date && typeof start_date === 'string' && start_date.trim())
+        ? start_date.trim()
+        : todayStr;
+      const effectiveEndDate = (end_date && typeof end_date === 'string' && end_date.trim())
+        ? end_date.trim()
+        : todayStr;
+
+      const hasDeptFilter = department_id && department_id !== 'all';
+      const deptIdNum = hasDeptFilter ? Number(department_id) : null;
+
+      // Check Financial RBAC Permissions
+      // Receptionist, administrator, billing-staff have financial access.
+      // Other roles or unauthenticated viewers have restricted financials.
+      const financialRoles = ['administrator', 'billing-staff', 'receptionist'];
+      const canViewFinancials = financialRoles.includes(String(staff_role).toLowerCase());
+
+      // 2. Summary KPI Cards
+      // A. Patient Registrations within date range
+      const regRes = await client.query(
+        `SELECT COUNT(*)::int AS total_registrations
+         FROM patients
+         WHERE COALESCE(registration_date, created_at)::date >= $1::date
+           AND COALESCE(registration_date, created_at)::date <= $2::date`,
+        [effectiveStartDate, effectiveEndDate]
+      );
+      const totalRegistrations = Number(regRes.rows[0]?.total_registrations) || 0;
+
+      // B. Consultations & Queue Status in Tokens
+      let tokenSql = `
+        SELECT
+          COUNT(*)::int AS total_tokens,
+          COUNT(*) FILTER (WHERE t.status = 'Waiting')::int AS waiting_count,
+          COUNT(*) FILTER (WHERE t.status IN ('Now Serving', 'Consulting', 'Called'))::int AS consulting_count,
+          COUNT(*) FILTER (WHERE t.status = 'Completed')::int AS completed_count,
+          COUNT(*) FILTER (WHERE t.status = 'Cancelled')::int AS cancelled_count,
+          COUNT(*) FILTER (WHERE t.priority = 'Emergency')::int AS emergency_token_count
+        FROM tokens t
+        WHERE t.queue_date >= $1::date AND t.queue_date <= $2::date
+      `;
+      const tokenParams = [effectiveStartDate, effectiveEndDate];
+      if (hasDeptFilter) {
+        tokenParams.push(deptIdNum);
+        tokenSql += ` AND t.department_id = $3`;
+      }
+      const tokenRes = await client.query(tokenSql, tokenParams);
+      const tokenStats = tokenRes.rows[0] || {
+        total_tokens: 0,
+        waiting_count: 0,
+        consulting_count: 0,
+        completed_count: 0,
+        cancelled_count: 0,
+        emergency_token_count: 0,
+      };
+
+      // C. Visits & Emergency Registrations within date range
+      let visitSql = `
+        SELECT
+          COUNT(*)::int AS total_visits,
+          COUNT(*) FILTER (WHERE v.visit_type = 'Emergency')::int AS emergency_visits,
+          COUNT(*) FILTER (WHERE v.visit_type = 'OPD' OR v.visit_type = 'Follow-up')::int AS routine_visits
+        FROM visits v
+        WHERE v.visit_date >= $1::date AND v.visit_date <= $2::date
+      `;
+      const visitParams = [effectiveStartDate, effectiveEndDate];
+      if (hasDeptFilter) {
+        visitParams.push(deptIdNum);
+        visitSql += ` AND v.department_id = $3`;
+      }
+      const visitRes = await client.query(visitSql, visitParams);
+      const visitStats = visitRes.rows[0] || { total_visits: 0, emergency_visits: 0, routine_visits: 0 };
+
+      // D. Appointments within date range
+      let apptSql = `
+        SELECT
+          COUNT(*)::int AS total_appointments,
+          COUNT(*) FILTER (WHERE a.status = 'Scheduled')::int AS scheduled_count,
+          COUNT(*) FILTER (WHERE a.status = 'Checked-In' OR a.check_in_time IS NOT NULL)::int AS checked_in_count,
+          COUNT(*) FILTER (WHERE a.status = 'Completed')::int AS completed_appt_count,
+          COUNT(*) FILTER (WHERE a.status IN ('Cancelled', 'No-Show'))::int AS cancelled_appt_count
+        FROM appointments a
+        WHERE a.appointment_date >= $1::date AND a.appointment_date <= $2::date
+      `;
+      const apptParams = [effectiveStartDate, effectiveEndDate];
+      if (hasDeptFilter) {
+        apptParams.push(deptIdNum);
+        apptSql += ` AND a.department_id = $3`;
+      }
+      const apptRes = await client.query(apptSql, apptParams);
+      const apptStats = apptRes.rows[0] || {
+        total_appointments: 0,
+        scheduled_count: 0,
+        checked_in_count: 0,
+        completed_appt_count: 0,
+        cancelled_appt_count: 0,
+      };
+
+      // 3. Daily Timeline Progression (Trend for registrations, completed consultations, emergencies)
+      const dailyTrendRes = await client.query(
+        `SELECT
+           d.day::date::text AS date,
+           COALESCE(r.reg_count, 0)::int AS registrations,
+           COALESCE(t.completed_count, 0)::int AS completed_consultations,
+           COALESCE(t.waiting_count, 0)::int AS waiting_patients,
+           COALESCE(v.emergency_count, 0)::int AS emergency_cases
+         FROM generate_series($1::date, $2::date, '1 day'::interval) d(day)
+         LEFT JOIN (
+           SELECT COALESCE(registration_date, created_at)::date AS r_date, COUNT(*)::int AS reg_count
+           FROM patients
+           GROUP BY r_date
+         ) r ON r.r_date = d.day::date
+         LEFT JOIN (
+           SELECT
+             queue_date,
+             COUNT(*) FILTER (WHERE status = 'Completed')::int AS completed_count,
+             COUNT(*) FILTER (WHERE status = 'Waiting')::int AS waiting_count
+           FROM tokens
+           ${hasDeptFilter ? `WHERE department_id = ${deptIdNum}` : ''}
+           GROUP BY queue_date
+         ) t ON t.queue_date = d.day::date
+         LEFT JOIN (
+           SELECT visit_date, COUNT(*)::int AS emergency_count
+           FROM visits
+           WHERE visit_type = 'Emergency'
+             ${hasDeptFilter ? `AND department_id = ${deptIdNum}` : ''}
+           GROUP BY visit_date
+         ) v ON v.visit_date = d.day::date
+         ORDER BY d.day ASC`,
+        [effectiveStartDate, effectiveEndDate]
+      );
+
+      // 4. Department-wise Patient Volume & Load
+      const deptVolumeRes = await client.query(
+        `SELECT
+           dept.id AS department_id,
+           dept.name AS department_name,
+           dept.slug AS department_slug,
+           COALESCE(dept.token_prefix, 'G') AS token_prefix,
+           COUNT(t.token_id)::int AS total_tokens,
+           COUNT(t.token_id) FILTER (WHERE t.status = 'Waiting')::int AS waiting_count,
+           COUNT(t.token_id) FILTER (WHERE t.status = 'Completed')::int AS completed_count,
+           COUNT(t.token_id) FILTER (WHERE t.priority = 'Emergency')::int AS emergency_count
+         FROM departments dept
+         LEFT JOIN tokens t ON t.department_id = dept.id AND t.queue_date >= $1::date AND t.queue_date <= $2::date
+         ${hasDeptFilter ? `WHERE dept.id = $3` : ''}
+         GROUP BY dept.id, dept.name, dept.slug, dept.token_prefix
+         ORDER BY total_tokens DESC, dept.id ASC`,
+        hasDeptFilter ? [effectiveStartDate, effectiveEndDate, deptIdNum] : [effectiveStartDate, effectiveEndDate]
+      );
+
+      const totalDeptTokens = deptVolumeRes.rows.reduce((acc, row) => acc + Number(row.total_tokens || 0), 0) || 1;
+      const departmentVolume = deptVolumeRes.rows.map((row) => ({
+        ...row,
+        volume_percentage: Math.round((Number(row.total_tokens) / totalDeptTokens) * 100),
+      }));
+
+      // 5. Doctor-wise Consultation Volume
+      const docVolumeRes = await client.query(
+        `SELECT
+           doc.id AS doctor_id,
+           doc.name AS doctor_name,
+           doc.specialty,
+           dept.id AS department_id,
+           dept.name AS department_name,
+           CONCAT('Cabin ', doc.id) AS room_or_cabin,
+           COALESCE(doc.availability_status, 'Available') AS availability_status,
+           COUNT(t.token_id)::int AS total_assigned_tokens,
+           COUNT(t.token_id) FILTER (WHERE t.status = 'Completed')::int AS completed_consultations,
+           COUNT(t.token_id) FILTER (WHERE t.status IN ('Now Serving', 'Consulting', 'Called'))::int AS currently_consulting,
+           COUNT(t.token_id) FILTER (WHERE t.status = 'Waiting')::int AS waiting_count
+         FROM doctors doc
+         JOIN departments dept ON dept.id = doc.department_id
+         LEFT JOIN tokens t ON t.doctor_id = doc.id AND t.queue_date >= $1::date AND t.queue_date <= $2::date
+         ${hasDeptFilter ? `WHERE dept.id = $3` : ''}
+         GROUP BY doc.id, doc.name, doc.specialty, dept.id, dept.name, doc.availability_status
+         ORDER BY completed_consultations DESC, total_assigned_tokens DESC, doc.id ASC`,
+        hasDeptFilter ? [effectiveStartDate, effectiveEndDate, deptIdNum] : [effectiveStartDate, effectiveEndDate]
+      );
+
+      // 6. Emergency Registrations & Bay Telemetry
+      const emergDetailsRes = await client.query(
+        `SELECT
+           er.id AS emergency_id,
+           er.patient_id,
+           er.patient_name,
+           er.arrival_mode,
+           er.emergency_type,
+           er.assigned_bay,
+           er.triage_level,
+           er.queue_status,
+           er.arrival_time
+         FROM emergency_registrations er
+         WHERE er.arrival_time::date >= $1::date AND er.arrival_time::date <= $2::date
+         ORDER BY er.arrival_time DESC
+         LIMIT 20`,
+        [effectiveStartDate, effectiveEndDate]
+      );
+
+      // 7. Revenue & Payment Status (STRICT FINANCIAL RBAC)
+      let financialData = {
+        can_view: false,
+        notice: 'Financial and payment metrics are restricted to authorized Billing & Administrative staff.',
+      };
+
+      if (canViewFinancials) {
+        let paySql = `
+          SELECT
+            COALESCE(SUM(amount), 0)::numeric(12,2) AS total_billed,
+            COALESCE(SUM(amount) FILTER (WHERE payment_status IN ('Completed', 'Paid')), 0)::numeric(12,2) AS total_paid,
+            COALESCE(SUM(amount) FILTER (WHERE payment_status = 'Pending'), 0)::numeric(12,2) AS total_pending,
+            COALESCE(SUM(amount) FILTER (WHERE payment_status = 'Refunded'), 0)::numeric(12,2) AS total_refunded,
+            COALESCE(SUM(amount) FILTER (WHERE payment_status = 'Failed'), 0)::numeric(12,2) AS total_failed,
+            COUNT(*)::int AS total_transactions,
+            COUNT(*) FILTER (WHERE payment_status IN ('Completed', 'Paid'))::int AS paid_transactions,
+            COUNT(*) FILTER (WHERE payment_status = 'Pending')::int AS pending_transactions
+          FROM payments p
+          JOIN visits v ON v.visit_id = p.visit_id
+          WHERE COALESCE(p.payment_date, p.created_at)::date >= $1::date
+            AND COALESCE(p.payment_date, p.created_at)::date <= $2::date
+        `;
+        const payParams = [effectiveStartDate, effectiveEndDate];
+        if (hasDeptFilter) {
+          payParams.push(deptIdNum);
+          paySql += ` AND v.department_id = $3`;
+        }
+
+        const payRes = await client.query(paySql, payParams);
+        const pRow = payRes.rows[0] || {};
+
+        // Fee Type Breakdown
+        let feeSql = `
+          SELECT
+            fee_type,
+            COUNT(*)::int AS count,
+            COALESCE(SUM(amount), 0)::numeric(12,2) AS total_amount
+          FROM payments p
+          JOIN visits v ON v.visit_id = p.visit_id
+          WHERE COALESCE(p.payment_date, p.created_at)::date >= $1::date
+            AND COALESCE(p.payment_date, p.created_at)::date <= $2::date
+        `;
+        const feeParams = [effectiveStartDate, effectiveEndDate];
+        if (hasDeptFilter) {
+          feeParams.push(deptIdNum);
+          feeSql += ` AND v.department_id = $3`;
+        }
+        feeSql += ` GROUP BY fee_type ORDER BY total_amount DESC`;
+        const feeRes = await client.query(feeSql, feeParams);
+
+        // Payment Method Breakdown
+        let methodSql = `
+          SELECT
+            payment_method,
+            COUNT(*)::int AS count,
+            COALESCE(SUM(amount), 0)::numeric(12,2) AS total_amount
+          FROM payments p
+          JOIN visits v ON v.visit_id = p.visit_id
+          WHERE COALESCE(p.payment_date, p.created_at)::date >= $1::date
+            AND COALESCE(p.payment_date, p.created_at)::date <= $2::date
+        `;
+        const methodParams = [effectiveStartDate, effectiveEndDate];
+        if (hasDeptFilter) {
+          methodParams.push(deptIdNum);
+          methodSql += ` AND v.department_id = $3`;
+        }
+        methodSql += ` GROUP BY payment_method ORDER BY total_amount DESC`;
+        const methodRes = await client.query(methodSql, methodParams);
+
+        // Payment Status Breakdown
+        let statusSql = `
+          SELECT
+            payment_status,
+            COUNT(*)::int AS count,
+            COALESCE(SUM(amount), 0)::numeric(12,2) AS total_amount
+          FROM payments p
+          JOIN visits v ON v.visit_id = p.visit_id
+          WHERE COALESCE(p.payment_date, p.created_at)::date >= $1::date
+            AND COALESCE(p.payment_date, p.created_at)::date <= $2::date
+        `;
+        const statusParams = [effectiveStartDate, effectiveEndDate];
+        if (hasDeptFilter) {
+          statusParams.push(deptIdNum);
+          statusSql += ` AND v.department_id = $3`;
+        }
+        statusSql += ` GROUP BY payment_status ORDER BY total_amount DESC`;
+        const statusRes = await client.query(statusSql, statusParams);
+
+        const totalBilledNum = Number(pRow.total_billed || 0);
+        const totalPaidNum = Number(pRow.total_paid || 0);
+        const collectionRate = totalBilledNum > 0 ? Math.round((totalPaidNum / totalBilledNum) * 100) : 100;
+
+        financialData = {
+          can_view: true,
+          total_billed: Number(pRow.total_billed || 0).toFixed(2),
+          total_paid: Number(pRow.total_paid || 0).toFixed(2),
+          total_pending: Number(pRow.total_pending || 0).toFixed(2),
+          total_refunded: Number(pRow.total_refunded || 0).toFixed(2),
+          total_failed: Number(pRow.total_failed || 0).toFixed(2),
+          total_transactions: Number(pRow.total_transactions || 0),
+          paid_transactions: Number(pRow.paid_transactions || 0),
+          pending_transactions: Number(pRow.pending_transactions || 0),
+          collection_rate_percent: collectionRate,
+          fee_breakdown: feeRes.rows,
+          method_breakdown: methodRes.rows,
+          status_breakdown: statusRes.rows,
+        };
+      }
+
+      // Departments list for filter dropdown
+      const deptsRes = await client.query(`SELECT id, name FROM departments ORDER BY id ASC`);
+
+      res.json({
+        success: true,
+        timestamp: new Date().toISOString(),
+        filter: {
+          start_date: effectiveStartDate,
+          end_date: effectiveEndDate,
+          department_id: department_id,
+          applied_dept_filter: hasDeptFilter,
+        },
+        departments: deptsRes.rows,
+        summary: {
+          total_registrations: totalRegistrations,
+          total_consultations: Number(tokenStats.completed_count) + Number(tokenStats.consulting_count),
+          waiting_patients: Number(tokenStats.waiting_count),
+          completed_patients: Number(tokenStats.completed_count),
+          total_tokens: Number(tokenStats.total_tokens),
+          emergency_registrations: Number(visitStats.emergency_visits),
+          total_visits: Number(visitStats.total_visits),
+          total_appointments: Number(apptStats.total_appointments),
+          checked_in_appointments: Number(apptStats.checked_in_count),
+          scheduled_appointments: Number(apptStats.scheduled_count),
+          appointment_checkin_rate: Number(apptStats.total_appointments) > 0
+            ? Math.round((Number(apptStats.checked_in_count) / Number(apptStats.total_appointments)) * 100)
+            : 0,
+        },
+        daily_trends: dailyTrendRes.rows,
+        department_volume: departmentVolume,
+        doctor_volume: docVolumeRes.rows,
+        appointment_statistics: {
+          total: Number(apptStats.total_appointments),
+          scheduled: Number(apptStats.scheduled_count),
+          checked_in: Number(apptStats.checked_in_count),
+          completed: Number(apptStats.completed_appt_count),
+          cancelled: Number(apptStats.cancelled_appt_count),
+        },
+        emergency_statistics: {
+          total_emergency: Number(visitStats.emergency_visits),
+          recent_arrivals: emergDetailsRes.rows,
+        },
+        financials: financialData,
+      });
+    } finally {
+      client.release();
+    }
+  })
+);
+
+/**
+ * GET /api/v1/reception/reports/export
+ * Exports reception analytics to standard CSV format.
+ */
+router.get(
+  '/reports/export',
+  asyncHandler(async (req, res) => {
+    const {
+      start_date,
+      end_date,
+      department_id = 'all',
+      staff_role = 'receptionist',
+    } = req.query;
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const effectiveStartDate = (start_date && typeof start_date === 'string') ? start_date : todayStr;
+    const effectiveEndDate = (end_date && typeof end_date === 'string') ? end_date : todayStr;
+    const hasDeptFilter = department_id !== 'all' && !isNaN(Number(department_id));
+    const deptIdNum = Number(department_id);
+
+    const client = await pool.connect();
+    try {
+      // 1. Patient Registrations
+      const regRes = await client.query(
+        `SELECT COUNT(*)::int AS count FROM patients
+         WHERE COALESCE(registration_date, created_at)::date >= $1::date
+           AND COALESCE(registration_date, created_at)::date <= $2::date`,
+        [effectiveStartDate, effectiveEndDate]
+      );
+      const totalRegistrations = regRes.rows[0]?.count || 0;
+
+      // 2. Token & Consultation summary
+      let tokenSql = `
+        SELECT
+          COUNT(*)::int AS total_tokens,
+          COUNT(*) FILTER (WHERE status = 'Waiting')::int AS waiting_count,
+          COUNT(*) FILTER (WHERE status = 'Consulting')::int AS consulting_count,
+          COUNT(*) FILTER (WHERE status = 'Completed')::int AS completed_count,
+          COUNT(*) FILTER (WHERE status = 'Cancelled')::int AS cancelled_count
+        FROM tokens
+        WHERE queue_date >= $1::date AND queue_date <= $2::date
+      `;
+      const tokenParams = [effectiveStartDate, effectiveEndDate];
+      if (hasDeptFilter) {
+        tokenParams.push(deptIdNum);
+        tokenSql += ` AND department_id = $3`;
+      }
+      const tokenRes = await client.query(tokenSql, tokenParams);
+      const tokenStats = tokenRes.rows[0] || {};
+
+      // 3. Visit summary
+      let visitSql = `
+        SELECT
+          COUNT(*)::int AS total_visits,
+          COUNT(*) FILTER (WHERE visit_type = 'Emergency')::int AS emergency_visits
+        FROM visits
+        WHERE visit_date >= $1::date AND visit_date <= $2::date
+      `;
+      const visitParams = [effectiveStartDate, effectiveEndDate];
+      if (hasDeptFilter) {
+        visitParams.push(deptIdNum);
+        visitSql += ` AND department_id = $3`;
+      }
+      const visitRes = await client.query(visitSql, visitParams);
+      const visitStats = visitRes.rows[0] || {};
+
+      // 4. Appointments summary
+      let apptSql = `
+        SELECT
+          COUNT(*)::int AS total_appointments,
+          COUNT(*) FILTER (WHERE status = 'Scheduled')::int AS scheduled_count,
+          COUNT(*) FILTER (WHERE status = 'Checked-In')::int AS checked_in_count,
+          COUNT(*) FILTER (WHERE status = 'Completed')::int AS completed_appt_count,
+          COUNT(*) FILTER (WHERE status IN ('Cancelled', 'No-Show'))::int AS cancelled_appt_count
+        FROM appointments
+        WHERE appointment_date >= $1::date AND appointment_date <= $2::date
+      `;
+      const apptParams = [effectiveStartDate, effectiveEndDate];
+      if (hasDeptFilter) {
+        apptParams.push(deptIdNum);
+        apptSql += ` AND department_id = $3`;
+      }
+      const apptRes = await client.query(apptSql, apptParams);
+      const apptStats = apptRes.rows[0] || {};
+
+      // 5. Department volume
+      let deptSql = `
+        SELECT
+          dept.id AS department_id,
+          dept.name AS department_name,
+          dept.token_prefix,
+          COUNT(t.token_id)::int AS total_tokens,
+          COUNT(t.token_id) FILTER (WHERE t.status = 'Waiting')::int AS waiting_count,
+          COUNT(t.token_id) FILTER (WHERE t.status = 'Completed')::int AS completed_count,
+          COUNT(t.token_id) FILTER (WHERE t.priority = 'Emergency')::int AS emergency_count
+        FROM departments dept
+        LEFT JOIN tokens t ON t.department_id = dept.id AND t.queue_date >= $1::date AND t.queue_date <= $2::date
+        ${hasDeptFilter ? `WHERE dept.id = $3` : ''}
+        GROUP BY dept.id, dept.name, dept.token_prefix
+        ORDER BY total_tokens DESC, dept.name ASC
+      `;
+      const deptParams = [effectiveStartDate, effectiveEndDate];
+      if (hasDeptFilter) deptParams.push(deptIdNum);
+      const deptRes = await client.query(deptSql, deptParams);
+
+      // 6. Doctor volume
+      let docSql = `
+        SELECT
+          doc.id AS doctor_id,
+          doc.name AS doctor_name,
+          doc.specialty,
+          dept.name AS department_name,
+          CONCAT('Cabin ', doc.id) AS room_or_cabin,
+          COUNT(t.token_id)::int AS total_assigned_tokens,
+          COUNT(t.token_id) FILTER (WHERE t.status = 'Completed')::int AS completed_consultations,
+          COUNT(t.token_id) FILTER (WHERE t.status IN ('Now Serving', 'Consulting', 'Called'))::int AS currently_consulting,
+          COUNT(t.token_id) FILTER (WHERE t.status = 'Waiting')::int AS waiting_count
+        FROM doctors doc
+        JOIN departments dept ON dept.id = doc.department_id
+        LEFT JOIN tokens t ON t.doctor_id = doc.id AND t.queue_date >= $1::date AND t.queue_date <= $2::date
+        ${hasDeptFilter ? `WHERE dept.id = $3` : ''}
+        GROUP BY doc.id, doc.name, doc.specialty, dept.name
+        ORDER BY completed_consultations DESC, total_assigned_tokens DESC, doc.id ASC
+      `;
+      const docParams = [effectiveStartDate, effectiveEndDate];
+      if (hasDeptFilter) docParams.push(deptIdNum);
+      const docRes = await client.query(docSql, docParams);
+
+      // Compose comprehensive CSV
+      let csv = `HEALIX CENTRAL HOSPITAL - RECEPTION OPERATIONS REPORT\r\n`;
+      csv += `Date Range: ${effectiveStartDate} to ${effectiveEndDate}\r\n`;
+      csv += `Department Filter: ${hasDeptFilter ? `Department ID ${deptIdNum}` : 'All Departments'}\r\n`;
+      csv += `Staff Role: ${staff_role}\r\n`;
+      csv += `Exported At: ${new Date().toISOString()}\r\n\r\n`;
+
+      // Section 1: Summary Metrics
+      csv += `# SECTION: SUMMARY METRICS\r\n`;
+      csv += `Metric,Value,Unit\r\n`;
+      csv += `Daily Patient Registrations,${totalRegistrations},Patients\r\n`;
+      csv += `Total Consultations Completed,${tokenStats.completed_count || 0},Consultations\r\n`;
+      csv += `Patients Waiting in Line,${tokenStats.waiting_count || 0},Patients\r\n`;
+      csv += `Tokens Generated,${tokenStats.total_tokens || 0},Tokens\r\n`;
+      csv += `Emergency Registrations,${visitStats.emergency_visits || 0},Cases\r\n`;
+      csv += `Total Patient Visits,${visitStats.total_visits || 0},Visits\r\n`;
+      csv += `Total Appointments,${apptStats.total_appointments || 0},Appointments\r\n`;
+      csv += `Checked-In Appointments,${apptStats.checked_in_count || 0},Appointments\r\n`;
+      csv += `Scheduled Appointments,${apptStats.scheduled_count || 0},Appointments\r\n`;
+      const checkinRate = Number(apptStats.total_appointments) > 0
+        ? Math.round((Number(apptStats.checked_in_count) / Number(apptStats.total_appointments)) * 100)
+        : 0;
+      csv += `Appointment Check-In Rate,${checkinRate},Percent\r\n\r\n`;
+
+      // Section 2: Department Patient Volume
+      csv += `# SECTION: DEPARTMENT PATIENT VOLUME\r\n`;
+      csv += `Department ID,Department Name,Token Prefix,Total Tokens,Waiting Patients,Completed Consultations,Emergency Cases\r\n`;
+      for (const row of deptRes.rows) {
+        csv += `${row.department_id},"${row.department_name}","${row.token_prefix || 'GEN'}",${row.total_tokens},${row.waiting_count},${row.completed_count},${row.emergency_count}\r\n`;
+      }
+      csv += `\r\n`;
+
+      // Section 3: Doctor Consultation Volume
+      csv += `# SECTION: DOCTOR CONSULTATION VOLUME\r\n`;
+      csv += `Doctor ID,Doctor Name,Specialty,Department,Cabin / Room,Completed Consultations,Currently Consulting,Waiting Count,Total Assigned Tokens\r\n`;
+      for (const doc of docRes.rows) {
+        csv += `${doc.doctor_id},"${doc.doctor_name}","${doc.specialty}","${doc.department_name}","${doc.room_or_cabin || 'Consulting Room'}",${doc.completed_consultations},${doc.currently_consulting},${doc.waiting_count},${doc.total_assigned_tokens}\r\n`;
+      }
+      csv += `\r\n`;
+
+      // Section 4: Appointment Statistics
+      csv += `# SECTION: APPOINTMENT STATISTICS\r\n`;
+      csv += `Appointment Status,Count\r\n`;
+      csv += `Total Scheduled,${apptStats.scheduled_count || 0}\r\n`;
+      csv += `Checked-In,${apptStats.checked_in_count || 0}\r\n`;
+      csv += `Completed,${apptStats.completed_appt_count || 0}\r\n`;
+      csv += `Cancelled / No-Show,${apptStats.cancelled_appt_count || 0}\r\n\r\n`;
+
+      // Section 5: Financial & Revenue Telemetry (RBAC Check)
+      const allowedRoles = ['administrator', 'billing-staff', 'receptionist'];
+      const canViewFinancials = allowedRoles.includes(staff_role);
+
+      if (canViewFinancials) {
+        let pSql = `
+          SELECT
+            COALESCE(SUM(amount), 0)::numeric(12,2) AS total_billed,
+            COALESCE(SUM(amount) FILTER (WHERE payment_status IN ('Paid', 'Completed')), 0)::numeric(12,2) AS total_paid,
+            COALESCE(SUM(amount) FILTER (WHERE payment_status = 'Pending'), 0)::numeric(12,2) AS total_pending,
+            COALESCE(SUM(amount) FILTER (WHERE payment_status = 'Refunded'), 0)::numeric(12,2) AS total_refunded
+          FROM payments p
+          JOIN visits v ON v.visit_id = p.visit_id
+          WHERE COALESCE(p.payment_date, p.created_at)::date >= $1::date
+            AND COALESCE(p.payment_date, p.created_at)::date <= $2::date
+        `;
+        const pParams = [effectiveStartDate, effectiveEndDate];
+        if (hasDeptFilter) {
+          pParams.push(deptIdNum);
+          pSql += ` AND v.department_id = $3`;
+        }
+        const pRes = await client.query(pSql, pParams);
+        const pRow = pRes.rows[0] || {};
+
+        csv += `# SECTION: FINANCIAL & REVENUE TELEMETRY\r\n`;
+        csv += `Financial Metric,Amount (INR)\r\n`;
+        csv += `Total Invoiced / Billed,${pRow.total_billed || '0.00'}\r\n`;
+        csv += `Total Paid / Collected,${pRow.total_paid || '0.00'}\r\n`;
+        csv += `Total Pending Dues,${pRow.total_pending || '0.00'}\r\n`;
+        csv += `Total Refunded,${pRow.total_refunded || '0.00'}\r\n`;
+      } else {
+        csv += `# FINANCIAL TELEMETRY RESTRICTED\r\n`;
+        csv += `Notice: Financial records are restricted to authorized Billing & Administrative staff.\r\n`;
+      }
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="healix-reception-report-${effectiveStartDate}-to-${effectiveEndDate}.csv"`
+      );
+      res.send(csv);
+    } finally {
+      client.release();
+    }
+  })
+);
+
 export default router;
