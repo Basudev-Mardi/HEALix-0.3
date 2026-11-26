@@ -868,7 +868,9 @@ router.get(
 
 /**
  * GET /api/v1/reception/patients/:id
- * Retrieve a complete patient profile including past visit history
+ * Retrieve a complete patient profile including past visit history,
+ * previous doctors, departments, upcoming appointments, and outstanding bills.
+ * CLINICAL DATA RESTRICTION: No diagnoses, clinical notes, or prescriptions are exposed.
  */
 router.get(
   '/patients/:id',
@@ -882,6 +884,7 @@ router.get(
         COALESCE(p.patient_number, p.id) AS patient_number,
         COALESCE(p.full_name, TRIM(CONCAT(COALESCE(p.first_name, ''), ' ', COALESCE(p.last_name, '')))) AS full_name,
         p.dob,
+        TO_CHAR(p.dob, 'YYYY-MM-DD') AS formatted_dob,
         p.gender,
         COALESCE(p.mobile, p.phone, '') AS mobile,
         p.address,
@@ -890,7 +893,8 @@ router.get(
         p.emergency_contact,
         p.photo,
         p.registration_date,
-        p.created_at
+        p.created_at,
+        p.updated_at
        FROM patients p
        WHERE p.id = $1 OR p.patient_id = $1 OR p.patient_number = $1
        LIMIT 1`,
@@ -903,32 +907,103 @@ router.get(
 
     const patient = patientRes.rows[0];
     const patientDbId = patient.id;
+    const patientPublicId = patient.patient_id;
+    const patientPhone = patient.mobile;
 
-    // Fetch visits history
+    // 1. Fetch Visits History in chronological order (most recent first)
     const visitsRes = await query(
       `SELECT
         v.visit_id,
         v.visit_date,
+        TO_CHAR(v.visit_date, 'YYYY-MM-DD') AS formatted_visit_date,
         v.visit_type,
         v.status,
         v.created_at,
         dept.id AS department_id,
         dept.name AS department_name,
+        COALESCE(dept.token_prefix, 'G') AS department_prefix,
         doc.id AS doctor_id,
         doc.name AS doctor_name,
+        doc.specialty AS doctor_specialty,
+        CONCAT('Cabin ', doc.id) AS room_or_cabin,
+        t.token_id,
         t.token_number,
+        COALESCE(t.token_display, CONCAT(COALESCE(dept.token_prefix, 'G'), '-', LPAD(t.token_number::text, 3, '0'))) AS token_display,
         t.status AS token_status,
+        pay.payment_id,
         pay.amount AS fee_amount,
-        pay.payment_status
+        pay.payment_status,
+        pay.payment_method
        FROM visits v
        LEFT JOIN departments dept ON dept.id = v.department_id
        LEFT JOIN doctors doc ON doc.id = v.doctor_id
        LEFT JOIN tokens t ON t.visit_id = v.visit_id
        LEFT JOIN payments pay ON pay.visit_id = v.visit_id
-       WHERE v.patient_id = $1
+       WHERE v.patient_id = $1 OR v.patient_id = $2
        ORDER BY v.visit_date DESC, v.created_at DESC`,
-      [patientDbId]
+      [patientDbId, patientPublicId]
     );
+
+    // 2. Fetch Upcoming Appointments
+    const upcomingRes = await query(
+      `SELECT 
+        a.id,
+        a.booking_reference,
+        a.appointment_date,
+        TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS formatted_date,
+        a.time_slot,
+        a.visit_type,
+        a.status,
+        a.reason_for_visit,
+        doc.id AS doctor_id,
+        doc.name AS doctor_name,
+        doc.specialty AS doctor_specialty,
+        CONCAT('Cabin ', doc.id) AS room_or_cabin,
+        dep.id AS department_id,
+        dep.name AS department_name
+       FROM appointments a
+       LEFT JOIN doctors doc ON doc.id = a.doctor_id OR doc.slug = a.doctor_slug
+       LEFT JOIN departments dep ON dep.id = a.department_id OR dep.slug = a.department_slug
+       WHERE (a.patient_id = $1 OR a.patient_id = $2 OR a.patient_phone = $3)
+         AND a.appointment_date >= CURRENT_DATE
+         AND a.status IN ('Confirmed', 'Scheduled', 'Pending', 'Rescheduled')
+       ORDER BY a.appointment_date ASC, a.time_slot ASC`,
+      [patientDbId, patientPublicId, patientPhone]
+    );
+
+    // 3. Fetch Outstanding Bills and Billing History
+    const billsRes = await query(
+      `SELECT 
+        pay.payment_id,
+        pay.visit_id,
+        pay.fee_type,
+        pay.amount,
+        pay.payment_method,
+        pay.payment_status,
+        pay.transaction_reference,
+        pay.created_at,
+        v.visit_date,
+        v.visit_type
+       FROM payments pay
+       JOIN visits v ON v.visit_id = pay.visit_id
+       WHERE v.patient_id = $1 OR v.patient_id = $2
+       ORDER BY pay.created_at DESC`,
+      [patientDbId, patientPublicId]
+    );
+
+    let totalBilled = 0;
+    let totalPaid = 0;
+    let outstandingBalance = 0;
+
+    billsRes.rows.forEach((bill) => {
+      const amt = Number(bill.amount) || 0;
+      totalBilled += amt;
+      if (bill.payment_status === 'Completed' || bill.payment_status === 'Paid') {
+        totalPaid += amt;
+      } else if (bill.payment_status === 'Pending') {
+        outstandingBalance += amt;
+      }
+    });
 
     res.json({
       success: true,
@@ -937,6 +1012,128 @@ router.get(
         age: patient.dob ? calculateAgeFromDob(patient.dob) : null,
         visits: visitsRes.rows,
         totalVisits: visitsRes.rows.length,
+        upcomingAppointments: upcomingRes.rows,
+        totalUpcomingAppointments: upcomingRes.rows.length,
+        bills: billsRes.rows,
+        billingSummary: {
+          totalBilled: Number(totalBilled.toFixed(2)),
+          totalPaid: Number(totalPaid.toFixed(2)),
+          outstandingBalance: Number(outstandingBalance.toFixed(2)),
+          hasOutstanding: outstandingBalance > 0,
+        },
+      },
+    });
+  })
+);
+
+/**
+ * PATCH /api/v1/reception/patients/:id
+ * Update permitted demographic details by authorized receptionists.
+ * Permitted fields: full_name, mobile, address, gender, dob, blood_group, allergies, emergency_contact.
+ * RESTRICTION: Clinical diagnoses, prescriptions, and notes cannot be modified.
+ */
+router.patch(
+  '/patients/:id',
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const {
+      full_name,
+      mobile,
+      gender,
+      dob,
+      address,
+      blood_group,
+      allergies,
+      emergency_contact,
+      staff_name = 'Reception Staff',
+      staff_role = 'receptionist',
+    } = req.body || {};
+
+    if (!full_name?.trim() || !mobile?.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Patient full name and mobile number cannot be empty.',
+      });
+    }
+
+    const cleanMobile = mobile.trim().replace(/\D/g, '');
+    if (cleanMobile.length < 10 || cleanMobile.length > 15) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please enter a valid mobile number between 10 and 15 digits.',
+      });
+    }
+
+    // Check patient existence
+    const existingRes = await query(
+      `SELECT * FROM patients WHERE id = $1 OR patient_id = $1 LIMIT 1`,
+      [id]
+    );
+
+    if (existingRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Patient record not found.' });
+    }
+
+    const existing = existingRes.rows[0];
+
+    // Update permitted demographics
+    const updateRes = await query(
+      `UPDATE patients
+       SET full_name = $1,
+           mobile = $2,
+           phone = $2,
+           gender = $3,
+           dob = $4::date,
+           date_of_birth = $5,
+           address = $6,
+           blood_group = $7,
+           allergies = $8,
+           emergency_contact = $9,
+           updated_at = NOW()
+       WHERE id = $10
+       RETURNING *`,
+      [
+        full_name.trim(),
+        cleanMobile,
+        gender || existing.gender || 'Other',
+        dob || existing.dob || null,
+        dob ? String(dob) : existing.date_of_birth,
+        address ? address.trim() : existing.address,
+        blood_group ? blood_group.trim() : existing.blood_group,
+        allergies ? allergies.trim() : existing.allergies,
+        emergency_contact ? emergency_contact.trim() : existing.emergency_contact,
+        existing.id,
+      ]
+    );
+
+    const updated = updateRes.rows[0];
+
+    // Audit Log
+    await query(
+      `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+       VALUES ('PATIENT_DEMOGRAPHICS_UPDATED', 'patients', 'patients', $1, NOW(), $2)`,
+      [
+        updated.id,
+        JSON.stringify({
+          patient_id: updated.patient_id,
+          updated_by: staff_name,
+          role: staff_role,
+          changes: {
+            full_name: updated.full_name,
+            mobile: updated.mobile,
+            address: updated.address,
+            gender: updated.gender,
+          },
+        }),
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: 'Patient demographic details updated successfully.',
+      patient: {
+        ...updated,
+        age: updated.dob ? calculateAgeFromDob(updated.dob) : null,
       },
     });
   })
