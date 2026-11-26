@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ConciergeBell,
   Stethoscope,
@@ -23,8 +23,18 @@ import {
   Eye,
   FileCheck2,
   Table,
+  LogOut,
+  UserCheck,
+  ArrowLeftRight,
+  Shield,
 } from 'lucide-react';
 import { STAFF_ROLES, type StaffRole } from '@/lib/staff-roles';
+import {
+  getStaffSession,
+  clearStaffSession,
+  type StaffUser,
+} from '@/lib/staff-auth';
+import StaffLoginModal from '@/components/StaffLoginModal';
 
 const ROLE_ICONS = {
   ConciergeBell,
@@ -38,14 +48,138 @@ const ROLE_ICONS = {
 };
 
 export default function StaffPortalDashboard() {
-  const [selectedRoleId, setSelectedRoleId] = useState<string>('doctor');
+  const [currentStaff, setCurrentStaff] = useState<StaffUser | null>(null);
+  const [selectedRoleId, setSelectedRoleId] = useState<string>('receptionist');
   const [viewMode, setViewMode] = useState<'detailed' | 'matrix'>('detailed');
+  const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
+  const [loginModalRole, setLoginModalRole] = useState<string>('receptionist');
+
+  // Load existing session and listen for auth changes
+  useEffect(() => {
+    const session = getStaffSession();
+    if (session) {
+      setCurrentStaff(session);
+      setSelectedRoleId(session.role);
+    }
+
+    const handleAuthChange = (e: Event) => {
+      const custom = e as CustomEvent<StaffUser | null>;
+      setCurrentStaff(custom.detail);
+      if (custom.detail) {
+        setSelectedRoleId(custom.detail.role);
+      }
+    };
+
+    window.addEventListener('healix_staff_auth_changed', handleAuthChange);
+    return () => {
+      window.removeEventListener('healix_staff_auth_changed', handleAuthChange);
+    };
+  }, []);
 
   const selectedRole =
     STAFF_ROLES.find((r) => r.id === selectedRoleId) || STAFF_ROLES[0];
 
+  const handleOpenLogin = (roleId?: string) => {
+    setLoginModalRole(roleId || selectedRoleId || 'receptionist');
+    setLoginModalOpen(true);
+  };
+
+  const handleLogout = () => {
+    clearStaffSession();
+    setCurrentStaff(null);
+  };
+
   return (
     <div className="space-y-12">
+      {/* Login Modal */}
+      <StaffLoginModal
+        isOpen={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        initialRole={loginModalRole}
+        onSuccess={(staff) => {
+          setCurrentStaff(staff);
+          setSelectedRoleId(staff.role);
+        }}
+      />
+
+      {/* Active Staff Session Banner (If Logged In) */}
+      {currentStaff ? (
+        <section className="rounded-2xl border-2 border-emerald-600/30 bg-white p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <span className="h-12 w-12 rounded-xl bg-[#174C40] text-white flex items-center justify-center shrink-0 shadow-xs">
+              <UserCheck className="h-6 w-6 text-emerald-300" />
+            </span>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-editorial text-xl font-semibold text-[#242A28]">
+                  {currentStaff.name}
+                </span>
+                <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-[#E6EFE9] text-[#174C40] border border-[#cbe0d3] font-semibold">
+                  {currentStaff.roleName}
+                </span>
+                <span className="text-xs font-mono text-[#77817C]">
+                  ID: <span className="text-[#242A28] font-bold">{currentStaff.staffId}</span>
+                </span>
+              </div>
+              <p className="text-xs text-[#77817C] mt-0.5">
+                {currentStaff.department} &bull; {currentStaff.shift}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 self-end md:self-auto shrink-0">
+            <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-mono text-[#174C40]">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Session Active</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleOpenLogin()}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E8E6] bg-[#FAFAF7] hover:bg-white hover:border-[#174C40] text-xs font-medium text-[#242A28] transition-colors cursor-pointer"
+            >
+              <ArrowLeftRight className="h-3.5 w-3.5 text-[#174C40]" />
+              <span>Switch Role</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-xs font-medium text-rose-700 transition-colors cursor-pointer"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </section>
+      ) : (
+        /* Authentication Required Notice Strip */
+        <section className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="h-9 w-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+              <Lock className="h-4 w-4" />
+            </span>
+            <div>
+              <h3 className="text-sm font-semibold text-amber-950">
+                Staff Authentication Required
+              </h3>
+              <p className="text-xs text-amber-800/90 font-light">
+                Please sign in with your role-specific credentials to access your dedicated hospital workspace.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleOpenLogin('receptionist')}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#174C40] text-white text-xs font-semibold hover:bg-[#123830] transition-colors shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
+          >
+            <KeyRound className="h-3.5 w-3.5 text-emerald-300" />
+            <span>Sign In to Staff Portal</span>
+          </button>
+        </section>
+      )}
+
       {/* 1. Portal Hero Header */}
       <section className="relative overflow-hidden rounded-3xl border border-[#E5E8E6] bg-white p-8 sm:p-12 shadow-xs">
         <div className="relative z-10 max-w-3xl space-y-4">
@@ -68,6 +202,33 @@ export default function StaffPortalDashboard() {
             Secure, centralized gateway providing role-tailored clinical, nursing, diagnostic,
             pharmacy, and administrative workspaces with granular access boundaries and audited data governance.
           </p>
+
+          {!currentStaff && (
+            <div className="pt-2 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleOpenLogin('doctor')}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#174C40] text-white text-xs font-semibold hover:bg-[#123830] transition-colors shadow-xs cursor-pointer"
+              >
+                <span>Login as Doctor</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleOpenLogin('receptionist')}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FAFAF7] border border-[#E5E8E6] text-xs font-semibold text-[#242A28] hover:border-[#174C40] hover:text-[#174C40] transition-colors cursor-pointer"
+              >
+                <span>Login as Receptionist</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleOpenLogin('nurse')}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FAFAF7] border border-[#E5E8E6] text-xs font-semibold text-[#242A28] hover:border-[#174C40] hover:text-[#174C40] transition-colors cursor-pointer"
+              >
+                <span>Login as Nurse</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Ambient decorative motif */}
@@ -86,7 +247,9 @@ export default function StaffPortalDashboard() {
             </h2>
           </div>
           <p className="text-xs font-mono text-[#77817C]">
-            Click any role to inspect its granular permissions &amp; access boundaries
+            {currentStaff
+              ? 'Click any role card to view permissions or switch workspace'
+              : 'Click any role to log in and access its dedicated dashboard'}
           </p>
         </div>
 
@@ -94,40 +257,51 @@ export default function StaffPortalDashboard() {
           {STAFF_ROLES.map((role) => {
             const IconComponent = ROLE_ICONS[role.iconName];
             const isSelected = role.id === selectedRoleId;
+            const isUserActiveRole = currentStaff?.role === role.id;
 
             return (
-              <button
+              <div
                 key={role.id}
-                type="button"
-                onClick={() => {
-                  setSelectedRoleId(role.id);
-                  setViewMode('detailed');
-                }}
-                className={`text-left rounded-2xl p-6 transition-all duration-200 border flex flex-col justify-between group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#174C40] ${
-                  isSelected
-                    ? 'bg-white border-[#174C40] shadow-md ring-1 ring-[#174C40] -translate-y-0.5'
-                    : 'bg-white border-[#E5E8E6] hover:border-[#174C40] hover:-translate-y-0.5 shadow-xs'
+                className={`rounded-2xl p-6 transition-all duration-200 border flex flex-col justify-between group relative overflow-hidden bg-white ${
+                  isUserActiveRole
+                    ? 'border-emerald-600 ring-2 ring-emerald-500/30 shadow-md'
+                    : isSelected
+                    ? 'border-[#174C40] shadow-md ring-1 ring-[#174C40]'
+                    : 'border-[#E5E8E6] hover:border-[#174C40] hover:-translate-y-0.5 shadow-xs'
                 }`}
               >
                 {/* Active indicator bar */}
-                {isSelected && (
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-[#174C40]" />
+                {(isUserActiveRole || isSelected) && (
+                  <div
+                    className={`absolute top-0 left-0 right-0 h-1.5 ${
+                      isUserActiveRole ? 'bg-emerald-600' : 'bg-[#174C40]'
+                    }`}
+                  />
                 )}
 
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <span
                       className={`h-12 w-12 rounded-xl flex items-center justify-center transition-colors ${
-                        isSelected
+                        isUserActiveRole
+                          ? 'bg-emerald-700 text-white shadow-xs'
+                          : isSelected
                           ? 'bg-[#174C40] text-white shadow-xs'
                           : 'bg-[#E6EFE9] text-[#174C40] group-hover:bg-[#174C40] group-hover:text-white'
                       }`}
                     >
                       <IconComponent className="h-6 w-6" />
                     </span>
-                    <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#FAFAF7] border border-[#E5E8E6] text-[#77817C]">
-                      {role.category}
-                    </span>
+
+                    {isUserActiveRole ? (
+                      <span className="text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        Active Session
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#FAFAF7] border border-[#E5E8E6] text-[#77817C]">
+                        {role.category}
+                      </span>
+                    )}
                   </div>
 
                   <h3 className="font-editorial text-xl font-medium text-[#242A28] group-hover:text-[#174C40] transition-colors">
@@ -139,28 +313,49 @@ export default function StaffPortalDashboard() {
                   </p>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-[#E5E8E6] flex items-center justify-between">
-                  {/* Dedicated Dashboard Label */}
-                  <span
-                    className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-colors ${
-                      isSelected
-                        ? 'bg-[#E6EFE9] border-[#c0d6c9] text-[#174C40]'
-                        : 'bg-[#FAFAF7] border-[#E5E8E6] text-[#4A5350] group-hover:bg-[#E6EFE9] group-hover:text-[#174C40]'
-                    }`}
-                  >
-                    <Sparkles className="h-3 w-3 text-[#174C40]" />
-                    {role.dedicated_label}
-                  </span>
+                <div className="mt-6 pt-4 border-t border-[#E5E8E6] space-y-3">
+                  <div className="flex items-center justify-between">
+                    {/* Dedicated Dashboard Label */}
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border bg-[#FAFAF7] border-[#E5E8E6] text-[#4A5350]">
+                      <Sparkles className="h-3 w-3 text-[#174C40]" />
+                      {role.dedicated_label}
+                    </span>
 
-                  <ChevronRight
-                    className={`h-4 w-4 transition-transform ${
-                      isSelected
-                        ? 'text-[#174C40] translate-x-1'
-                        : 'text-[#77817C] group-hover:text-[#174C40] group-hover:translate-x-0.5'
-                    }`}
-                  />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedRoleId(role.id);
+                        setViewMode('detailed');
+                      }}
+                      className="text-xs text-[#174C40] hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer"
+                    >
+                      <span>Permissions</span>
+                      <ChevronRight className="h-3 w-3" />
+                    </button>
+                  </div>
+
+                  {/* Login / Access Action Button */}
+                  {isUserActiveRole ? (
+                    <div className="w-full py-2 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold text-center flex items-center justify-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                      <span>Logged In as {role.name}</span>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenLogin(role.id)}
+                      className={`w-full py-2 px-3 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
+                        currentStaff
+                          ? 'bg-[#FAFAF7] border border-[#E5E8E6] text-[#242A28] hover:bg-[#E6EFE9] hover:text-[#174C40]'
+                          : 'bg-[#174C40] text-white hover:bg-[#123830] shadow-xs'
+                      }`}
+                    >
+                      <KeyRound className="h-3.5 w-3.5" />
+                      <span>{currentStaff ? `Switch to ${role.name}` : `Login as ${role.name}`}</span>
+                    </button>
+                  )}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
@@ -202,7 +397,7 @@ export default function StaffPortalDashboard() {
             <button
               type="button"
               onClick={() => setViewMode('detailed')}
-              className={`px-4 py-2 text-xs font-medium rounded-lg transition-all ${
+              className={`px-4 py-2 text-xs font-medium rounded-lg transition-all cursor-pointer ${
                 viewMode === 'detailed'
                   ? 'bg-white text-[#174C40] shadow-xs border border-[#E5E8E6]'
                   : 'text-[#77817C] hover:text-[#242A28]'
@@ -213,7 +408,7 @@ export default function StaffPortalDashboard() {
             <button
               type="button"
               onClick={() => setViewMode('matrix')}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg transition-all ${
+              className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg transition-all cursor-pointer ${
                 viewMode === 'matrix'
                   ? 'bg-white text-[#174C40] shadow-xs border border-[#E5E8E6]'
                   : 'text-[#77817C] hover:text-[#242A28]'
@@ -231,18 +426,24 @@ export default function StaffPortalDashboard() {
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
               {STAFF_ROLES.map((role) => {
                 const isSelected = role.id === selectedRoleId;
+                const isUserActive = currentStaff?.role === role.id;
                 return (
                   <button
                     key={role.id}
                     type="button"
                     onClick={() => setSelectedRoleId(role.id)}
-                    className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-medium transition-all ${
+                    className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                       isSelected
                         ? 'bg-[#174C40] text-white shadow-xs'
+                        : isUserActive
+                        ? 'bg-emerald-100 border border-emerald-300 text-emerald-900'
                         : 'bg-[#FAFAF7] border border-[#E5E8E6] text-[#4A5350] hover:border-[#174C40] hover:text-[#174C40]'
                     }`}
                   >
-                    {role.name}
+                    {isUserActive && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    )}
+                    <span>{role.name}</span>
                   </button>
                 );
               })}
@@ -264,6 +465,11 @@ export default function StaffPortalDashboard() {
                     <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-[#E6EFE9] text-[#174C40] border border-[#cbe0d3]">
                       {selectedRole.dedicated_label}
                     </span>
+                    {currentStaff?.role === selectedRole.id && (
+                      <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-semibold">
+                        Your Active Role
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-[#77817C] mt-1 font-light">
                     {selectedRole.description}
@@ -271,13 +477,26 @@ export default function StaffPortalDashboard() {
                 </div>
               </div>
 
-              <div className="text-left md:text-right shrink-0">
-                <span className="text-[11px] font-mono text-[#77817C] uppercase block">
-                  Institutional Scope
-                </span>
-                <span className="text-xs font-semibold text-[#174C40]">
-                  {selectedRole.category}
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="text-left md:text-right shrink-0">
+                  <span className="text-[11px] font-mono text-[#77817C] uppercase block">
+                    Institutional Scope
+                  </span>
+                  <span className="text-xs font-semibold text-[#174C40]">
+                    {selectedRole.category}
+                  </span>
+                </div>
+
+                {currentStaff?.role !== selectedRole.id && (
+                  <button
+                    type="button"
+                    onClick={() => handleOpenLogin(selectedRole.id)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#174C40] text-white text-xs font-semibold hover:bg-[#123830] transition-colors shadow-2xs shrink-0 cursor-pointer"
+                  >
+                    <KeyRound className="h-3 w-3" />
+                    <span>Login as {selectedRole.name}</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -409,6 +628,7 @@ export default function StaffPortalDashboard() {
                   <th className="py-3.5 px-4 font-semibold text-[#242A28]">Modules</th>
                   <th className="py-3.5 px-4 font-semibold text-[#242A28]">Actions</th>
                   <th className="py-3.5 px-4 font-semibold text-[#242A28]">Data Access Scope</th>
+                  <th className="py-3.5 px-4 font-semibold text-[#242A28]">Sign In</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E5E8E6] bg-white">
@@ -460,6 +680,21 @@ export default function StaffPortalDashboard() {
                     </td>
                     <td className="py-4 px-4 text-[#4A5350] align-top max-w-xs text-[11px] leading-relaxed">
                       {role.permissions.data_access}
+                    </td>
+                    <td className="py-4 px-4 align-top whitespace-nowrap">
+                      {currentStaff?.role === role.id ? (
+                        <span className="text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+                          Active
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenLogin(role.id)}
+                          className="px-2.5 py-1 rounded-lg bg-[#174C40] text-white text-[11px] font-medium hover:bg-[#123830] transition-colors cursor-pointer"
+                        >
+                          Login
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

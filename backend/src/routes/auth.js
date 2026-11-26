@@ -667,4 +667,164 @@ router.post(
   })
 );
 
+// ==========================================
+// HOSPITAL STAFF PORTAL ROLE-BASED AUTH
+// ==========================================
+
+const STAFF_ROSTER = {
+  receptionist: {
+    role: 'receptionist',
+    roleName: 'Receptionist',
+    staffId: 'REC-4011',
+    name: 'Elena Rostova',
+    email: 'reception@healix.org',
+    department: 'Central OPD & Front Desk',
+    shift: 'Morning OPD (07:30 - 15:30)',
+  },
+  doctor: {
+    role: 'doctor',
+    roleName: 'Doctor',
+    staffId: 'DOC-1024',
+    name: 'Dr. Aris Thorne, MD',
+    email: 'doctor@healix.org',
+    department: 'Cardiology & Heart Institute',
+    shift: 'Clinical Consultations & Rounds',
+  },
+  nurse: {
+    role: 'nurse',
+    roleName: 'Nurse',
+    staffId: 'NUR-3088',
+    name: 'Sister Claire Bennett, RN',
+    email: 'nurse@healix.org',
+    department: 'Cardiac Inpatient Ward 4B',
+    shift: 'Day Nursing Shift (08:00 - 16:00)',
+  },
+  'lab-staff': {
+    role: 'lab-staff',
+    roleName: 'Lab Staff',
+    staffId: 'LAB-5021',
+    name: 'Marcus Vance, CLS',
+    email: 'lab@healix.org',
+    department: 'Central Clinical Pathology',
+    shift: 'Diagnostic Laboratory Core',
+  },
+  'billing-staff': {
+    role: 'billing-staff',
+    roleName: 'Billing Staff',
+    staffId: 'BIL-6019',
+    name: 'David Chen, CPA',
+    email: 'billing@healix.org',
+    department: 'Patient Accounts & Cashless TPA',
+    shift: 'Revenue Cycle Desk',
+  },
+  pharmacist: {
+    role: 'pharmacist',
+    roleName: 'Pharmacist',
+    staffId: 'PHM-7014',
+    name: 'Priya Sharma, PharmD',
+    email: 'pharmacy@healix.org',
+    department: 'Central Inpatient & OPD Pharmacy',
+    shift: 'Dispensary & Stock Control',
+  },
+  'hr-staff': {
+    role: 'hr-staff',
+    roleName: 'HR Staff',
+    staffId: 'HR-8002',
+    name: 'Sarah Jenkins, SHRM',
+    email: 'hr@healix.org',
+    department: 'Human Resources & Credentialing',
+    shift: 'Administrative Office',
+  },
+  administrator: {
+    role: 'administrator',
+    roleName: 'Administrator',
+    staffId: 'ADM-9001',
+    name: 'Jonathan Hayes, MHA',
+    email: 'admin@healix.org',
+    department: 'Hospital Administration & IS',
+    shift: '24/7 System Governance',
+  },
+};
+
+// Staff Login Endpoint: POST /api/v1/auth/staff/login
+router.post(
+  '/staff/login',
+  asyncHandler(async (req, res) => {
+    const { role, email, password, staff_id } = req.body || {};
+
+    if (!role) {
+      return res.status(400).json({ error: 'Please select a hospital staff role to sign in.' });
+    }
+
+    const normalizedRole = String(role).trim().toLowerCase();
+    const staffEntry = STAFF_ROSTER[normalizedRole];
+
+    if (!staffEntry) {
+      return res.status(400).json({ error: `Unrecognized staff role: ${role}` });
+    }
+
+    const inputIdent = (email || staff_id || '').trim().toLowerCase();
+    if (inputIdent && inputIdent !== staffEntry.email.toLowerCase() && inputIdent !== staffEntry.staffId.toLowerCase()) {
+      return res.status(401).json({
+        error: `Staff credential mismatch for ${staffEntry.roleName}. Expected ${staffEntry.email} or ID ${staffEntry.staffId}`,
+      });
+    }
+
+    if (password && password !== 'staff123') {
+      return res.status(401).json({
+        error: 'Invalid password. (Use demo password: staff123)',
+      });
+    }
+
+    const token = generateToken();
+    const staffPayload = {
+      ...staffEntry,
+      id: `staff_${staffEntry.staffId}`,
+      token,
+      loggedInAt: new Date().toISOString(),
+    };
+
+    try {
+      await logSensitiveAccess({
+        patientId: 0,
+        action: 'STAFF_ROLE_LOGIN',
+        entityType: 'staff_session',
+        entityId: staffEntry.staffId,
+        details: { role: staffEntry.role, department: staffEntry.department },
+        req,
+      });
+    } catch {
+      // ignore
+    }
+
+    res.json({
+      data: {
+        message: `Welcome, ${staffEntry.name} (${staffEntry.roleName})`,
+        staff: staffPayload,
+        token,
+      },
+    });
+  })
+);
+
+// Staff Current Session Endpoint: GET /api/v1/auth/staff/me
+router.get(
+  '/staff/me',
+  asyncHandler(async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: 'No active staff session.' });
+    }
+    res.json({ data: { status: 'authenticated' } });
+  })
+);
+
+// Staff Logout Endpoint: POST /api/v1/auth/staff/logout
+router.post(
+  '/staff/logout',
+  asyncHandler(async (req, res) => {
+    res.json({ data: { message: 'Staff session terminated successfully.' } });
+  })
+);
+
 export default router;
