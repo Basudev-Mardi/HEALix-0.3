@@ -1259,6 +1259,25 @@ router.post(
         [deptId]
       );
 
+      // 3b. Prevent duplicate active token generation for the same patient in this department today
+      const activeCheck = await client.query(
+        `SELECT token_id, token_display, status
+         FROM tokens
+         WHERE patient_id = $1 AND department_id = $2 AND queue_date = CURRENT_DATE
+           AND status IN ('Waiting', 'Now Serving', 'Consulting')
+         LIMIT 1`,
+        [patientDbId, deptId]
+      );
+      if (activeCheck.rows.length > 0) {
+        const existing = activeCheck.rows[0];
+        await client.query('ROLLBACK');
+        return res.status(409).json({
+          success: false,
+          error: `Patient already has an active OPD token in ${department.name} today: ${existing.token_display} (Status: ${existing.status}). Cannot generate duplicate visit.`,
+          existing_token: existing,
+        });
+      }
+
       // 4. Resolve doctor assignment (explicit or automatic least-loaded doctor)
       let resolvedDocId = null;
       let doctorName = 'Attending Physician';
@@ -1520,7 +1539,7 @@ router.get(
         t.queue_date,
         v.visit_id,
         v.visit_type,
-        v.reason,
+        '' AS reason,
         p.id AS patient_id,
         COALESCE(p.patient_id, p.id) AS patient_code,
         COALESCE(p.full_name, CONCAT(p.first_name, ' ', p.last_name), 'Patient') AS patient_name,
@@ -1590,7 +1609,7 @@ router.get(
         t.updated_at,
         v.visit_id,
         v.visit_type,
-        v.reason,
+        '' AS reason,
         p.id AS patient_id,
         COALESCE(p.patient_id, p.id) AS patient_code,
         COALESCE(p.full_name, CONCAT(p.first_name, ' ', p.last_name), 'Patient') AS patient_name,
@@ -1743,6 +1762,15 @@ router.post(
       staff_role = 'receptionist',
     } = req.body || {};
 
+    // Role-based access validation
+    const allowedRoles = ['receptionist', 'doctor', 'nurse', 'administrator', 'staff'];
+    if (staff_role && !allowedRoles.includes(staff_role.toLowerCase())) {
+      return res.status(403).json({
+        success: false,
+        error: `Access Denied: Role '${staff_role}' is not authorized to call queue tokens.`,
+      });
+    }
+
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
@@ -1758,7 +1786,7 @@ router.post(
            LEFT JOIN doctors doc ON doc.id = t.doctor_id
            LEFT JOIN departments dept ON dept.id = t.department_id
            WHERE t.token_id = $1 AND t.queue_date = CURRENT_DATE
-           FOR UPDATE`,
+           FOR UPDATE OF t`,
           [token_id]
         );
 
@@ -1787,7 +1815,7 @@ router.post(
              CASE WHEN t.priority = 'Emergency' THEN 0 ELSE 1 END,
              t.token_number ASC
            LIMIT 1
-           FOR UPDATE`,
+           FOR UPDATE OF t`,
           [deptId, docId]
         );
 
@@ -1892,6 +1920,15 @@ router.patch(
       staff_name = 'Staff Member',
       staff_role = 'staff',
     } = req.body || {};
+
+    // Role-based access validation
+    const allowedRoles = ['receptionist', 'doctor', 'nurse', 'administrator', 'staff'];
+    if (staff_role && !allowedRoles.includes(staff_role.toLowerCase())) {
+      return res.status(403).json({
+        success: false,
+        error: `Access Denied: Role '${staff_role}' is not authorized to update queue status.`,
+      });
+    }
 
     const validStatuses = ['Waiting', 'Now Serving', 'Consulting', 'Completed', 'Cancelled'];
     if (!validStatuses.includes(status)) {

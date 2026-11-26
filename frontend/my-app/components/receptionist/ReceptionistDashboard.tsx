@@ -31,6 +31,7 @@ import {
   BarChart3,
   Settings,
   Lock,
+  AlertTriangle,
 } from 'lucide-react';
 import { getStaffSession, type StaffUser } from '@/lib/staff-auth';
 import ReceptionistSidebar, { type ReceptionViewKey } from './ReceptionistSidebar';
@@ -560,6 +561,33 @@ export default function ReceptionistDashboard() {
               >
                 Respond to Code
               </button>
+            </div>
+          )}
+
+          {/* Connection Failure & Outage Fallback Banner */}
+          {error && (
+            <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-5 w-5 text-amber-700 shrink-0 animate-pulse" />
+                <div>
+                  <div className="text-xs font-mono uppercase tracking-wider font-bold text-amber-800">
+                    Server Connection Interrupted — Operating in Fallback Mode
+                  </div>
+                  <div className="text-xs text-amber-700">
+                    {error}. Live queue telemetry auto-sync is temporarily paused. Manual offline tokens and paper slips remain authorized.
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                <button
+                  onClick={() => fetchDashboardData(false)}
+                  disabled={refreshing}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} />
+                  <span>Retry Connection</span>
+                </button>
+              </div>
             </div>
           )}
 
