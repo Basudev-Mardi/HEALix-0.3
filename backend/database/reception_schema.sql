@@ -161,15 +161,37 @@ CREATE INDEX IF NOT EXISTS idx_tokens_patient ON tokens(patient_id);
 CREATE TABLE IF NOT EXISTS payments (
   payment_id TEXT PRIMARY KEY,
   visit_id TEXT NOT NULL REFERENCES visits(visit_id) ON DELETE CASCADE,
-  fee_type TEXT NOT NULL DEFAULT 'Consultation Fee' CHECK (fee_type IN ('Consultation Fee', 'Registration Fee', 'Diagnostic Fee', 'Emergency Surcharge', 'Pharmacy Fee', 'Procedure Fee')),
+  fee_type TEXT NOT NULL DEFAULT 'Consultation Fee' CHECK (fee_type IN ('Consultation Fee', 'Registration Fee', 'Follow-up Fee', 'Diagnostic Fee', 'Emergency Surcharge', 'Pharmacy Fee', 'Procedure Fee')),
   amount NUMERIC(10, 2) NOT NULL DEFAULT 0.00 CHECK (amount >= 0),
   payment_method TEXT NOT NULL DEFAULT 'Cash' CHECK (payment_method IN ('Cash', 'Card', 'UPI', 'Insurance', 'NetBanking')),
-  payment_status TEXT NOT NULL DEFAULT 'Completed' CHECK (payment_status IN ('Pending', 'Completed', 'Refunded', 'Failed')),
+  payment_status TEXT NOT NULL DEFAULT 'Completed' CHECK (payment_status IN ('Pending', 'Paid', 'Completed', 'Refunded', 'Failed')),
   transaction_reference TEXT UNIQUE,
+  receipt_number TEXT UNIQUE,
+  patient_id TEXT REFERENCES patients(id) ON DELETE SET NULL,
+  notes TEXT,
+  received_by TEXT,
+  payment_date TIMESTAMPTZ DEFAULT NOW(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_fee_type_check;
+ALTER TABLE payments ADD CONSTRAINT payments_fee_type_check 
+  CHECK (fee_type IN ('Consultation Fee', 'Registration Fee', 'Follow-up Fee', 'Diagnostic Fee', 'Emergency Surcharge', 'Pharmacy Fee', 'Procedure Fee'));
+
+ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_payment_status_check;
+ALTER TABLE payments ADD CONSTRAINT payments_payment_status_check 
+  CHECK (payment_status IN ('Pending', 'Paid', 'Completed', 'Refunded', 'Failed'));
+
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_number TEXT;
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS patient_id TEXT REFERENCES patients(id) ON DELETE SET NULL;
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS received_by TEXT;
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS payment_date TIMESTAMPTZ DEFAULT NOW();
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_receipt_number ON payments(receipt_number) WHERE receipt_number IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_payments_patient_id ON payments(patient_id);
+CREATE INDEX IF NOT EXISTS idx_payments_payment_date ON payments(payment_date DESC);
 CREATE INDEX IF NOT EXISTS idx_payments_visit ON payments(visit_id);
 CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(payment_status);
 CREATE INDEX IF NOT EXISTS idx_payments_method ON payments(payment_method);

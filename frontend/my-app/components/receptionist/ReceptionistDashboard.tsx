@@ -18,6 +18,7 @@ import {
   Layers,
   TrendingUp,
   UserPlus,
+  CreditCard,
 } from 'lucide-react';
 import { getStaffSession, type StaffUser } from '@/lib/staff-auth';
 import PatientRegistrationForm from './PatientRegistrationForm';
@@ -25,6 +26,7 @@ import PatientSearchLookup from './PatientSearchLookup';
 import PatientProfileModal from './PatientProfileModal';
 import LiveQueueManager from './LiveQueueManager';
 import AppointmentManager from './AppointmentManager';
+import BillingDeskManager from './BillingDeskManager';
 
 interface DashboardStats {
   patientsRegisteredToday: number;
@@ -111,7 +113,7 @@ export default function ReceptionistDashboard() {
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState<boolean>(true);
   const [countdown, setCountdown] = useState<number>(AUTO_REFRESH_INTERVAL_SECONDS);
   const [currentTime, setCurrentTime] = useState<string>('');
-  const [activeView, setActiveView] = useState<'queue' | 'appointments' | 'search' | 'registration'>('queue');
+  const [activeView, setActiveView] = useState<'queue' | 'appointments' | 'billing' | 'search' | 'registration'>('queue');
   const [selectedQueuePatientId, setSelectedQueuePatientId] = useState<string | null>(null);
 
   // Search & Filter state
@@ -356,6 +358,18 @@ export default function ReceptionistDashboard() {
             </button>
 
             <button
+              onClick={() => setActiveView('billing')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeView === 'billing'
+                  ? 'bg-white text-[#174C40] shadow-xs border border-[#E5E8E6]'
+                  : 'text-[#77817C] hover:text-[#1F2421]'
+              }`}
+            >
+              <CreditCard className="h-3.5 w-3.5" />
+              <span>Billing &amp; Payments</span>
+            </button>
+
+            <button
               onClick={() => setActiveView('search')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeView === 'search'
@@ -431,6 +445,8 @@ export default function ReceptionistDashboard() {
         />
       ) : activeView === 'appointments' ? (
         <AppointmentManager />
+      ) : activeView === 'billing' ? (
+        <BillingDeskManager />
       ) : (
         <LiveQueueManager />
       )}

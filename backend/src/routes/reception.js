@@ -3231,4 +3231,662 @@ router.post(
   })
 );
 
+// ============================================================================
+// RECEPTION BILLING AND PAYMENTS MODULE
+// ============================================================================
+
+const BILLING_CONFIG = {
+  REGISTRATION_FEE: 25.00,
+  DEFAULT_CONSULTATION_FEE: 50.00,
+  FOLLOW_UP_FEE: 30.00,
+  ALLOWED_METHODS: ['Cash', 'UPI', 'Card'],
+  ALLOWED_FEE_TYPES: ['Registration Fee', 'Consultation Fee', 'Follow-up Fee'],
+};
+
+function generateBillingReceiptNumber() {
+  const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `REC-${dateStr}-${rand}`;
+}
+
+/**
+ * GET /api/v1/reception/billing/fees-config
+ * Returns standard hospital fees and accepted payment methods.
+ */
+router.get('/billing/fees-config', (_req, res) => {
+  res.json({
+    success: true,
+    fees: {
+      registration_fee: BILLING_CONFIG.REGISTRATION_FEE,
+      consultation_fee: BILLING_CONFIG.DEFAULT_CONSULTATION_FEE,
+      follow_up_fee: BILLING_CONFIG.FOLLOW_UP_FEE,
+    },
+    payment_methods: BILLING_CONFIG.ALLOWED_METHODS,
+    fee_types: BILLING_CONFIG.ALLOWED_FEE_TYPES,
+  });
+});
+
+/**
+ * GET /api/v1/reception/billing
+ * List billing invoices, transactions, and payments with live filters and search.
+ */
+router.get(
+  '/billing',
+  asyncHandler(async (req, res) => {
+    const {
+      date = 'today',
+      status = 'all',
+      fee_type = 'all',
+      payment_method = 'all',
+      search = '',
+      limit = 100,
+      offset = 0,
+    } = req.query || {};
+
+    const conditions = [];
+    const queryParams = [];
+
+    const hasSearch = search && search.trim() !== '';
+
+    // Date filtering: when searching, search all dates unless explicit date is provided
+    if (!hasSearch) {
+      if (date === 'today') {
+        conditions.push(`p.created_at::date = CURRENT_DATE`);
+      } else if (date && date !== 'all') {
+        queryParams.push(date);
+        conditions.push(`p.created_at::date = $${queryParams.length}::date`);
+      }
+    } else {
+      if (req.query.date && req.query.date !== 'all') {
+        if (req.query.date === 'today') {
+          conditions.push(`p.created_at::date = CURRENT_DATE`);
+        } else {
+          queryParams.push(req.query.date);
+          conditions.push(`p.created_at::date = $${queryParams.length}::date`);
+        }
+      }
+    }
+
+    if (status && status !== 'all') {
+      if (status === 'Paid') {
+        conditions.push(`p.payment_status IN ('Paid', 'Completed')`);
+      } else {
+        queryParams.push(status);
+        conditions.push(`p.payment_status = $${queryParams.length}`);
+      }
+    }
+
+    if (fee_type && fee_type !== 'all') {
+      queryParams.push(fee_type);
+      conditions.push(`p.fee_type = $${queryParams.length}`);
+    }
+
+    if (payment_method && payment_method !== 'all') {
+      queryParams.push(payment_method);
+      conditions.push(`p.payment_method = $${queryParams.length}`);
+    }
+
+    if (hasSearch) {
+      const s = `%${search.trim().toLowerCase()}%`;
+      queryParams.push(s);
+      const idx = queryParams.length;
+      conditions.push(`(
+        LOWER(COALESCE(p.receipt_number, '')) LIKE $${idx} OR
+        LOWER(p.visit_id) LIKE $${idx} OR
+        LOWER(COALESCE(p.transaction_reference, '')) LIKE $${idx} OR
+        LOWER(COALESCE(pat.full_name, '')) LIKE $${idx} OR
+        LOWER(COALESCE(pat.patient_id, pat.id, '')) LIKE $${idx} OR
+        LOWER(COALESCE(pat.mobile, pat.phone, '')) LIKE $${idx}
+      )`);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const sql = `
+      SELECT 
+        p.payment_id,
+        p.visit_id,
+        p.fee_type,
+        p.amount,
+        p.payment_method,
+        p.payment_status,
+        p.transaction_reference,
+        p.receipt_number,
+        p.notes,
+        p.received_by,
+        p.payment_date,
+        p.created_at,
+        -- Visit Details
+        v.visit_date,
+        v.visit_type,
+        v.status AS visit_status,
+        -- Patient Details
+        COALESCE(pat.patient_id, pat.id) AS patient_id,
+        pat.full_name AS patient_name,
+        COALESCE(pat.mobile, pat.phone) AS patient_phone,
+        pat.gender AS patient_gender,
+        -- Doctor & Department Details
+        doc.id AS doctor_id,
+        doc.name AS doctor_name,
+        CONCAT('Cabin ', doc.id) AS room_or_cabin,
+        dept.id AS department_id,
+        dept.name AS department_name,
+        -- Token
+        t.token_display,
+        t.token_number
+      FROM payments p
+      JOIN visits v ON v.visit_id = p.visit_id
+      LEFT JOIN patients pat ON pat.id = p.patient_id OR pat.id = v.patient_id
+      LEFT JOIN doctors doc ON doc.id = v.doctor_id
+      LEFT JOIN departments dept ON dept.id = v.department_id
+      LEFT JOIN tokens t ON t.visit_id = v.visit_id
+      ${whereClause}
+      ORDER BY p.created_at DESC
+      LIMIT ${Number(limit)} OFFSET ${Number(offset)}
+    `;
+
+    const result = await query(sql, queryParams);
+
+    // Compute Live Summary Metrics for Today
+    const summaryRes = await query(`
+      SELECT 
+        COALESCE(SUM(CASE WHEN payment_status IN ('Paid', 'Completed') THEN amount ELSE 0 END), 0)::numeric(10,2) AS total_collected_today,
+        COALESCE(SUM(CASE WHEN payment_status = 'Pending' THEN amount ELSE 0 END), 0)::numeric(10,2) AS total_pending_today,
+        COALESCE(SUM(CASE WHEN payment_status = 'Refunded' THEN amount ELSE 0 END), 0)::numeric(10,2) AS total_refunded_today,
+        COUNT(*)::int AS invoices_count_today,
+        COUNT(CASE WHEN payment_status IN ('Paid', 'Completed') THEN 1 END)::int AS paid_count_today,
+        COUNT(CASE WHEN payment_status = 'Pending' THEN 1 END)::int AS pending_count_today
+      FROM payments
+      WHERE created_at::date = CURRENT_DATE
+    `);
+
+    const sRow = summaryRes.rows[0] || {};
+
+    res.json({
+      success: true,
+      data: result.rows,
+      summary: {
+        total_collected_today: Number(sRow.total_collected_today) || 0,
+        total_pending_today: Number(sRow.total_pending_today) || 0,
+        total_refunded_today: Number(sRow.total_refunded_today) || 0,
+        invoices_count_today: Number(sRow.invoices_count_today) || 0,
+        paid_count_today: Number(sRow.paid_count_today) || 0,
+        pending_count_today: Number(sRow.pending_count_today) || 0,
+      },
+    });
+  })
+);
+
+/**
+ * GET /api/v1/reception/billing/visits/:visitId
+ * Inspects a visit's billing status, calculating payable amounts and outstanding fees.
+ */
+router.get(
+  '/billing/visits/:visitId',
+  asyncHandler(async (req, res) => {
+    const { visitId } = req.params;
+
+    const visitRes = await query(
+      `SELECT 
+        v.visit_id,
+        v.visit_date,
+        v.visit_type,
+        v.status AS visit_status,
+        v.created_at,
+        p.id AS patient_record_id,
+        COALESCE(p.patient_id, p.id) AS patient_id,
+        p.full_name AS patient_name,
+        COALESCE(p.mobile, p.phone) AS patient_phone,
+        p.gender AS patient_gender,
+        p.dob AS patient_dob,
+        doc.id AS doctor_id,
+        doc.name AS doctor_name,
+        doc.specialty AS doctor_specialty,
+        COALESCE(doc.consultation_fee, '50.00') AS doctor_consultation_fee,
+        CONCAT('Cabin ', doc.id) AS room_or_cabin,
+        dept.id AS department_id,
+        dept.name AS department_name,
+        t.token_display,
+        t.token_number
+       FROM visits v
+       JOIN patients p ON p.id = v.patient_id
+       LEFT JOIN doctors doc ON doc.id = v.doctor_id
+       LEFT JOIN departments dept ON dept.id = v.department_id
+       LEFT JOIN tokens t ON t.visit_id = v.visit_id
+       WHERE v.visit_id = $1
+       LIMIT 1`,
+      [visitId.trim()]
+    );
+
+    if (visitRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Visit record not found.' });
+    }
+
+    const visit = visitRes.rows[0];
+
+    // Check patient's total visit count to determine if Registration Fee applies
+    const visitCountRes = await query(
+      `SELECT COUNT(*)::int AS total_visits FROM visits WHERE patient_id = $1`,
+      [visit.patient_record_id]
+    );
+    const totalPatientVisits = Number(visitCountRes.rows[0]?.total_visits) || 1;
+    const isFirstVisit = totalPatientVisits <= 1;
+
+    // Fetch existing payments for this visit
+    const paymentsRes = await query(
+      `SELECT * FROM payments WHERE visit_id = $1 ORDER BY created_at ASC`,
+      [visit.visit_id]
+    );
+
+    const payments = paymentsRes.rows;
+
+    let totalBilled = 0;
+    let totalPaid = 0;
+    let totalPending = 0;
+
+    const settledFeeTypes = new Set();
+
+    payments.forEach((p) => {
+      const amt = Number(p.amount) || 0;
+      totalBilled += amt;
+      if (p.payment_status === 'Paid' || p.payment_status === 'Completed') {
+        totalPaid += amt;
+        settledFeeTypes.add(p.fee_type);
+      } else if (p.payment_status === 'Pending') {
+        totalPending += amt;
+      }
+    });
+
+    // Compute standard suggested fees
+    const suggestedConsultationFee =
+      visit.visit_type === 'Follow-up'
+        ? BILLING_CONFIG.FOLLOW_UP_FEE
+        : Number(String(visit.doctor_consultation_fee || '').replace(/[^0-9.]/g, '')) || BILLING_CONFIG.DEFAULT_CONSULTATION_FEE;
+
+    const suggestedItems = [];
+
+    // 1. Registration Fee (if first visit and not yet settled)
+    if (isFirstVisit && !settledFeeTypes.has('Registration Fee')) {
+      suggestedItems.push({
+        fee_type: 'Registration Fee',
+        amount: BILLING_CONFIG.REGISTRATION_FEE,
+        description: 'One-time hospital registration and medical record creation fee',
+        settled: false,
+      });
+    }
+
+    // 2. Consultation / Follow-up Fee (if not yet settled)
+    const primaryConsultationFeeType = visit.visit_type === 'Follow-up' ? 'Follow-up Fee' : 'Consultation Fee';
+    if (!settledFeeTypes.has(primaryConsultationFeeType) && !settledFeeTypes.has('Consultation Fee')) {
+      suggestedItems.push({
+        fee_type: primaryConsultationFeeType,
+        amount: suggestedConsultationFee,
+        description: `${visit.visit_type} with Dr. ${visit.doctor_name}`,
+        settled: false,
+      });
+    }
+
+    const calculatedPayableTotal = suggestedItems.reduce((acc, item) => acc + item.amount, 0);
+
+    res.json({
+      success: true,
+      visit,
+      billing: {
+        payments,
+        totalBilled,
+        totalPaid,
+        totalPending,
+        isFullySettled: suggestedItems.length === 0 && totalPending === 0,
+        suggestedItems,
+        calculatedPayableTotal,
+      },
+    });
+  })
+);
+
+/**
+ * POST /api/v1/reception/billing/payments
+ * Collects a payment with duplicate submission prevention and unique receipt generation.
+ */
+router.post(
+  '/billing/payments',
+  asyncHandler(async (req, res) => {
+    const {
+      visit_id,
+      fee_type,
+      amount,
+      payment_method,
+      transaction_reference = '',
+      notes = '',
+      staff_name = 'Reception Staff',
+      staff_role = 'receptionist',
+    } = req.body || {};
+
+    if (!visit_id || !fee_type || amount === undefined || !payment_method) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required payment fields: visit_id, fee_type, amount, and payment_method.',
+      });
+    }
+
+    const numAmount = Number(amount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Payment amount must be a positive number greater than 0.',
+      });
+    }
+
+    if (!BILLING_CONFIG.ALLOWED_METHODS.includes(payment_method)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid payment method '${payment_method}'. Allowed: ${BILLING_CONFIG.ALLOWED_METHODS.join(', ')}`,
+      });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // 1. Lock visit row
+      const visitRes = await client.query(
+        `SELECT v.*,
+                p.id AS patient_record_id,
+                COALESCE(p.patient_id, p.id) AS patient_id,
+                p.full_name AS patient_name,
+                COALESCE(p.mobile, p.phone) AS patient_phone,
+                p.gender AS patient_gender,
+                doc.name AS doctor_name,
+                dept.name AS department_name
+         FROM visits v
+         JOIN patients p ON p.id = v.patient_id
+         LEFT JOIN doctors doc ON doc.id = v.doctor_id
+         LEFT JOIN departments dept ON dept.id = v.department_id
+         WHERE v.visit_id = $1
+         FOR UPDATE OF v`,
+        [visit_id.trim()]
+      );
+
+      if (visitRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ success: false, error: 'Visit record not found.' });
+      }
+
+      const visit = visitRes.rows[0];
+
+      // 2. DUPLICATE PAYMENT PREVENTION:
+      // Check if a verified/paid payment already exists for this visit and fee type
+      const dupRes = await client.query(
+        `SELECT payment_id, receipt_number, amount, payment_method, payment_status, created_at
+         FROM payments
+         WHERE visit_id = $1 AND fee_type = $2 AND payment_status IN ('Paid', 'Completed')
+         FOR UPDATE`,
+        [visit.visit_id, fee_type]
+      );
+
+      if (dupRes.rows.length > 0) {
+        await client.query('ROLLBACK');
+        const existingPayment = dupRes.rows[0];
+        return res.status(409).json({
+          success: false,
+          error: `A verified payment for '${fee_type}' has already been processed for this visit.`,
+          existing_receipt: existingPayment.receipt_number,
+          existing_payment_id: existingPayment.payment_id,
+        });
+      }
+
+      // 3. Generate unique Receipt Number
+      let receiptNumber = generateBillingReceiptNumber();
+      for (let i = 0; i < 5; i++) {
+        const refCheck = await client.query(
+          `SELECT 1 FROM payments WHERE receipt_number = $1`,
+          [receiptNumber]
+        );
+        if (refCheck.rows.length === 0) break;
+        receiptNumber = generateBillingReceiptNumber();
+      }
+
+      // 4. Generate Payment ID
+      const paymentId = `PAY-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      // 5. Insert Payment Record
+      const insertRes = await client.query(
+        `INSERT INTO payments (
+          payment_id,
+          visit_id,
+          patient_id,
+          fee_type,
+          amount,
+          payment_method,
+          payment_status,
+          transaction_reference,
+          receipt_number,
+          notes,
+          received_by,
+          payment_date,
+          created_at,
+          updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, 'Paid', $7, $8, $9, $10, NOW(), NOW(), NOW()
+        ) RETURNING *`,
+        [
+          paymentId,
+          visit.visit_id,
+          visit.patient_record_id,
+          fee_type,
+          numAmount,
+          payment_method,
+          transaction_reference.trim() || null,
+          receiptNumber,
+          notes.trim() || null,
+          staff_name,
+        ]
+      );
+
+      const payment = insertRes.rows[0];
+
+      // 6. Audit Trail
+      await client.query(
+        `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+         VALUES ('PAYMENT_COLLECTED', 'payments', 'payments', $1, NOW(), $2)`,
+        [
+          paymentId,
+          JSON.stringify({
+            receipt_number: receiptNumber,
+            visit_id: visit.visit_id,
+            patient_id: visit.patient_id,
+            patient_name: visit.patient_name,
+            fee_type,
+            amount: numAmount,
+            payment_method,
+            collected_by: `${staff_name} (${staff_role})`,
+          }),
+        ]
+      );
+
+      await client.query('COMMIT');
+
+      res.status(201).json({
+        success: true,
+        message: `Payment of $${numAmount.toFixed(2)} received successfully. Receipt: ${receiptNumber}.`,
+        payment,
+        receipt: {
+          receipt_number: receiptNumber,
+          payment_id: paymentId,
+          visit_id: visit.visit_id,
+          patient_id: visit.patient_id,
+          patient_name: visit.patient_name,
+          patient_phone: visit.patient_phone,
+          fee_type,
+          amount: numAmount,
+          payment_method,
+          payment_status: 'Paid',
+          transaction_reference: transaction_reference.trim() || 'N/A',
+          received_by: staff_name,
+          date: new Date().toISOString(),
+          doctor_name: visit.doctor_name,
+          department_name: visit.department_name,
+        },
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Payment collection error:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to process payment.',
+        details: err.message,
+      });
+    } finally {
+      client.release();
+    }
+  })
+);
+
+/**
+ * POST /api/v1/reception/billing/payments/:paymentId/refund
+ * Process a verified refund for an existing settled payment.
+ */
+router.patch(
+  '/billing/payments/:paymentId/refund',
+  asyncHandler(async (req, res) => {
+    const { paymentId } = req.params;
+    const {
+      reason = 'Refund requested by patient',
+      staff_name = 'Reception Staff',
+      staff_role = 'receptionist',
+    } = req.body || {};
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const payRes = await client.query(
+        `SELECT * FROM payments WHERE payment_id = $1 FOR UPDATE`,
+        [paymentId.trim()]
+      );
+
+      if (payRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ success: false, error: 'Payment record not found.' });
+      }
+
+      const payment = payRes.rows[0];
+
+      if (payment.payment_status === 'Refunded') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, error: 'This payment has already been refunded.' });
+      }
+
+      if (payment.payment_status === 'Failed') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, error: 'Cannot refund a failed transaction.' });
+      }
+
+      const updateRes = await client.query(
+        `UPDATE payments
+         SET payment_status = 'Refunded',
+             notes = CONCAT(COALESCE(notes, ''), ' [Refunded: ', $1::text, ' by ', $2::text, ']'),
+             updated_at = NOW()
+         WHERE payment_id = $3
+         RETURNING *`,
+        [reason, staff_name, payment.payment_id]
+      );
+
+      // Audit Log
+      await client.query(
+        `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+         VALUES ('PAYMENT_REFUNDED', 'payments', 'payments', $1, NOW(), $2)`,
+        [
+          payment.payment_id,
+          JSON.stringify({
+            receipt_number: payment.receipt_number,
+            amount: payment.amount,
+            refunded_by: `${staff_name} (${staff_role})`,
+            reason,
+          }),
+        ]
+      );
+
+      await client.query('COMMIT');
+
+      res.json({
+        success: true,
+        message: `Payment ${payment.receipt_number || payment.payment_id} successfully marked as Refunded.`,
+        payment: updateRes.rows[0],
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Refund error:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to process refund.',
+        details: err.message,
+      });
+    } finally {
+      client.release();
+    }
+  })
+);
+
+/**
+ * GET /api/v1/reception/billing/receipts/:identifier
+ * Retrieve complete printable receipt details by receipt number or payment ID.
+ */
+router.get(
+  '/billing/receipts/:identifier',
+  asyncHandler(async (req, res) => {
+    const { identifier } = req.params;
+
+    const receiptRes = await query(
+      `SELECT 
+        p.payment_id,
+        p.receipt_number,
+        p.fee_type,
+        p.amount,
+        p.payment_method,
+        p.payment_status,
+        p.transaction_reference,
+        p.received_by,
+        p.payment_date,
+        p.created_at,
+        p.notes,
+        -- Visit Details
+        v.visit_id,
+        v.visit_date,
+        v.visit_type,
+        -- Patient Details
+        COALESCE(pat.patient_id, pat.id) AS patient_id,
+        pat.full_name AS patient_name,
+        COALESCE(pat.mobile, pat.phone) AS patient_phone,
+        pat.gender AS patient_gender,
+        pat.address AS patient_address,
+        pat.dob AS patient_dob,
+        -- Doctor & Department Details
+        doc.name AS doctor_name,
+        doc.specialty AS doctor_specialty,
+        CONCAT('Cabin ', doc.id) AS room_or_cabin,
+        dept.name AS department_name,
+        t.token_display
+       FROM payments p
+       JOIN visits v ON v.visit_id = p.visit_id
+       LEFT JOIN patients pat ON pat.id = p.patient_id OR pat.id = v.patient_id
+       LEFT JOIN doctors doc ON doc.id = v.doctor_id
+       LEFT JOIN departments dept ON dept.id = v.department_id
+       LEFT JOIN tokens t ON t.visit_id = v.visit_id
+       WHERE UPPER(p.receipt_number) = UPPER($1) OR p.payment_id = $1
+       LIMIT 1`,
+      [identifier.trim()]
+    );
+
+    if (receiptRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Receipt not found.' });
+    }
+
+    res.json({
+      success: true,
+      data: receiptRes.rows[0],
+    });
+  })
+);
+
 export default router;
