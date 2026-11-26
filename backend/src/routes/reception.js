@@ -1852,4 +1852,1186 @@ router.post(
   })
 );
 
+// ============================================================================
+// APPOINTMENT MANAGEMENT MODULE FOR RECEPTION PORTAL
+// ============================================================================
+
+const APPOINTMENT_TIME_SLOTS = [
+  '09:00 AM',
+  '09:30 AM',
+  '10:00 AM',
+  '10:30 AM',
+  '11:00 AM',
+  '11:30 AM',
+  '12:00 PM',
+  '12:30 PM',
+  '02:00 PM',
+  '02:30 PM',
+  '03:00 PM',
+  '03:30 PM',
+  '04:00 PM',
+  '04:30 PM',
+];
+
+function generateReceptionBookingReference() {
+  const yr = new Date().getFullYear();
+  const num = Math.floor(1000 + Math.random() * 9000);
+  return `HX-${yr}-${num}`;
+}
+
+/**
+ * GET /api/v1/reception/appointments/slots
+ * Returns available time slots for a doctor on a specific date.
+ */
+router.get(
+  '/appointments/slots',
+  asyncHandler(async (req, res) => {
+    const { doctor_id, doctor_slug, date } = req.query || {};
+
+    if ((!doctor_id && !doctor_slug) || !date) {
+      return res.status(400).json({
+        success: false,
+        error: 'Doctor (doctor_id or doctor_slug) and date (YYYY-MM-DD) are required.',
+      });
+    }
+
+    // 1. Resolve doctor
+    let docRes;
+    if (doctor_id) {
+      docRes = await query(
+        `SELECT d.id, d.slug, d.name, d.specialty, d.department_slug, d.department_id,
+                d.consultation_days, d.consultation_hours, d.availability_status,
+                dep.name AS department_name
+         FROM doctors d
+         LEFT JOIN departments dep ON dep.id = d.department_id OR dep.slug = d.department_slug
+         WHERE d.id = $1`,
+        [Number(doctor_id)]
+      );
+    } else {
+      docRes = await query(
+        `SELECT d.id, d.slug, d.name, d.specialty, d.department_slug, d.department_id,
+                d.consultation_days, d.consultation_hours, d.availability_status,
+                dep.name AS department_name
+         FROM doctors d
+         LEFT JOIN departments dep ON dep.id = d.department_id OR dep.slug = d.department_slug
+         WHERE d.slug = $1`,
+        [String(doctor_slug)]
+      );
+    }
+
+    if (docRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Doctor not found.' });
+    }
+
+    const doctor = docRes.rows[0];
+
+    // 2. Query booked appointments for doctor on that date (excluding Cancelled)
+    const bookedRes = await query(
+      `SELECT time_slot, COUNT(*)::int AS count
+       FROM appointments
+       WHERE (doctor_id = $1 OR doctor_slug = $2)
+         AND appointment_date = $3::date
+         AND status <> 'Cancelled'
+       GROUP BY time_slot`,
+      [doctor.id, doctor.slug, String(date)]
+    );
+
+    const bookedCounts = new Map(bookedRes.rows.map((r) => [r.time_slot, r.count]));
+    const maxCapacityPerSlot = 1;
+
+    const slots = APPOINTMENT_TIME_SLOTS.map((slot) => {
+      const booked = bookedCounts.get(slot) || 0;
+      return {
+        time_slot: slot,
+        available: booked < maxCapacityPerSlot,
+        capacity: maxCapacityPerSlot,
+        booked,
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        doctor: {
+          id: doctor.id,
+          name: doctor.name,
+          specialty: doctor.specialty,
+          department_name: doctor.department_name,
+          availability_status: doctor.availability_status,
+          consultation_days: doctor.consultation_days,
+        },
+        date,
+        slots,
+      },
+    });
+  })
+);
+
+/**
+ * GET /api/v1/reception/appointments
+ * View today's, upcoming, or filtered appointments with live search.
+ */
+router.get(
+  '/appointments',
+  asyncHandler(async (req, res) => {
+    const {
+      date = 'today',
+      filter = 'today',
+      search = '',
+      department_id = 'all',
+      doctor_id = 'all',
+      status = 'all',
+      limit = 100,
+      offset = 0,
+    } = req.query || {};
+
+    let dateCondition = '';
+    const queryParams = [];
+    const hasSearch = search && search.trim() !== '';
+
+    if (!hasSearch) {
+      if (filter === 'today' || date === 'today') {
+        dateCondition = 'a.appointment_date = CURRENT_DATE';
+      } else if (filter === 'upcoming') {
+        dateCondition = 'a.appointment_date >= CURRENT_DATE';
+      } else if (date && date !== 'all') {
+        queryParams.push(date);
+        dateCondition = `a.appointment_date = $${queryParams.length}::date`;
+      }
+    } else {
+      // When searching, search across all dates unless user explicitly supplied a date filter
+      if (req.query.date && req.query.date !== 'all') {
+        if (req.query.date === 'today') {
+          dateCondition = 'a.appointment_date = CURRENT_DATE';
+        } else {
+          queryParams.push(req.query.date);
+          dateCondition = `a.appointment_date = $${queryParams.length}::date`;
+        }
+      } else if (req.query.filter === 'today') {
+        dateCondition = 'a.appointment_date = CURRENT_DATE';
+      } else if (req.query.filter === 'upcoming') {
+        dateCondition = 'a.appointment_date >= CURRENT_DATE';
+      }
+    }
+
+    const conditions = [];
+    if (dateCondition) {
+      conditions.push(dateCondition);
+    }
+
+    if (department_id && department_id !== 'all') {
+      queryParams.push(Number(department_id));
+      conditions.push(`(a.department_id = $${queryParams.length} OR dep.id = $${queryParams.length})`);
+    }
+
+    if (doctor_id && doctor_id !== 'all') {
+      queryParams.push(Number(doctor_id));
+      conditions.push(`(a.doctor_id = $${queryParams.length} OR doc.id = $${queryParams.length})`);
+    }
+
+    if (status && status !== 'all') {
+      queryParams.push(status);
+      conditions.push(`a.status = $${queryParams.length}`);
+    }
+
+    if (search && search.trim() !== '') {
+      const s = `%${search.trim().toLowerCase()}%`;
+      queryParams.push(s);
+      const idx = queryParams.length;
+      conditions.push(`(
+        LOWER(a.booking_reference) LIKE $${idx} OR
+        LOWER(a.patient_name) LIKE $${idx} OR
+        LOWER(a.patient_phone) LIKE $${idx} OR
+        LOWER(COALESCE(p.patient_id, p.id, '')) LIKE $${idx} OR
+        LOWER(COALESCE(doc.name, '')) LIKE $${idx}
+      )`);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const sql = `
+      SELECT 
+        a.id,
+        a.booking_reference,
+        COALESCE(a.appointment_id, a.booking_reference) AS appointment_id,
+        a.appointment_date,
+        TO_CHAR(a.appointment_date, 'YYYY-MM-DD') AS formatted_date,
+        a.time_slot,
+        a.visit_type,
+        a.status,
+        a.patient_name,
+        a.patient_email,
+        a.patient_phone,
+        a.patient_dob,
+        a.patient_gender,
+        a.reason_for_visit,
+        a.insurance_provider,
+        a.created_at,
+        a.updated_at,
+        a.check_in_time,
+        a.cancellation_reason,
+        a.reschedule_reason,
+        a.notes,
+        a.visit_id,
+        -- Patient Linkage
+        COALESCE(p.patient_id, p.id) AS patient_id,
+        p.id AS patient_record_id,
+        p.mobile AS patient_mobile,
+        p.blood_group AS patient_blood_group,
+        p.emergency_contact AS patient_emergency_contact,
+        -- Doctor Linkage
+        doc.id AS doctor_id,
+        doc.name AS doctor_name,
+        doc.specialty AS doctor_specialty,
+        doc.slug AS doctor_slug,
+        doc.availability_status AS doctor_availability,
+        CONCAT('Cabin ', doc.id) AS room_or_cabin,
+        -- Department Linkage
+        dep.id AS department_id,
+        dep.name AS department_name,
+        dep.slug AS department_slug,
+        dep.token_prefix,
+        -- Checked-in Visit & Token Linkage
+        v.status AS visit_status,
+        t.token_id,
+        t.token_number,
+        COALESCE(t.token_display, CONCAT(COALESCE(dep.token_prefix, 'G'), '-', LPAD(t.token_number::text, 3, '0'))) AS token_display,
+        t.status AS token_status
+      FROM appointments a
+      LEFT JOIN doctors doc ON doc.id = a.doctor_id OR doc.slug = a.doctor_slug
+      LEFT JOIN departments dep ON dep.id = a.department_id OR dep.slug = a.department_slug OR dep.slug = doc.department_slug
+      LEFT JOIN patients p ON p.id = a.patient_id OR p.mobile = a.patient_phone OR p.phone = a.patient_phone
+      LEFT JOIN visits v ON v.visit_id = a.visit_id
+      LEFT JOIN tokens t ON t.visit_id = a.visit_id
+      ${whereClause}
+      ORDER BY a.appointment_date ASC, a.time_slot ASC, a.created_at DESC
+      LIMIT ${Number(limit)} OFFSET ${Number(offset)}
+    `;
+
+    const result = await query(sql, queryParams);
+
+    // Compute live summary counters
+    const summaryRes = await query(`
+      SELECT 
+        COUNT(*)::int AS total_today,
+        COUNT(CASE WHEN status IN ('Confirmed', 'Scheduled', 'Pending') THEN 1 END)::int AS confirmed_today,
+        COUNT(CASE WHEN status = 'Checked-In' THEN 1 END)::int AS checked_in_today,
+        COUNT(CASE WHEN status = 'Cancelled' THEN 1 END)::int AS cancelled_today,
+        (SELECT COUNT(*)::int FROM appointments WHERE appointment_date >= CURRENT_DATE AND status IN ('Confirmed', 'Scheduled', 'Pending')) AS upcoming_total
+      FROM appointments
+      WHERE appointment_date = CURRENT_DATE
+    `);
+
+    const summary = summaryRes.rows[0] || {
+      total_today: 0,
+      confirmed_today: 0,
+      checked_in_today: 0,
+      cancelled_today: 0,
+      upcoming_total: 0,
+    };
+
+    res.json({
+      success: true,
+      data: result.rows,
+      summary: {
+        total_today: Number(summary.total_today) || 0,
+        confirmed_today: Number(summary.confirmed_today) || 0,
+        checked_in_today: Number(summary.checked_in_today) || 0,
+        cancelled_today: Number(summary.cancelled_today) || 0,
+        upcoming_total: Number(summary.upcoming_total) || 0,
+      },
+    });
+  })
+);
+
+/**
+ * POST /api/v1/reception/appointments
+ * Books an appointment for future dates or today with schedule validation,
+ * patient linkage / registration, and conflict locking.
+ */
+router.post(
+  '/appointments',
+  asyncHandler(async (req, res) => {
+    const {
+      appointment_date,
+      time_slot,
+      department_id,
+      doctor_id,
+      visit_type = 'OPD Consultation',
+      reason_for_visit = '',
+      insurance_provider = '',
+      // Patient Identification
+      patient_id = null,
+      new_patient = null,
+      patient_name = '',
+      patient_phone = '',
+      patient_email = '',
+      patient_dob = null,
+      patient_gender = 'Other',
+      staff_name = 'Reception Staff',
+      staff_role = 'receptionist',
+    } = req.body || {};
+
+    if (!appointment_date || !time_slot || (!department_id && !doctor_id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Appointment date, time slot, and department/doctor are required.',
+      });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // 1. Resolve Doctor & Department
+      let resolvedDocId = doctor_id ? Number(doctor_id) : null;
+      let resolvedDeptId = department_id ? Number(department_id) : null;
+
+      let docRow = null;
+      if (resolvedDocId) {
+        const docRes = await client.query(
+          `SELECT d.id, d.slug, d.name, d.specialty, d.department_id, d.department_slug,
+                  d.consultation_fee, d.consultation_days, dep.name AS department_name
+           FROM doctors d
+           LEFT JOIN departments dep ON dep.id = d.department_id OR dep.slug = d.department_slug
+           WHERE d.id = $1`,
+          [resolvedDocId]
+        );
+        if (docRes.rows.length === 0) {
+          await client.query('ROLLBACK');
+          return res.status(404).json({ success: false, error: 'Selected doctor not found.' });
+        }
+        docRow = docRes.rows[0];
+        if (!resolvedDeptId && docRow.department_id) {
+          resolvedDeptId = docRow.department_id;
+        }
+      } else if (resolvedDeptId) {
+        // Auto-assign first available doctor in department
+        const docRes = await client.query(
+          `SELECT d.id, d.slug, d.name, d.specialty, d.department_id, d.department_slug,
+                  d.consultation_fee, dep.name AS department_name
+           FROM doctors d
+           LEFT JOIN departments dep ON dep.id = d.department_id
+           WHERE d.department_id = $1 AND d.availability_status IN ('Available', 'Busy')
+           ORDER BY CASE WHEN d.availability_status = 'Available' THEN 0 ELSE 1 END, d.id ASC
+           LIMIT 1`,
+          [resolvedDeptId]
+        );
+        if (docRes.rows.length > 0) {
+          docRow = docRes.rows[0];
+          resolvedDocId = docRow.id;
+        }
+      }
+
+      if (!docRow) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          success: false,
+          error: 'Could not resolve an assigned doctor for this appointment.',
+        });
+      }
+
+      // 2. Lock & Prevent Conflicting Bookings on Doctor, Date, Time Slot
+      const conflictRes = await client.query(
+        `SELECT id, booking_reference, patient_name, status
+         FROM appointments
+         WHERE doctor_id = $1
+           AND appointment_date = $2::date
+           AND time_slot = $3
+           AND status NOT IN ('Cancelled')
+         FOR UPDATE`,
+        [docRow.id, appointment_date, time_slot]
+      );
+
+      if (conflictRes.rows.length > 0) {
+        await client.query('ROLLBACK');
+        return res.status(409).json({
+          success: false,
+          error: `Dr. ${docRow.name} is already booked on ${appointment_date} at ${time_slot}. Please select another time slot.`,
+        });
+      }
+
+      // 3. Resolve Patient Linkage or Register New Patient
+      let resolvedPatientId = null;
+      let finalPatientName = patient_name.trim();
+      let finalPatientPhone = patient_phone.trim();
+      let finalPatientEmail = patient_email.trim();
+      let finalPatientDob = patient_dob;
+      let finalPatientGender = patient_gender;
+
+      if (patient_id) {
+        // Verify existing patient
+        const patRes = await client.query(
+          `SELECT id, patient_id, full_name, mobile, phone, email, dob, gender
+           FROM patients
+           WHERE id = $1 OR patient_id = $1
+           LIMIT 1`,
+          [String(patient_id).trim()]
+        );
+        if (patRes.rows.length > 0) {
+          const p = patRes.rows[0];
+          resolvedPatientId = p.id;
+          finalPatientName = p.full_name || finalPatientName;
+          finalPatientPhone = p.mobile || p.phone || finalPatientPhone;
+          finalPatientEmail = p.email || finalPatientEmail;
+          finalPatientDob = p.dob || finalPatientDob;
+          finalPatientGender = p.gender || finalPatientGender;
+        }
+      } else if (new_patient) {
+        // Support new patient appointment registration
+        const yr = new Date().getFullYear();
+        const rand = Math.floor(1000 + Math.random() * 9000);
+        const generatedPid = `PAT-${yr}-${rand}`;
+
+        finalPatientName = new_patient.full_name || finalPatientName;
+        finalPatientPhone = new_patient.mobile || finalPatientPhone;
+        finalPatientEmail = new_patient.email || finalPatientEmail;
+        finalPatientDob = new_patient.dob || finalPatientDob;
+        finalPatientGender = new_patient.gender || finalPatientGender;
+
+        const newPatRes = await client.query(
+          `INSERT INTO patients (
+            id, patient_id, full_name, mobile, phone, email, gender, dob, date_of_birth,
+            address, blood_group, emergency_contact, emergency_contact_name, emergency_contact_phone,
+            allergies, registration_date, created_at, updated_at
+          ) VALUES (
+            $1, $2, $3, $4, $4, $5, $6, $7::date, $8,
+            $9, $10, $11, $12, $13,
+            $14, NOW(), NOW(), NOW()
+          ) RETURNING id, patient_id, full_name`,
+          [
+            generatedPid,
+            generatedPid,
+            finalPatientName,
+            finalPatientPhone,
+            finalPatientEmail || null,
+            finalPatientGender || 'Other',
+            finalPatientDob || null,
+            finalPatientDob ? String(finalPatientDob) : null,
+            new_patient.address || 'Address provided at reception',
+            new_patient.blood_group || null,
+            new_patient.emergency_contact || null,
+            new_patient.emergency_contact || null,
+            new_patient.emergency_phone || null,
+            new_patient.allergies || null,
+          ]
+        );
+        resolvedPatientId = newPatRes.rows[0].id;
+      } else if (finalPatientPhone) {
+        // Auto-match patient by mobile if existing
+        const matchRes = await client.query(
+          `SELECT id, patient_id, full_name, email FROM patients WHERE mobile = $1 OR phone = $1 LIMIT 1`,
+          [finalPatientPhone]
+        );
+        if (matchRes.rows.length > 0) {
+          resolvedPatientId = matchRes.rows[0].id;
+          finalPatientName = matchRes.rows[0].full_name || finalPatientName;
+        }
+      }
+
+      if (!finalPatientName || !finalPatientPhone) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          success: false,
+          error: 'Patient name and mobile number are required to book an appointment.',
+        });
+      }
+
+      // 4. Generate Unique Booking Reference
+      let bookingReference = generateReceptionBookingReference();
+      for (let i = 0; i < 5; i++) {
+        const checkRef = await client.query(
+          `SELECT 1 FROM appointments WHERE booking_reference = $1`,
+          [bookingReference]
+        );
+        if (checkRef.rows.length === 0) break;
+        bookingReference = generateReceptionBookingReference();
+      }
+
+      // 5. Insert Appointment
+      const apptRes = await client.query(
+        `INSERT INTO appointments (
+          booking_reference,
+          appointment_id,
+          doctor_id,
+          doctor_slug,
+          department_id,
+          department_slug,
+          patient_id,
+          patient_name,
+          patient_phone,
+          patient_email,
+          patient_dob,
+          patient_gender,
+          appointment_date,
+          time_slot,
+          visit_type,
+          reason_for_visit,
+          insurance_provider,
+          status,
+          created_at,
+          updated_at
+        ) VALUES (
+          $1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10::date, $11, $12::date, $13, $14, $15, $16, 'Confirmed', NOW(), NOW()
+        ) RETURNING *`,
+        [
+          bookingReference,
+          docRow.id,
+          docRow.slug,
+          resolvedDeptId || docRow.department_id || 1,
+          docRow.department_slug || 'general-medicine',
+          resolvedPatientId,
+          finalPatientName,
+          finalPatientPhone,
+          finalPatientEmail || `${finalPatientPhone}@healix-patient.org`,
+          finalPatientDob || null,
+          finalPatientGender || 'Other',
+          appointment_date,
+          time_slot,
+          visit_type,
+          reason_for_visit,
+          insurance_provider,
+        ]
+      );
+
+      const appt = apptRes.rows[0];
+
+      // 6. Record Audit Log in appointment_audit_logs
+      await client.query(
+        `INSERT INTO appointment_audit_logs (
+          appointment_id, booking_reference, previous_status, new_status, changed_by, reason, created_at
+        ) VALUES ($1, $2, NULL, 'Confirmed', $3, $4, NOW())`,
+        [
+          appt.id,
+          bookingReference,
+          `${staff_name} (${staff_role})`,
+          `Appointment booked by reception staff for Dr. ${docRow.name} on ${appointment_date} at ${time_slot}`,
+        ]
+      );
+
+      // 7. General Audit Trail
+      await client.query(
+        `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+         VALUES ('APPOINTMENT_BOOKED', 'appointments', 'appointments', $1, NOW(), $2)`,
+        [
+          bookingReference,
+          JSON.stringify({
+            patient_name: finalPatientName,
+            doctor_name: docRow.name,
+            appointment_date,
+            time_slot,
+            booked_by: staff_name,
+          }),
+        ]
+      );
+
+      await client.query('COMMIT');
+
+      res.status(201).json({
+        success: true,
+        message: `Appointment ${bookingReference} booked successfully for ${finalPatientName}.`,
+        data: {
+          ...appt,
+          doctor_name: docRow.name,
+          doctor_specialty: docRow.specialty,
+          department_name: docRow.department_name,
+          room_or_cabin: `Cabin ${docRow.id}`,
+        },
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Reception appointment booking error:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create appointment.',
+        details: err.message,
+      });
+    } finally {
+      client.release();
+    }
+  })
+);
+
+/**
+ * PATCH /api/v1/reception/appointments/:reference/reschedule
+ * Reschedule appointment to a new date and time slot with conflict check.
+ */
+router.patch(
+  '/appointments/:reference/reschedule',
+  asyncHandler(async (req, res) => {
+    const { reference } = req.params;
+    const {
+      new_date,
+      new_time_slot,
+      reason = 'Patient requested new schedule',
+      staff_name = 'Reception Staff',
+      staff_role = 'receptionist',
+    } = req.body || {};
+
+    if (!new_date || !new_time_slot) {
+      return res.status(400).json({
+        success: false,
+        error: 'Both new_date (YYYY-MM-DD) and new_time_slot are required to reschedule.',
+      });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // 1. Lock appointment row
+      const apptRes = await client.query(
+        `SELECT a.*, d.name AS doctor_name
+         FROM appointments a
+         LEFT JOIN doctors d ON d.id = a.doctor_id OR d.slug = a.doctor_slug
+         WHERE UPPER(a.booking_reference) = UPPER($1) OR a.appointment_id = $1
+         FOR UPDATE OF a`,
+        [reference.trim()]
+      );
+
+      if (apptRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ success: false, error: 'Appointment not found.' });
+      }
+
+      const appt = apptRes.rows[0];
+
+      if (appt.status === 'Cancelled') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot reschedule a cancelled appointment. Please book a new appointment.',
+        });
+      }
+
+      if (appt.status === 'Completed') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot reschedule a completed consultation.',
+        });
+      }
+
+      // 2. Lock & Check Conflict on New Slot
+      const conflictRes = await client.query(
+        `SELECT id, booking_reference
+         FROM appointments
+         WHERE (doctor_id = $1 OR doctor_slug = $2)
+           AND appointment_date = $3::date
+           AND time_slot = $4
+           AND id <> $5
+           AND status NOT IN ('Cancelled')
+         FOR UPDATE`,
+        [appt.doctor_id, appt.doctor_slug, new_date, new_time_slot, appt.id]
+      );
+
+      if (conflictRes.rows.length > 0) {
+        await client.query('ROLLBACK');
+        return res.status(409).json({
+          success: false,
+          error: `Dr. ${appt.doctor_name || 'selected physician'} already has an active appointment on ${new_date} at ${new_time_slot}.`,
+        });
+      }
+
+      const prevDate = appt.appointment_date.toISOString().slice(0, 10);
+      const prevSlot = appt.time_slot;
+      const prevStatus = appt.status;
+
+      // 3. Update Appointment
+      const updateRes = await client.query(
+        `UPDATE appointments
+         SET appointment_date = $1::date,
+             time_slot = $2,
+             status = 'Rescheduled',
+             reschedule_reason = $3,
+             updated_at = NOW()
+         WHERE id = $4
+         RETURNING *`,
+        [new_date, new_time_slot, reason, appt.id]
+      );
+
+      const updatedAppt = updateRes.rows[0];
+
+      // 4. Audit Log
+      await client.query(
+        `INSERT INTO appointment_audit_logs (
+          appointment_id, booking_reference, previous_status, new_status, changed_by, reason, created_at
+        ) VALUES ($1, $2, $3, 'Rescheduled', $4, $5, NOW())`,
+        [
+          appt.id,
+          appt.booking_reference,
+          prevStatus,
+          `${staff_name} (${staff_role})`,
+          `Rescheduled from ${prevDate} (${prevSlot}) to ${new_date} (${new_time_slot}). Reason: ${reason}`,
+        ]
+      );
+
+      await client.query(
+        `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+         VALUES ('APPOINTMENT_RESCHEDULED', 'appointments', 'appointments', $1, NOW(), $2)`,
+        [
+          appt.booking_reference,
+          JSON.stringify({
+            previous_date: prevDate,
+            previous_slot: prevSlot,
+            new_date,
+            new_time_slot,
+            rescheduled_by: staff_name,
+            reason,
+          }),
+        ]
+      );
+
+      await client.query('COMMIT');
+
+      res.json({
+        success: true,
+        message: `Appointment ${appt.booking_reference} successfully rescheduled to ${new_date} at ${new_time_slot}.`,
+        data: updatedAppt,
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Reschedule appointment error:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to reschedule appointment.',
+        details: err.message,
+      });
+    } finally {
+      client.release();
+    }
+  })
+);
+
+/**
+ * PATCH /api/v1/reception/appointments/:reference/cancel
+ * Cancel an appointment with mandatory audit logging and reason.
+ */
+router.patch(
+  '/appointments/:reference/cancel',
+  asyncHandler(async (req, res) => {
+    const { reference } = req.params;
+    const {
+      reason = 'Cancelled by reception request',
+      staff_name = 'Reception Staff',
+      staff_role = 'receptionist',
+    } = req.body || {};
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const apptRes = await client.query(
+        `SELECT * FROM appointments
+         WHERE UPPER(booking_reference) = UPPER($1) OR appointment_id = $1
+         FOR UPDATE`,
+        [reference.trim()]
+      );
+
+      if (apptRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ success: false, error: 'Appointment not found.' });
+      }
+
+      const appt = apptRes.rows[0];
+
+      if (appt.status === 'Cancelled') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, error: 'This appointment is already cancelled.' });
+      }
+
+      if (appt.status === 'Completed') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot cancel an appointment whose consultation has already completed.',
+        });
+      }
+
+      const prevStatus = appt.status;
+
+      // Update appointment status to Cancelled
+      const updateRes = await client.query(
+        `UPDATE appointments
+         SET status = 'Cancelled',
+             cancellation_reason = $1,
+             updated_at = NOW()
+         WHERE id = $2
+         RETURNING *`,
+        [reason, appt.id]
+      );
+
+      // If already checked in and in queue, also cancel token
+      if (appt.visit_id) {
+        await client.query(
+          `UPDATE visits SET status = 'Cancelled', updated_at = NOW() WHERE visit_id = $1`,
+          [appt.visit_id]
+        );
+        await client.query(
+          `UPDATE tokens SET status = 'Cancelled', cancellation_reason = $1, updated_at = NOW() WHERE visit_id = $2`,
+          [`Appointment cancelled: ${reason}`, appt.visit_id]
+        );
+      }
+
+      // Record in appointment_audit_logs
+      await client.query(
+        `INSERT INTO appointment_audit_logs (
+          appointment_id, booking_reference, previous_status, new_status, changed_by, reason, created_at
+        ) VALUES ($1, $2, $3, 'Cancelled', $4, $5, NOW())`,
+        [
+          appt.id,
+          appt.booking_reference,
+          prevStatus,
+          `${staff_name} (${staff_role})`,
+          reason,
+        ]
+      );
+
+      // Record in system audit_logs
+      await client.query(
+        `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+         VALUES ('APPOINTMENT_CANCELLED', 'appointments', 'appointments', $1, NOW(), $2)`,
+        [
+          appt.booking_reference,
+          JSON.stringify({
+            cancelled_by: staff_name,
+            reason,
+            previous_status: prevStatus,
+          }),
+        ]
+      );
+
+      await client.query('COMMIT');
+
+      res.json({
+        success: true,
+        message: `Appointment ${appt.booking_reference} has been cancelled.`,
+        data: updateRes.rows[0],
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Cancel appointment error:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to cancel appointment.',
+        details: err.message,
+      });
+    } finally {
+      client.release();
+    }
+  })
+);
+
+/**
+ * POST /api/v1/reception/appointments/:reference/check-in
+ * Check in a patient upon arrival. Converts the confirmed appointment into a
+ * consultation visit and OPD queue token. Avoids duplicate visits/tokens if checked in repeatedly.
+ */
+router.post(
+  '/appointments/:reference/check-in',
+  asyncHandler(async (req, res) => {
+    const { reference } = req.params;
+    const {
+      staff_name = 'Reception Staff',
+      staff_role = 'receptionist',
+      priority = 'Standard',
+    } = req.body || {};
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // 1. Lock appointment row
+      const apptRes = await client.query(
+        `SELECT a.*,
+                d.id AS resolved_doc_id,
+                d.name AS doctor_name,
+                d.specialty AS doctor_specialty,
+                dep.id AS resolved_dept_id,
+                dep.name AS department_name,
+                COALESCE(dep.token_prefix, 'G') AS token_prefix
+         FROM appointments a
+         LEFT JOIN doctors d ON d.id = a.doctor_id OR d.slug = a.doctor_slug
+         LEFT JOIN departments dep ON dep.id = a.department_id OR dep.slug = a.department_slug OR dep.slug = d.department_slug
+         WHERE UPPER(a.booking_reference) = UPPER($1) OR a.appointment_id = $1
+         FOR UPDATE OF a`,
+        [reference.trim()]
+      );
+
+      if (apptRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ success: false, error: 'Appointment not found.' });
+      }
+
+      const appt = apptRes.rows[0];
+
+      // 2. IDEMPOTENCY / DUPLICATE PREVENTION:
+      // If already checked in or already has a linked visit, return the existing visit and token!
+      if (appt.status === 'Checked-In' || appt.visit_id) {
+        const existingDataRes = await client.query(
+          `SELECT 
+            v.visit_id,
+            v.status AS visit_status,
+            v.visit_type,
+            v.visit_date,
+            t.token_id,
+            t.token_number,
+            COALESCE(t.token_display, CONCAT(COALESCE(dep.token_prefix, 'G'), '-', LPAD(t.token_number::text, 3, '0'))) AS token_display,
+            t.status AS token_status,
+            t.queue_date,
+            doc.name AS doctor_name,
+            CONCAT('Cabin ', doc.id) AS room_or_cabin,
+            dep.name AS department_name
+           FROM visits v
+           LEFT JOIN tokens t ON t.visit_id = v.visit_id
+           LEFT JOIN doctors doc ON doc.id = v.doctor_id
+           LEFT JOIN departments dep ON dep.id = v.department_id
+           WHERE v.visit_id = $1 OR v.appointment_id = $2
+           LIMIT 1`,
+          [appt.visit_id, appt.booking_reference]
+        );
+
+        await client.query('COMMIT');
+
+        const existingRecord = existingDataRes.rows[0] || null;
+        return res.json({
+          success: true,
+          already_checked_in: true,
+          message: `Patient was already checked in. Existing token: ${existingRecord?.token_display || 'Active'}.`,
+          visit: existingRecord ? {
+            visit_id: existingRecord.visit_id,
+            status: existingRecord.visit_status,
+            visit_type: existingRecord.visit_type,
+            visit_date: existingRecord.visit_date,
+          } : null,
+          token: existingRecord ? {
+            token_id: existingRecord.token_id,
+            token_display: existingRecord.token_display,
+            token_number: existingRecord.token_number,
+            status: existingRecord.token_status,
+            queue_date: existingRecord.queue_date,
+          } : null,
+          appointment: appt,
+        });
+      }
+
+      if (appt.status === 'Cancelled') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot check in a cancelled appointment. Please re-book or reinstate.',
+        });
+      }
+
+      if (appt.status === 'Completed') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          success: false,
+          error: 'This appointment consultation has already been marked completed.',
+        });
+      }
+
+      // 3. Resolve Patient Record in patients table
+      let patientDbId = appt.patient_id;
+      if (!patientDbId) {
+        // Find existing patient by phone
+        const findPat = await client.query(
+          `SELECT id FROM patients WHERE mobile = $1 OR phone = $1 LIMIT 1`,
+          [appt.patient_phone]
+        );
+        if (findPat.rows.length > 0) {
+          patientDbId = findPat.rows[0].id;
+        } else {
+          // Auto-create patient record for this appointment
+          const yr = new Date().getFullYear();
+          const rand = Math.floor(1000 + Math.random() * 9000);
+          patientDbId = `PAT-${yr}-${rand}`;
+
+          await client.query(
+            `INSERT INTO patients (
+              id, patient_id, full_name, mobile, phone, email, gender, dob, date_of_birth,
+              address, registration_date, created_at, updated_at
+            ) VALUES (
+              $1, $1, $2, $3, $3, $4, $5, $6::date, $7,
+              'Registered via Appointment Check-in', NOW(), NOW(), NOW()
+            )`,
+            [
+              patientDbId,
+              appt.patient_name,
+              appt.patient_phone,
+              appt.patient_email || `${appt.patient_phone}@healix-patient.org`,
+              appt.patient_gender || 'Other',
+              appt.patient_dob || null,
+              appt.patient_dob ? String(appt.patient_dob) : null,
+            ]
+          );
+        }
+
+        // Link patient_id on appointment
+        await client.query(`UPDATE appointments SET patient_id = $1 WHERE id = $2`, [patientDbId, appt.id]);
+      }
+
+      const docId = appt.resolved_doc_id || 1;
+      const deptId = appt.resolved_dept_id || 1;
+      const tokenPrefix = appt.token_prefix || 'G';
+
+      // 4. Concurrency Lock on Department Daily Queue
+      const todayDateStr = new Date().toISOString().slice(0, 10);
+      await client.query(
+        `SELECT pg_advisory_xact_lock(hashtext($1))`,
+        [`opd_queue_${deptId}_${todayDateStr}`]
+      );
+
+      // 5. Generate Next Sequential Token Number for Today
+      const seqRes = await client.query(
+        `SELECT COALESCE(MAX(token_number), 0) + 1 AS next_token_number
+         FROM tokens
+         WHERE department_id = $1 AND queue_date = CURRENT_DATE`,
+        [deptId]
+      );
+
+      const nextTokenNumber = Number(seqRes.rows[0].next_token_number) || 1;
+      const tokenDisplay = `${tokenPrefix}-${String(nextTokenNumber).padStart(3, '0')}`;
+
+      // 6. Generate Unique Visit ID & Insert Visit Record
+      const yr = new Date().getFullYear();
+      const visitId = `VST-${yr}-${Date.now().toString().slice(-6)}`;
+
+      const visitRes = await client.query(
+        `INSERT INTO visits (
+          visit_id, patient_id, department_id, doctor_id, visit_date, visit_type,
+          status, appointment_id, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, CURRENT_DATE, $5, 'In-Queue', $6, NOW(), NOW()
+        ) RETURNING *`,
+        [
+          visitId,
+          patientDbId,
+          deptId,
+          docId,
+          appt.visit_type || 'OPD Consultation',
+          appt.booking_reference,
+        ]
+      );
+
+      const newVisit = visitRes.rows[0];
+
+      // 7. Insert Token Record
+      const tokenId = `TKN-${Date.now().toString().slice(-6)}-${tokenDisplay}`;
+
+      const tokenRes = await client.query(
+        `INSERT INTO tokens (
+          token_id,
+          visit_id,
+          patient_id,
+          doctor_id,
+          department_id,
+          token_number,
+          token_display,
+          queue_date,
+          status,
+          priority,
+          created_at,
+          updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, CURRENT_DATE, 'Waiting', $8, NOW(), NOW()
+        ) RETURNING *`,
+        [
+          tokenId,
+          visitId,
+          patientDbId,
+          docId,
+          deptId,
+          nextTokenNumber,
+          tokenDisplay,
+          priority,
+        ]
+      );
+
+      const newToken = tokenRes.rows[0];
+
+      // 8. Update Appointment: status -> 'Checked-In', visit_id, check_in_time
+      await client.query(
+        `UPDATE appointments
+         SET status = 'Checked-In',
+             visit_id = $1,
+             check_in_time = NOW(),
+             updated_at = NOW()
+         WHERE id = $2`,
+        [visitId, appt.id]
+      );
+
+      // 9. Audit Logs
+      await client.query(
+        `INSERT INTO appointment_audit_logs (
+          appointment_id, booking_reference, previous_status, new_status, changed_by, reason, created_at
+        ) VALUES ($1, $2, $3, 'Checked-In', $4, $5, NOW())`,
+        [
+          appt.id,
+          appt.booking_reference,
+          appt.status,
+          `${staff_name} (${staff_role})`,
+          `Patient checked in. Generated Token ${tokenDisplay} (Visit ID: ${visitId}).`,
+        ]
+      );
+
+      await client.query(
+        `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+         VALUES ('PATIENT_APPOINTMENT_CHECKED_IN', 'appointments', 'appointments', $1, NOW(), $2)`,
+        [
+          appt.booking_reference,
+          JSON.stringify({
+            visit_id: visitId,
+            token_display: tokenDisplay,
+            token_number: nextTokenNumber,
+            doctor_name: appt.doctor_name,
+            department_name: appt.department_name,
+            checked_in_by: staff_name,
+          }),
+        ]
+      );
+
+      await client.query('COMMIT');
+
+      res.json({
+        success: true,
+        already_checked_in: false,
+        message: `Patient ${appt.patient_name} checked in successfully. Assigned Token ${tokenDisplay}.`,
+        visit: newVisit,
+        token: newToken,
+        appointment: {
+          ...appt,
+          status: 'Checked-In',
+          visit_id: visitId,
+          check_in_time: new Date().toISOString(),
+        },
+        slip: {
+          token_display: tokenDisplay,
+          token_number: nextTokenNumber,
+          visit_id: visitId,
+          booking_reference: appt.booking_reference,
+          patient_name: appt.patient_name,
+          patient_phone: appt.patient_phone,
+          doctor_name: appt.doctor_name,
+          room_or_cabin: `Cabin ${docId}`,
+          department_name: appt.department_name,
+          date: todayDateStr,
+          time_slot: appt.time_slot,
+          priority,
+        },
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Check-in appointment error:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to check in appointment.',
+        details: err.message,
+      });
+    } finally {
+      client.release();
+    }
+  })
+);
+
 export default router;

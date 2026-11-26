@@ -62,7 +62,7 @@ ALTER TABLE doctors ADD COLUMN IF NOT EXISTS doctor_id INTEGER;
 UPDATE doctors SET doctor_id = id WHERE doctor_id IS NULL;
 
 ALTER TABLE doctors ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;
-ALTER TABLE doctors ADD COLUMN IF NOT EXISTS availability_status TEXT DEFAULT 'Available';
+ALTER TABLE doctors ADD COLUMN IF NOT EXISTS availability_status TEXT DEFAULT 'Available' CHECK (availability_status IN ('Available', 'Busy', 'On Break', 'Unavailable'));
 
 CREATE INDEX IF NOT EXISTS idx_doctors_doctor_id ON doctors(doctor_id);
 CREATE INDEX IF NOT EXISTS idx_doctors_user_id ON doctors(user_id);
@@ -77,12 +77,33 @@ CREATE INDEX IF NOT EXISTS idx_doctor_schedules_doc_date ON doctor_schedules(doc
 -- 6. Entity: appointments (Appointments linking patient, doctor, and department)
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS appointment_id TEXT;
 UPDATE appointments SET appointment_id = booking_reference WHERE appointment_id IS NULL;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS visit_id TEXT REFERENCES visits(visit_id) ON DELETE SET NULL;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS check_in_time TIMESTAMPTZ;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS cancellation_reason TEXT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS reschedule_reason TEXT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS notes TEXT;
 
+ALTER TABLE visits ADD COLUMN IF NOT EXISTS appointment_id TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_appointments_visit_id ON appointments(visit_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_appt_id ON appointments(appointment_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_doctor ON appointments(doctor_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_dept ON appointments(department_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_patient ON appointments(patient_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_date_status ON appointments(appointment_date, status);
+CREATE INDEX IF NOT EXISTS idx_visits_appointment_id ON visits(appointment_id);
+
+CREATE TABLE IF NOT EXISTS appointment_audit_logs (
+  id SERIAL PRIMARY KEY,
+  appointment_id INTEGER REFERENCES appointments(id) ON DELETE CASCADE,
+  booking_reference TEXT NOT NULL,
+  previous_status TEXT,
+  new_status TEXT NOT NULL,
+  changed_by TEXT NOT NULL DEFAULT 'receptionist',
+  reason TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_appointment_audit_ref ON appointment_audit_logs(booking_reference);
 
 -- 7. Entity: visits (Encounters - One patient can have multiple visits)
 CREATE TABLE IF NOT EXISTS visits (

@@ -24,6 +24,7 @@ import PatientRegistrationForm from './PatientRegistrationForm';
 import PatientSearchLookup from './PatientSearchLookup';
 import PatientProfileModal from './PatientProfileModal';
 import LiveQueueManager from './LiveQueueManager';
+import AppointmentManager from './AppointmentManager';
 
 interface DashboardStats {
   patientsRegisteredToday: number;
@@ -110,7 +111,7 @@ export default function ReceptionistDashboard() {
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState<boolean>(true);
   const [countdown, setCountdown] = useState<number>(AUTO_REFRESH_INTERVAL_SECONDS);
   const [currentTime, setCurrentTime] = useState<string>('');
-  const [activeView, setActiveView] = useState<'queue' | 'search' | 'registration'>('queue');
+  const [activeView, setActiveView] = useState<'queue' | 'appointments' | 'search' | 'registration'>('queue');
   const [selectedQueuePatientId, setSelectedQueuePatientId] = useState<string | null>(null);
 
   // Search & Filter state
@@ -324,7 +325,7 @@ export default function ReceptionistDashboard() {
 
         {/* View Selection Tabs */}
         <div className="mt-6 pt-4 border-t border-[#F0F2F0] flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 p-1 rounded-2xl bg-[#FAFAF7] border border-[#E5E8E6]">
+          <div className="flex flex-wrap items-center gap-2 p-1 rounded-2xl bg-[#FAFAF7] border border-[#E5E8E6]">
             <button
               onClick={() => setActiveView('queue')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
@@ -335,6 +336,23 @@ export default function ReceptionistDashboard() {
             >
               <Activity className="h-3.5 w-3.5" />
               <span>Live Queue &amp; Overview</span>
+            </button>
+
+            <button
+              onClick={() => setActiveView('appointments')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeView === 'appointments'
+                  ? 'bg-white text-[#174C40] shadow-xs border border-[#E5E8E6]'
+                  : 'text-[#77817C] hover:text-[#1F2421]'
+              }`}
+            >
+              <CalendarCheck className="h-3.5 w-3.5" />
+              <span>Appointments Desk</span>
+              {data?.stats?.upcomingAppointments !== undefined && (
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-full bg-[#174C40]/10 text-[#174C40]">
+                  {data.stats.upcomingAppointments}
+                </span>
+              )}
             </button>
 
             <button
@@ -363,6 +381,16 @@ export default function ReceptionistDashboard() {
           </div>
 
           <div className="flex items-center gap-2">
+            {activeView !== 'appointments' && (
+              <button
+                onClick={() => setActiveView('appointments')}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#E5E8E6] bg-white hover:bg-[#FAFAF7] text-[#1F2421] text-xs font-medium shadow-2xs transition-colors cursor-pointer"
+              >
+                <CalendarCheck className="h-3.5 w-3.5 text-[#174C40]" />
+                <span>Appointments</span>
+              </button>
+            )}
+
             {activeView !== 'search' && (
               <button
                 onClick={() => setActiveView('search')}
@@ -401,6 +429,8 @@ export default function ReceptionistDashboard() {
             setActiveView('queue');
           }}
         />
+      ) : activeView === 'appointments' ? (
+        <AppointmentManager />
       ) : (
         <LiveQueueManager />
       )}
