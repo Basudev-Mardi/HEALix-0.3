@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import { getStaffSession, type StaffUser } from '@/lib/staff-auth';
 import PatientRegistrationForm from './PatientRegistrationForm';
+import PatientSearchLookup from './PatientSearchLookup';
+import PatientProfileModal from './PatientProfileModal';
 
 interface DashboardStats {
   patientsRegisteredToday: number;
@@ -107,7 +109,8 @@ export default function ReceptionistDashboard() {
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState<boolean>(true);
   const [countdown, setCountdown] = useState<number>(AUTO_REFRESH_INTERVAL_SECONDS);
   const [currentTime, setCurrentTime] = useState<string>('');
-  const [activeView, setActiveView] = useState<'queue' | 'registration'>('queue');
+  const [activeView, setActiveView] = useState<'queue' | 'search' | 'registration'>('queue');
+  const [selectedQueuePatientId, setSelectedQueuePatientId] = useState<string | null>(null);
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -332,6 +335,19 @@ export default function ReceptionistDashboard() {
               <Activity className="h-3.5 w-3.5" />
               <span>Live Queue &amp; Overview</span>
             </button>
+
+            <button
+              onClick={() => setActiveView('search')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeView === 'search'
+                  ? 'bg-white text-[#174C40] shadow-xs border border-[#E5E8E6]'
+                  : 'text-[#77817C] hover:text-[#1F2421]'
+              }`}
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span>Patient Search &amp; Returning Directory</span>
+            </button>
+
             <button
               onClick={() => setActiveView('registration')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
@@ -345,15 +361,27 @@ export default function ReceptionistDashboard() {
             </button>
           </div>
 
-          {activeView === 'queue' && (
-            <button
-              onClick={() => setActiveView('registration')}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#174C40] hover:bg-[#123B32] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-            >
-              <UserPlus className="h-3.5 w-3.5" />
-              <span>New Patient Registration</span>
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {activeView !== 'search' && (
+              <button
+                onClick={() => setActiveView('search')}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#E5E8E6] bg-white hover:bg-[#FAFAF7] text-[#1F2421] text-xs font-medium shadow-2xs transition-colors cursor-pointer"
+              >
+                <Search className="h-3.5 w-3.5 text-[#174C40]" />
+                <span>Search Patient</span>
+              </button>
+            )}
+
+            {activeView !== 'registration' && (
+              <button
+                onClick={() => setActiveView('registration')}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#174C40] hover:bg-[#123B32] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                <span>New Registration</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -362,6 +390,14 @@ export default function ReceptionistDashboard() {
           onCancel={() => setActiveView('queue')}
           onSuccess={() => {
             fetchDashboardData(true);
+          }}
+        />
+      ) : activeView === 'search' ? (
+        <PatientSearchLookup
+          onNavigateRegister={() => setActiveView('registration')}
+          onVisitCreated={() => {
+            fetchDashboardData(true);
+            setActiveView('queue');
           }}
         />
       ) : (
@@ -851,9 +887,14 @@ export default function ReceptionistDashboard() {
 
                       {/* Patient Name & MRN */}
                       <td className="py-3.5 px-4">
-                        <div className="font-semibold text-[#1F2421] text-xs">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedQueuePatientId(entry.patientId)}
+                          className="font-semibold text-[#1F2421] hover:text-[#174C40] hover:underline text-xs text-left cursor-pointer"
+                          title="Click to view full patient medical profile"
+                        >
                           {entry.patientName}
-                        </div>
+                        </button>
                         <div className="text-[11px] font-mono text-[#77817C] flex items-center gap-2 mt-0.5">
                           <span>{entry.patientId}</span>
                           {entry.bloodGroup && (
@@ -1047,6 +1088,14 @@ export default function ReceptionistDashboard() {
         </div>
       )}
         </>
+      )}
+
+      {/* Patient Profile Modal for Table Rows */}
+      {selectedQueuePatientId && (
+        <PatientProfileModal
+          patientId={selectedQueuePatientId}
+          onClose={() => setSelectedQueuePatientId(null)}
+        />
       )}
     </div>
   );

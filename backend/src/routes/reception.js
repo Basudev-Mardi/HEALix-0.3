@@ -680,4 +680,364 @@ router.post(
   })
 );
 
+/**
+ * GET /api/v1/reception/patients/search
+ * Comprehensive patient search by Patient ID, Mobile Number, or Full Name.
+ * Safely handles multiple matching names and returns complete summary for receptionists.
+ */
+router.get(
+  '/patients/search',
+  asyncHandler(async (req, res) => {
+    const rawQuery = (req.query.q || req.query.query || '').toString().trim();
+    const searchType = (req.query.type || 'all').toString().trim().toLowerCase();
+
+    if (!rawQuery) {
+      return res.json({
+        success: true,
+        count: 0,
+        patients: [],
+      });
+    }
+
+    const searchPattern = `%${rawQuery}%`;
+    const cleanDigits = rawQuery.replace(/[^0-9]/g, '');
+    const mobilePattern = cleanDigits.length >= 4 ? `%${cleanDigits}%` : searchPattern;
+
+    let whereClause = '';
+    let queryParams = [];
+
+    if (searchType === 'id') {
+      whereClause = `(p.patient_id ILIKE $1 OR p.id ILIKE $1 OR p.patient_number ILIKE $1)`;
+      queryParams = [searchPattern];
+    } else if (searchType === 'mobile') {
+      whereClause = `(p.mobile ILIKE $1 OR p.phone ILIKE $1 OR REGEXP_REPLACE(p.mobile, '[^0-9]', '', 'g') ILIKE $2)`;
+      queryParams = [searchPattern, mobilePattern];
+    } else if (searchType === 'name') {
+      whereClause = `(p.full_name ILIKE $1 OR p.first_name ILIKE $1 OR p.last_name ILIKE $1)`;
+      queryParams = [searchPattern];
+    } else {
+      // 'all' searches ID, Mobile, or Name
+      whereClause = `(
+        p.patient_id ILIKE $1 
+        OR p.id ILIKE $1 
+        OR p.patient_number ILIKE $1
+        OR p.full_name ILIKE $1
+        OR p.mobile ILIKE $1
+        OR p.phone ILIKE $1
+        OR REGEXP_REPLACE(p.mobile, '[^0-9]', '', 'g') ILIKE $2
+      )`;
+      queryParams = [searchPattern, mobilePattern];
+    }
+
+    const searchQueryStr = `
+      SELECT
+        p.id,
+        COALESCE(p.patient_id, p.id) AS patient_id,
+        COALESCE(p.patient_number, CONCAT('HX-MRN-', SUBSTRING(p.id FROM 7))) AS patient_number,
+        COALESCE(p.full_name, TRIM(CONCAT(COALESCE(p.first_name, ''), ' ', COALESCE(p.last_name, '')))) AS full_name,
+        p.dob,
+        p.gender,
+        COALESCE(p.mobile, p.phone, '') AS mobile,
+        p.address,
+        p.blood_group,
+        p.allergies,
+        p.emergency_contact,
+        p.photo,
+        p.registration_date,
+        p.created_at,
+        (SELECT COUNT(*)::int FROM visits v WHERE v.patient_id = p.id) AS total_visits,
+        (SELECT MAX(v.visit_date) FROM visits v WHERE v.patient_id = p.id) AS last_visit_date
+      FROM patients p
+      WHERE ${whereClause}
+      ORDER BY 
+        CASE 
+          WHEN LOWER(p.patient_id) = LOWER($1) OR LOWER(p.id) = LOWER($1) THEN 1
+          WHEN LOWER(p.full_name) = LOWER($1) THEN 2
+          WHEN p.mobile = $1 THEN 3
+          ELSE 4
+        END,
+        p.registration_date DESC
+      LIMIT 30;
+    `;
+
+    const results = await query(searchQueryStr, queryParams);
+
+    const patients = results.rows.map((row) => ({
+      ...row,
+      age: row.dob ? calculateAgeFromDob(row.dob) : null,
+    }));
+
+    res.json({
+      success: true,
+      count: patients.length,
+      query: rawQuery,
+      type: searchType,
+      patients,
+    });
+  })
+);
+
+/**
+ * GET /api/v1/reception/patients/check-duplicates
+ * Live duplicate detection for patient intake form.
+ * Detects matching names or phone numbers to prevent unintentional re-registration of returning patients.
+ * Never merges records automatically.
+ */
+router.get(
+  '/patients/check-duplicates',
+  asyncHandler(async (req, res) => {
+    const rawName = (req.query.name || '').toString().trim();
+    const rawMobile = (req.query.mobile || '').toString().trim();
+
+    if (!rawName && !rawMobile) {
+      return res.json({ hasPossibleDuplicates: false, count: 0, matches: [] });
+    }
+
+    const cleanDigits = rawMobile.replace(/[^0-9]/g, '');
+
+    const checkQuery = `
+      SELECT
+        p.id,
+        COALESCE(p.patient_id, p.id) AS patient_id,
+        COALESCE(p.patient_number, p.id) AS patient_number,
+        COALESCE(p.full_name, TRIM(CONCAT(COALESCE(p.first_name, ''), ' ', COALESCE(p.last_name, '')))) AS full_name,
+        p.dob,
+        p.gender,
+        COALESCE(p.mobile, p.phone, '') AS mobile,
+        p.address,
+        p.blood_group,
+        p.registration_date,
+        (SELECT COUNT(*)::int FROM visits v WHERE v.patient_id = p.id) AS total_visits,
+        CASE
+          WHEN $1 <> '' AND (p.mobile = $1 OR REGEXP_REPLACE(p.mobile, '[^0-9]', '', 'g') = $2) 
+               AND $3 <> '' AND LOWER(p.full_name) = LOWER($3)
+            THEN 'Exact Match: Identical Full Name and Mobile Number'
+          WHEN $1 <> '' AND (p.mobile = $1 OR REGEXP_REPLACE(p.mobile, '[^0-9]', '', 'g') = $2)
+            THEN 'Mobile Match: Same Mobile Number registered under another profile'
+          WHEN $3 <> '' AND LOWER(p.full_name) = LOWER($3)
+            THEN 'Name Match: Patient with identical name already on file'
+          WHEN $3 <> '' AND p.full_name ILIKE $4
+            THEN 'Similar Name Match'
+          ELSE 'Possible Duplicate'
+        END AS duplicate_reason
+      FROM patients p
+      WHERE
+        ($1 <> '' AND (p.mobile = $1 OR (LENGTH($2) >= 8 AND REGEXP_REPLACE(p.mobile, '[^0-9]', '', 'g') = $2)))
+        OR ($3 <> '' AND (LOWER(p.full_name) = LOWER($3) OR (LENGTH($3) >= 4 AND p.full_name ILIKE $4)))
+      ORDER BY 
+        CASE 
+          WHEN $1 <> '' AND p.mobile = $1 AND LOWER(p.full_name) = LOWER($3) THEN 1
+          WHEN $1 <> '' AND p.mobile = $1 THEN 2
+          ELSE 3
+        END,
+        p.registration_date DESC
+      LIMIT 10;
+    `;
+
+    const results = await query(checkQuery, [
+      rawMobile,
+      cleanDigits,
+      rawName,
+      `%${rawName}%`,
+    ]);
+
+    const matches = results.rows.map((row) => ({
+      ...row,
+      age: row.dob ? calculateAgeFromDob(row.dob) : null,
+    }));
+
+    res.json({
+      success: true,
+      hasPossibleDuplicates: matches.length > 0,
+      count: matches.length,
+      matches,
+    });
+  })
+);
+
+/**
+ * GET /api/v1/reception/patients/:id
+ * Retrieve a complete patient profile including past visit history
+ */
+router.get(
+  '/patients/:id',
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const patientRes = await query(
+      `SELECT
+        p.id,
+        COALESCE(p.patient_id, p.id) AS patient_id,
+        COALESCE(p.patient_number, p.id) AS patient_number,
+        COALESCE(p.full_name, TRIM(CONCAT(COALESCE(p.first_name, ''), ' ', COALESCE(p.last_name, '')))) AS full_name,
+        p.dob,
+        p.gender,
+        COALESCE(p.mobile, p.phone, '') AS mobile,
+        p.address,
+        p.blood_group,
+        p.allergies,
+        p.emergency_contact,
+        p.photo,
+        p.registration_date,
+        p.created_at
+       FROM patients p
+       WHERE p.id = $1 OR p.patient_id = $1 OR p.patient_number = $1
+       LIMIT 1`,
+      [id]
+    );
+
+    if (patientRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Patient not found' });
+    }
+
+    const patient = patientRes.rows[0];
+    const patientDbId = patient.id;
+
+    // Fetch visits history
+    const visitsRes = await query(
+      `SELECT
+        v.visit_id,
+        v.visit_date,
+        v.visit_type,
+        v.status,
+        v.created_at,
+        dept.id AS department_id,
+        dept.name AS department_name,
+        doc.id AS doctor_id,
+        doc.name AS doctor_name,
+        t.token_number,
+        t.status AS token_status,
+        pay.amount AS fee_amount,
+        pay.payment_status
+       FROM visits v
+       LEFT JOIN departments dept ON dept.id = v.department_id
+       LEFT JOIN doctors doc ON doc.id = v.doctor_id
+       LEFT JOIN tokens t ON t.visit_id = v.visit_id
+       LEFT JOIN payments pay ON pay.visit_id = v.visit_id
+       WHERE v.patient_id = $1
+       ORDER BY v.visit_date DESC, v.created_at DESC`,
+      [patientDbId]
+    );
+
+    res.json({
+      success: true,
+      patient: {
+        ...patient,
+        age: patient.dob ? calculateAgeFromDob(patient.dob) : null,
+        visits: visitsRes.rows,
+        totalVisits: visitsRes.rows.length,
+      },
+    });
+  })
+);
+
+/**
+ * POST /api/v1/reception/visits
+ * Creates a new hospital encounter visit for an existing patient without re-registering!
+ */
+router.post(
+  '/visits',
+  asyncHandler(async (req, res) => {
+    const {
+      patient_id,
+      department_id,
+      doctor_id,
+      visit_type = 'OPD Consultation',
+      priority = 'Standard',
+      reason = '',
+    } = req.body || {};
+
+    if (!patient_id) {
+      return res.status(400).json({ success: false, error: 'Patient ID is required to create a visit' });
+    }
+
+    // Verify patient exists
+    const patientCheck = await query(
+      `SELECT id, patient_id, full_name, mobile FROM patients WHERE id = $1 OR patient_id = $1 LIMIT 1`,
+      [patient_id]
+    );
+
+    if (patientCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Patient record not found. Please register patient first.' });
+    }
+
+    const patient = patientCheck.rows[0];
+    const patientDbId = patient.id;
+
+    // Fallback or resolve department and doctor
+    let deptId = department_id ? Number(department_id) : null;
+    let docId = doctor_id ? Number(doctor_id) : null;
+
+    if (!deptId) {
+      const defaultDept = await query(`SELECT id FROM departments ORDER BY id LIMIT 1`);
+      deptId = defaultDept.rows[0]?.id || 1;
+    }
+
+    if (!docId) {
+      const defaultDoc = await query(`SELECT id FROM doctors WHERE department_id = $1 ORDER BY id LIMIT 1`, [deptId]);
+      docId = defaultDoc.rows[0]?.id || (await query(`SELECT id FROM doctors ORDER BY id LIMIT 1`)).rows[0]?.id || 1;
+    }
+
+    const yr = new Date().getFullYear();
+    const visitId = `VST-${yr}-${Date.now().toString().slice(-6)}`;
+
+    await query('BEGIN');
+    try {
+      const visitRes = await query(
+        `INSERT INTO visits (
+          visit_id, patient_id, department_id, doctor_id, visit_date, visit_type, status, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, CURRENT_DATE, $5, 'In-Queue', NOW(), NOW()
+        ) RETURNING visit_id, patient_id, department_id, doctor_id, visit_date, visit_type, status, created_at`,
+        [visitId, patientDbId, deptId, docId, visit_type]
+      );
+
+      const newVisit = visitRes.rows[0];
+
+      // Audit log entry
+      await query(
+        `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+         VALUES ('PATIENT_VISIT_CREATED', 'visits', 'visits', $1, NOW(), $2)`,
+        [
+          visitId,
+          JSON.stringify({
+            visit_id: visitId,
+            patient_id: patient.patient_id || patient.id,
+            patient_name: patient.full_name,
+            department_id: deptId,
+            doctor_id: docId,
+            visit_type,
+            reason,
+          }),
+        ]
+      );
+
+      await query('COMMIT');
+
+      // Fetch department and doctor names for response
+      const deptName = (await query(`SELECT name FROM departments WHERE id = $1`, [deptId])).rows[0]?.name || 'Central OPD';
+      const docName = (await query(`SELECT name FROM doctors WHERE id = $1`, [docId])).rows[0]?.name || 'Attending Physician';
+
+      res.status(201).json({
+        success: true,
+        message: 'New visit encounter created successfully for returning patient.',
+        visit: {
+          ...newVisit,
+          patient_name: patient.full_name,
+          department_name: deptName,
+          doctor_name: docName,
+        },
+      });
+    } catch (err) {
+      await query('ROLLBACK');
+      console.error('Failed to create visit encounter:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Database error occurred while creating visit encounter.',
+        details: err.message,
+      });
+    }
+  })
+);
+
 export default router;

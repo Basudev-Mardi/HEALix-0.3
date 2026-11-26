@@ -19,7 +19,12 @@ import {
   Upload,
   UserCheck,
   ShieldAlert,
+  Users,
+  PlusCircle,
+  FileText,
 } from 'lucide-react';
+import PatientProfileModal from './PatientProfileModal';
+import CreateVisitModal from './CreateVisitModal';
 
 interface PatientRegistrationFormProps {
   onSuccess?: (patient: RegisteredPatient) => void;
@@ -90,6 +95,12 @@ export default function PatientRegistrationForm({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [registeredPatient, setRegisteredPatient] = useState<RegisteredPatient | null>(null);
+
+  // Live Duplicate Detection State
+  const [duplicateMatches, setDuplicateMatches] = useState<any[]>([]);
+  const [duplicateDismissed, setDuplicateDismissed] = useState<boolean>(false);
+  const [inspectPatientId, setInspectPatientId] = useState<string | null>(null);
+  const [visitTargetPatient, setVisitTargetPatient] = useState<any | null>(null);
 
   // Today's ISO date string for input max attribute
   const todayIso = new Date().toISOString().split('T')[0];
@@ -163,6 +174,43 @@ export default function PatientRegistrationForm({
       formatted,
     });
   }, [dob]);
+
+  // Live Duplicate Detection Debounce Effect
+  useEffect(() => {
+    const trimmedName = fullName.trim();
+    const cleanDigits = mobile.replace(/[^0-9]/g, '');
+
+    if (trimmedName.length < 3 && cleanDigits.length < 7) {
+      setDuplicateMatches([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams();
+        if (trimmedName.length >= 3) params.set('name', trimmedName);
+        if (cleanDigits.length >= 7) params.set('mobile', mobile.trim());
+
+        let res = await fetch(`/api/v1/reception/patients/check-duplicates?${params.toString()}`);
+        if (!res.ok) {
+          res = await fetch(`http://localhost:5000/api/v1/reception/patients/check-duplicates?${params.toString()}`);
+        }
+        if (res.ok) {
+          const json = await res.json();
+          if (json.hasPossibleDuplicates && Array.isArray(json.matches)) {
+            setDuplicateMatches(json.matches);
+            setDuplicateDismissed(false);
+          } else {
+            setDuplicateMatches([]);
+          }
+        }
+      } catch {
+        // silent catch for live background duplicate check
+      }
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [fullName, mobile]);
 
   // Validate fields on change
   const validateField = (field: string, value: string): string | undefined => {
@@ -536,6 +584,90 @@ export default function PatientRegistrationForm({
         </div>
       )}
 
+      {/* Live Duplicate Warning Card */}
+      {duplicateMatches.length > 0 && !duplicateDismissed && (
+        <div className="p-5 rounded-2xl border border-amber-300 bg-amber-50/70 text-amber-950 space-y-4 shadow-xs">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-sm text-amber-950">
+                  Potential Existing Patient Records Detected ({duplicateMatches.length})
+                </h4>
+                <p className="text-xs text-amber-800 mt-0.5">
+                  A patient with a matching name or phone is already on file. Avoid creating duplicate registrations for returning patients.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDuplicateDismissed(true)}
+              className="text-xs text-amber-800 hover:text-amber-950 underline cursor-pointer shrink-0 font-medium"
+            >
+              Dismiss Warning
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {duplicateMatches.slice(0, 4).map((cand) => (
+              <div
+                key={cand.id || cand.patient_id}
+                className="p-3.5 rounded-xl bg-white border border-amber-200/80 shadow-2xs space-y-2 text-xs"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="font-semibold text-[#1F2421] text-sm block">
+                      {cand.full_name}
+                    </span>
+                    <span className="font-mono text-[11px] text-[#174C40] font-bold">
+                      {cand.patient_id}
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-amber-100 text-amber-900 border border-amber-200">
+                    {cand.duplicate_reason || 'Possible Match'}
+                  </span>
+                </div>
+
+                <div className="text-[11px] text-[#4A5350] space-y-0.5">
+                  <div>Phone: <strong className="font-mono">{cand.mobile}</strong></div>
+                  <div>DOB / Age: {cand.dob} ({cand.age?.formatted || 'Age on file'}) • {cand.gender}</div>
+                  <div className="truncate">Address: {cand.address}</div>
+                </div>
+
+                <div className="pt-2 border-t border-zinc-100 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setInspectPatientId(cand.patient_id || cand.id)}
+                    className="px-2.5 py-1 rounded-lg border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-[11px] font-medium text-zinc-700 cursor-pointer"
+                  >
+                    View Profile
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVisitTargetPatient(cand)}
+                    className="px-3 py-1 rounded-lg bg-[#174C40] hover:bg-[#123B32] text-white text-[11px] font-semibold cursor-pointer flex items-center gap-1 shadow-2xs"
+                  >
+                    <PlusCircle className="h-3 w-3" />
+                    <span>Check In This Patient</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-[11px] text-amber-800/90 flex flex-wrap items-center justify-between gap-2 pt-1">
+            <span>Registering a different person with this name/phone? You can continue filling the form below. Records will never be merged.</span>
+            <button
+              type="button"
+              onClick={() => setDuplicateDismissed(true)}
+              className="text-[#174C40] font-semibold underline hover:text-[#123B32] cursor-pointer"
+            >
+              Continue as New Patient
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Form Grid */}
       <form onSubmit={handleSubmit} noValidate className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -883,6 +1015,30 @@ export default function PatientRegistrationForm({
           </div>
         </div>
       </form>
+
+      {/* Patient Profile Modal */}
+      {inspectPatientId && (
+        <PatientProfileModal
+          patientId={inspectPatientId}
+          onClose={() => setInspectPatientId(null)}
+          onCreateVisit={(pat) => {
+            setInspectPatientId(null);
+            setVisitTargetPatient(pat);
+          }}
+        />
+      )}
+
+      {/* Create Visit Modal */}
+      {visitTargetPatient && (
+        <CreateVisitModal
+          patient={visitTargetPatient}
+          onClose={() => setVisitTargetPatient(null)}
+          onVisitCreated={() => {
+            setVisitTargetPatient(null);
+            if (onCancel) onCancel();
+          }}
+        />
+      )}
     </div>
   );
 }
