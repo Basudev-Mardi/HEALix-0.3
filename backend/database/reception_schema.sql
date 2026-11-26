@@ -9,6 +9,15 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'patient';
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 
 -- 2. Entity: patients (Demographics, clinical flags, emergency contacts, medical record number)
+ALTER TABLE patients ALTER COLUMN email DROP NOT NULL;
+ALTER TABLE patients ALTER COLUMN blood_group DROP NOT NULL;
+ALTER TABLE patients ALTER COLUMN allergies DROP NOT NULL;
+ALTER TABLE patients ALTER COLUMN emergency_contact_name DROP NOT NULL;
+ALTER TABLE patients ALTER COLUMN emergency_contact_phone DROP NOT NULL;
+ALTER TABLE patients ALTER COLUMN date_of_birth DROP NOT NULL;
+ALTER TABLE patients ALTER COLUMN is_unknown DROP NOT NULL;
+ALTER TABLE patients ALTER COLUMN distinguishing_marks DROP NOT NULL;
+
 ALTER TABLE patients ADD COLUMN IF NOT EXISTS patient_id TEXT;
 UPDATE patients SET patient_id = id WHERE patient_id IS NULL;
 ALTER TABLE patients ALTER COLUMN patient_id SET NOT NULL;

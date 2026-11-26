@@ -393,4 +393,291 @@ router.get(
   })
 );
 
+/**
+ * Calculate detailed age from date of birth
+ */
+function calculateAgeFromDob(dobString) {
+  const birth = new Date(dobString);
+  const today = new Date();
+
+  if (isNaN(birth.getTime())) {
+    return null;
+  }
+
+  let years = today.getFullYear() - birth.getFullYear();
+  let months = today.getMonth() - birth.getMonth();
+  let days = today.getDate() - birth.getDate();
+
+  if (days < 0) {
+    months -= 1;
+  }
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  return {
+    years: Math.max(0, years),
+    months: Math.max(0, months),
+    formatted: years === 0 ? `${months} months` : `${years} yrs${months > 0 ? ` ${months}m` : ''}`,
+  };
+}
+
+/**
+ * Helper to generate a collision-free unique Patient ID and MRN
+ */
+async function generateUniquePatientId() {
+  const year = new Date().getFullYear();
+  let attempts = 0;
+
+  while (attempts < 10) {
+    attempts++;
+    const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+    const candidateId = `HX-PT-${year}-${randomSuffix}`;
+    const check = await query(`SELECT id FROM patients WHERE id = $1 OR patient_id = $1 LIMIT 1`, [candidateId]);
+    if (check.rows.length === 0) {
+      return candidateId;
+    }
+  }
+
+  return `HX-PT-${year}-${Date.now().toString().slice(-6)}`;
+}
+
+/**
+ * GET /api/v1/reception/patients/next-id
+ * Returns a preview of the next unique Patient ID for receptionist UI
+ */
+router.get(
+  '/patients/next-id',
+  asyncHandler(async (_req, res) => {
+    const nextId = await generateUniquePatientId();
+    res.json({
+      success: true,
+      nextId,
+      registrationDate: new Date().toISOString(),
+    });
+  })
+);
+
+/**
+ * POST /api/v1/reception/patients
+ * Registers a new patient with validation, auto-generated ID, and audit logging.
+ */
+router.post(
+  '/patients',
+  asyncHandler(async (req, res) => {
+    const {
+      full_name,
+      dob,
+      gender,
+      mobile,
+      address,
+      blood_group = '',
+      allergies = '',
+      emergency_contact,
+      photo = '',
+    } = req.body || {};
+
+    // 1. Mandatory Field Validations
+    const errors = {};
+
+    if (!full_name || typeof full_name !== 'string' || full_name.trim().length < 2) {
+      errors.full_name = 'Full name is required (minimum 2 characters)';
+    }
+
+    if (!dob || typeof dob !== 'string') {
+      errors.dob = 'Date of birth is required';
+    } else {
+      const birthDate = new Date(dob);
+      const today = new Date();
+      if (isNaN(birthDate.getTime())) {
+        errors.dob = 'Invalid date format (must be YYYY-MM-DD)';
+      } else if (birthDate > today) {
+        errors.dob = 'Date of birth cannot be in the future';
+      } else if (today.getFullYear() - birthDate.getFullYear() > 130) {
+        errors.dob = 'Please verify date of birth (exceeds 130 years)';
+      }
+    }
+
+    const validGenders = ['Male', 'Female', 'Other'];
+    if (!gender || !validGenders.includes(gender)) {
+      errors.gender = 'Gender must be Male, Female, or Other';
+    }
+
+    if (!mobile || typeof mobile !== 'string') {
+      errors.mobile = 'Mobile number is required';
+    } else {
+      const digitsOnly = mobile.replace(/[^0-9]/g, '');
+      if (digitsOnly.length < 10 || digitsOnly.length > 15) {
+        errors.mobile = 'Mobile number must contain between 10 and 15 digits';
+      }
+    }
+
+    if (!address || typeof address !== 'string' || address.trim().length < 5) {
+      errors.address = 'Residential address is required (minimum 5 characters)';
+    }
+
+    if (!emergency_contact || typeof emergency_contact !== 'string' || emergency_contact.trim().length < 3) {
+      errors.emergency_contact = 'Emergency contact details are required';
+    }
+
+    const validBloodGroups = ['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
+    if (blood_group && !validBloodGroups.includes(blood_group)) {
+      errors.blood_group = 'Invalid blood group selected';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        errors,
+      });
+    }
+
+    // 2. Duplicate Check (mobile + full_name created recently)
+    const normalizedMobile = mobile.trim();
+    const normalizedName = full_name.trim();
+
+    const duplicateCheck = await query(
+      `SELECT id, patient_id, full_name, mobile, registration_date
+       FROM patients
+       WHERE LOWER(full_name) = LOWER($1) AND (mobile = $2 OR phone = $2)
+       LIMIT 1`,
+      [normalizedName, normalizedMobile]
+    );
+
+    if (duplicateCheck.rows.length > 0) {
+      const existing = duplicateCheck.rows[0];
+      return res.status(409).json({
+        success: false,
+        error: 'A patient with this full name and mobile number is already registered in the system.',
+        duplicate: {
+          patientId: existing.patient_id || existing.id,
+          fullName: existing.full_name,
+          mobile: existing.mobile,
+          registrationDate: existing.registration_date,
+        },
+      });
+    }
+
+    // 3. Auto-generation & Data Preparation
+    const patientId = await generateUniquePatientId();
+    const mrn = `HX-MRN-${patientId.replace('HX-PT-', '')}`;
+    const nameParts = normalizedName.split(/\s+/);
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+    const calculatedAge = calculateAgeFromDob(dob);
+
+    const safeAllergies = allergies ? allergies.trim() : 'None Reported';
+    const safeBloodGroup = blood_group || 'Unknown';
+    const safeEmergency = emergency_contact.trim();
+
+    // 4. Save to Database Transactionally
+    await query('BEGIN');
+    try {
+      const insertQuery = `
+        INSERT INTO patients (
+          id,
+          patient_id,
+          patient_number,
+          full_name,
+          first_name,
+          last_name,
+          dob,
+          date_of_birth,
+          gender,
+          mobile,
+          phone,
+          address,
+          blood_group,
+          allergies,
+          emergency_contact,
+          emergency_contact_name,
+          emergency_contact_phone,
+          photo,
+          registration_date,
+          created_at,
+          updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7::date, $8::text, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW(), NOW(), NOW()
+        )
+        RETURNING
+          id,
+          patient_id,
+          patient_number,
+          full_name,
+          dob,
+          gender,
+          mobile,
+          address,
+          blood_group,
+          allergies,
+          emergency_contact,
+          photo,
+          registration_date
+      `;
+
+      const insertValues = [
+        patientId,
+        patientId,
+        mrn,
+        normalizedName,
+        firstName,
+        lastName,
+        dob,
+        dob,
+        gender,
+        normalizedMobile,
+        normalizedMobile,
+        address.trim(),
+        safeBloodGroup,
+        safeAllergies,
+        safeEmergency,
+        safeEmergency,
+        safeEmergency,
+        photo || '',
+      ];
+
+      const result = await query(insertQuery, insertValues);
+      const newPatient = result.rows[0];
+
+      // Audit Log insertion
+      await query(
+        `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+         VALUES ('PATIENT_REGISTERED', 'patients', 'patients', $1, NOW(), $2)`,
+        [
+          patientId,
+          JSON.stringify({
+            patient_id: patientId,
+            full_name: normalizedName,
+            mobile: normalizedMobile,
+            gender,
+            dob,
+            age: calculatedAge?.formatted,
+          }),
+        ]
+      );
+
+      await query('COMMIT');
+
+      res.status(201).json({
+        success: true,
+        message: 'Patient registered successfully',
+        patient: {
+          ...newPatient,
+          age: calculatedAge,
+        },
+      });
+    } catch (dbErr) {
+      await query('ROLLBACK');
+      console.error('Patient Registration DB Error:', dbErr);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to complete patient registration. Database transaction rolled back.',
+        details: dbErr.message,
+      });
+    }
+  })
+);
+
 export default router;

@@ -17,8 +17,10 @@ import {
   Radio,
   Layers,
   TrendingUp,
+  UserPlus,
 } from 'lucide-react';
 import { getStaffSession, type StaffUser } from '@/lib/staff-auth';
+import PatientRegistrationForm from './PatientRegistrationForm';
 
 interface DashboardStats {
   patientsRegisteredToday: number;
@@ -105,6 +107,7 @@ export default function ReceptionistDashboard() {
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState<boolean>(true);
   const [countdown, setCountdown] = useState<number>(AUTO_REFRESH_INTERVAL_SECONDS);
   const [currentTime, setCurrentTime] = useState<string>('');
+  const [activeView, setActiveView] = useState<'queue' | 'registration'>('queue');
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -314,31 +317,78 @@ export default function ReceptionistDashboard() {
             </div>
           </div>
         )}
+
+        {/* View Selection Tabs */}
+        <div className="mt-6 pt-4 border-t border-[#F0F2F0] flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 p-1 rounded-2xl bg-[#FAFAF7] border border-[#E5E8E6]">
+            <button
+              onClick={() => setActiveView('queue')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeView === 'queue'
+                  ? 'bg-white text-[#174C40] shadow-xs border border-[#E5E8E6]'
+                  : 'text-[#77817C] hover:text-[#1F2421]'
+              }`}
+            >
+              <Activity className="h-3.5 w-3.5" />
+              <span>Live Queue &amp; Overview</span>
+            </button>
+            <button
+              onClick={() => setActiveView('registration')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeView === 'registration'
+                  ? 'bg-[#174C40] text-white shadow-xs'
+                  : 'text-[#77817C] hover:text-[#1F2421]'
+              }`}
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              <span>+ Register New Patient</span>
+            </button>
+          </div>
+
+          {activeView === 'queue' && (
+            <button
+              onClick={() => setActiveView('registration')}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#174C40] hover:bg-[#123B32] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              <span>New Patient Registration</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* ========================================================
-          ERROR STATE BANNER
-      ======================================================== */}
-      {error && (
-        <div className="p-4 rounded-2xl border border-rose-200 bg-rose-50 text-rose-900 flex items-start justify-between gap-3 shadow-xs">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-sm font-semibold text-rose-950">Unable to load live reception metrics</h3>
-              <p className="text-xs text-rose-800 mt-0.5">{error}</p>
-              <p className="text-[11px] text-rose-700 mt-1">
-                Ensure the backend server is running on port 5000 and PostgreSQL is accessible.
-              </p>
+      {activeView === 'registration' ? (
+        <PatientRegistrationForm
+          onCancel={() => setActiveView('queue')}
+          onSuccess={() => {
+            fetchDashboardData(true);
+          }}
+        />
+      ) : (
+        <>
+          {/* ========================================================
+              ERROR STATE BANNER
+          ======================================================== */}
+          {error && (
+            <div className="p-4 rounded-2xl border border-rose-200 bg-rose-50 text-rose-900 flex items-start justify-between gap-3 shadow-xs">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-sm font-semibold text-rose-950">Unable to load live reception metrics</h3>
+                  <p className="text-xs text-rose-800 mt-0.5">{error}</p>
+                  <p className="text-[11px] text-rose-700 mt-1">
+                    Ensure the backend server is running on port 5000 and PostgreSQL is accessible.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => fetchDashboardData(false)}
+                className="px-3 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-medium hover:bg-rose-700 transition-colors shrink-0 cursor-pointer"
+              >
+                Retry Connection
+              </button>
             </div>
-          </div>
-          <button
-            onClick={() => fetchDashboardData(false)}
-            className="px-3 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-medium hover:bg-rose-700 transition-colors shrink-0 cursor-pointer"
-          >
-            Retry Connection
-          </button>
-        </div>
-      )}
+          )}
 
       {/* ========================================================
           2. SEVEN LIVE STATISTIC CARDS
@@ -995,6 +1045,8 @@ export default function ReceptionistDashboard() {
             <span>Refreshed live with database transactions</span>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

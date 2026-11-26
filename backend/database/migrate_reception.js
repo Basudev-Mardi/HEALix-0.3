@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-const connectionString = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL || process.env.DATABASE_URL_UNPOOLED;
 
 if (!connectionString) {
   console.error('Missing DATABASE_URL_UNPOOLED or DATABASE_URL in backend/.env');
