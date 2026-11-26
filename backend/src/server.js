@@ -14,6 +14,7 @@ import appointmentRoutes from './routes/appointments.js';
 import authRoutes from './routes/auth.js';
 import patientRoutes from './routes/patient.js';
 import supportRoutes from './routes/support.js';
+import receptionRoutes from './routes/reception.js';
 import apiV1Routes from './routes/apiV1.js';
 
 const app = express();
@@ -47,6 +48,7 @@ app.use('/api/v1', apiV1Routes);
 app.use('/api/auth', authRoutes);
 app.use('/api/patient', patientRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/reception', receptionRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api', publicRoutes);
 
