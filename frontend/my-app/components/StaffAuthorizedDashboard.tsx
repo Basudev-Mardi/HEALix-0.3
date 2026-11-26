@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { STAFF_ROLES } from '@/lib/staff-roles';
 import { clearStaffSession, type StaffUser } from '@/lib/staff-auth';
+import ReceptionistDashboard from '@/components/receptionist/ReceptionistDashboard';
 
 const ROLE_ICONS = {
   ConciergeBell,
@@ -60,6 +61,11 @@ export default function StaffAuthorizedDashboard({
     clearStaffSession();
     onLogout?.();
   };
+
+  // Reset Receptionist Dashboard UI: display clean, empty dashboard content area
+  if (roleConfig.id === 'receptionist') {
+    return <ReceptionistDashboard />;
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
