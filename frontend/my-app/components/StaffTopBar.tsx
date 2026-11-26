@@ -10,11 +10,6 @@ export default function StaffTopBar() {
   const pathname = usePathname();
   const [currentStaff, setCurrentStaff] = useState<StaffUser | null>(null);
 
-  // Completely remove navbar for receptionist dashboard
-  if (pathname.startsWith('/staff/receptionist')) {
-    return null;
-  }
-
   useEffect(() => {
     setCurrentStaff(getStaffSession());
     const handleAuthChange = (e: Event) => {
@@ -32,6 +27,11 @@ export default function StaffTopBar() {
     clearStaffSession();
     setCurrentStaff(null);
   };
+
+  // Completely remove navbar for receptionist dashboard (after all hooks have been invoked)
+  if (pathname.startsWith('/staff/receptionist')) {
+    return null;
+  }
 
   return (
     <div className="bg-[#174C40] text-white border-b border-[#0f352c] text-xs">
