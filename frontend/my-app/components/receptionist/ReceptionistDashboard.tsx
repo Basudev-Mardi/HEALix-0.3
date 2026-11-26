@@ -23,8 +23,17 @@ import {
   ExternalLink,
   ShieldAlert,
   Tv,
+  Menu,
+  ChevronRight,
+  ShieldCheck,
+  Ticket,
+  History,
+  BarChart3,
+  Settings,
+  Lock,
 } from 'lucide-react';
 import { getStaffSession, type StaffUser } from '@/lib/staff-auth';
+import ReceptionistSidebar, { type ReceptionViewKey } from './ReceptionistSidebar';
 import PatientRegistrationForm from './PatientRegistrationForm';
 import PatientSearchLookup from './PatientSearchLookup';
 import PatientProfileModal from './PatientProfileModal';
@@ -32,13 +41,20 @@ import LiveQueueManager from './LiveQueueManager';
 import AppointmentManager from './AppointmentManager';
 import BillingDeskManager from './BillingDeskManager';
 import EmergencyIntakeModal from './EmergencyIntakeModal';
+import {
+  DoctorAvailabilityView,
+  VisitHistoryView,
+  ReceptionReportsView,
+  ReceptionSettingsView,
+} from './ReceptionistExtraViews';
 
 export type DashboardLanguage = 'en' | 'es' | 'hi' | 'fr';
 
 const I18N = {
   en: {
     liveFrontDesk: 'Live Front Desk',
-    title: 'Reception Operations & Queue Control',
+    title: 'Hospital Management System',
+    sectionName: 'Reception Operations & Queue Control',
     subtitle: 'Real-time patient intake, doctor cabin availability, and live queue status.',
     autoSync: 'Auto-sync',
     paused: 'Auto-sync Paused',
@@ -61,7 +77,8 @@ const I18N = {
   },
   es: {
     liveFrontDesk: 'Mesa de Recepción en Vivo',
-    title: 'Operaciones de Recepción y Control de Colas',
+    title: 'Hospital Management System',
+    sectionName: 'Operaciones de Recepción y Control de Colas',
     subtitle: 'Admisión de pacientes en tiempo real, disponibilidad de consultorios y estado de la cola.',
     autoSync: 'Auto-sincronización',
     paused: 'Sincronización Pausada',
@@ -84,7 +101,8 @@ const I18N = {
   },
   hi: {
     liveFrontDesk: 'लाइव फ्रंट डेस्क',
-    title: 'रिसेप्शन संचालन एवं कतार नियंत्रण',
+    title: 'Hospital Management System',
+    sectionName: 'रिसेप्शन संचालन एवं कतार नियंत्रण',
     subtitle: 'वास्तविक समय में रोगी पंजीकरण, डॉक्टर उपलब्धता और कतार की स्थिति।',
     autoSync: 'स्वतः सिंक',
     paused: 'सिंक रोक दिया गया',
@@ -107,7 +125,8 @@ const I18N = {
   },
   fr: {
     liveFrontDesk: 'Accueil en Direct',
-    title: 'Opérations de Réception & Contrôle de File',
+    title: 'Hospital Management System',
+    sectionName: 'Opérations de Réception & Contrôle de File',
     subtitle: 'Enregistrement en temps réel, disponibilité des cabinets et suivi de file.',
     autoSync: 'Auto-sync',
     paused: 'Auto-sync en pause',
@@ -117,7 +136,7 @@ const I18N = {
     launchTV: 'Écran TV d’Attente',
     queueOverview: 'File d’Attente en Direct',
     appointmentsDesk: 'Gestion des Rendez-vous',
-    billingDesk: 'Facturation & Paiements',
+    billingDesk: 'Facturación & Paiements',
     searchDirectory: 'Recherche de Patients',
     newRegistration: '+ Nouveau Patient',
     activeStation: 'Poste Actif',
@@ -215,7 +234,12 @@ export default function ReceptionistDashboard() {
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState<boolean>(true);
   const [countdown, setCountdown] = useState<number>(AUTO_REFRESH_INTERVAL_SECONDS);
   const [currentTime, setCurrentTime] = useState<string>('');
-  const [activeView, setActiveView] = useState<'queue' | 'appointments' | 'billing' | 'search' | 'registration'>('queue');
+
+  // Navigation View State (10 Portal Views)
+  const [activeView, setActiveView] = useState<ReceptionViewKey>('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
+
   const [selectedQueuePatientId, setSelectedQueuePatientId] = useState<string | null>(null);
 
   // Multilingual State
@@ -237,15 +261,41 @@ export default function ReceptionistDashboard() {
     whatsapp: { configured: boolean; message: string };
   } | null>(null);
 
-  // Search & Filter state
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedDeptFilter, setSelectedDeptFilter] = useState<string>('all');
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
-
-  // Load session
+  // Load session & URL sync
   useEffect(() => {
     setSession(getStaffSession());
+
+    // Check query params for direct deep links e.g. ?view=appointments
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlView = params.get('view') as ReceptionViewKey | null;
+      const validViews: ReceptionViewKey[] = [
+        'dashboard',
+        'registration',
+        'directory',
+        'tokens',
+        'appointments',
+        'doctors',
+        'billing',
+        'history',
+        'reports',
+        'settings',
+      ];
+      if (urlView && validViews.includes(urlView)) {
+        setActiveView(urlView);
+      }
+    }
   }, []);
+
+  // Sync active view to URL without full page reload
+  const handleSelectView = (view: ReceptionViewKey) => {
+    setActiveView(view);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('view', view);
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
 
   // Live Clock updater
   useEffect(() => {
@@ -273,7 +323,6 @@ export default function ReceptionistDashboard() {
     setError(null);
 
     try {
-      // Try relative rewritten route first, fallback to direct localhost:5000
       let res: Response;
       try {
         res = await fetch('/api/v1/reception/dashboard', {
@@ -313,7 +362,7 @@ export default function ReceptionistDashboard() {
           }
         }
       } catch {
-        // Silently skip if alerts table non-critical
+        // Silently skip
       }
 
       // Concurrently fetch integrations configuration status
@@ -361,100 +410,84 @@ export default function ReceptionistDashboard() {
     return () => clearInterval(timer);
   }, [autoRefreshEnabled, fetchDashboardData]);
 
-  // Filtered upcoming queue
-  const filteredQueue = useMemo(() => {
-    if (!data?.upcomingQueue) return [];
-    return data.upcomingQueue.filter((item) => {
-      const matchesSearch =
-        searchQuery.trim() === '' ||
-        item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.patientId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.tokenNumber.toString().includes(searchQuery) ||
-        item.doctorName.toLowerCase().includes(searchQuery.toLowerCase());
+  // User permission check
+  const isAuthorized =
+    !session || session.role === 'receptionist' || session.role === 'administrator';
 
-      const matchesDept =
-        selectedDeptFilter === 'all' ||
-        item.departmentName.toLowerCase() === selectedDeptFilter.toLowerCase() ||
-        item.departmentId.toString() === selectedDeptFilter;
-
-      const matchesStatus =
-        selectedStatusFilter === 'all' ||
-        item.status.toLowerCase() === selectedStatusFilter.toLowerCase();
-
-      return matchesSearch && matchesDept && matchesStatus;
-    });
-  }, [data?.upcomingQueue, searchQuery, selectedDeptFilter, selectedStatusFilter]);
-
-  // Unique departments for filter dropdown
-  const uniqueDepartments = useMemo(() => {
-    if (!data?.departmentQueues) return [];
-    return data.departmentQueues.map((d) => ({
-      id: d.departmentId,
-      name: d.departmentName,
-    }));
-  }, [data?.departmentQueues]);
+  // Navigation Title Mapping for Breadcrumbs
+  const viewTitles: Record<ReceptionViewKey, string> = {
+    dashboard: 'Live Reception Dashboard',
+    registration: 'New Patient Registration',
+    directory: 'Patient Directory',
+    tokens: 'OPD Token Management',
+    appointments: 'Appointments Desk',
+    doctors: 'Doctor Availability & Workload',
+    billing: 'Billing & Cashier Desk',
+    history: 'Consultation Visit History',
+    reports: 'Operational Analytics & Reports',
+    settings: 'Reception Portal Settings',
+  };
 
   return (
-    <div className="w-full space-y-8">
+    <div className="min-h-screen bg-[#FAFAF7] flex flex-col lg:flex-row font-sans text-[#1F2421]">
       {/* ========================================================
-          ACTIVE EMERGENCY ALERT BANNER (CRITICAL)
+          1. RECEPTION PORTAL SIDEBAR
       ======================================================== */}
-      {activeAlert && (
-        <div className="rounded-2xl border-2 border-red-500 bg-red-600 text-white p-4 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-pulse">
+      <ReceptionistSidebar
+        activeView={activeView}
+        onSelectView={handleSelectView}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        isMobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+        staffUser={session}
+        stats={{
+          waitingCount: data?.stats?.patientsCurrentlyWaiting,
+          upcomingAppointments: data?.stats?.upcomingAppointments,
+          emergencyWaiting: data?.stats?.emergencyPatients,
+        }}
+      />
+
+      {/* ========================================================
+          2. MAIN PORTAL WORKSPACE
+      ======================================================== */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        {/* Top Operational Bar */}
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-xs border-b border-[#E5E8E6] px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Siren className="h-6 w-6 text-white shrink-0 animate-bounce" />
+            {/* Mobile Menu Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-xl border border-[#E5E8E6] text-[#77817C] hover:text-[#1F2421] hover:bg-[#FAFAF7] cursor-pointer"
+              title="Open Navigation Menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+
+            {/* Breadcrumb Header */}
             <div>
-              <div className="text-xs font-mono uppercase tracking-widest font-bold">
-                {t.activeAlertBanner}: {activeAlert.alert_type}
+              <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#77817C] uppercase tracking-wider">
+                <span>Hospital Management System</span>
+                <ChevronRight className="h-3 w-3 text-[#77817C]/60" />
+                <span className="text-[#174C40] font-semibold">Reception</span>
               </div>
-              <div className="text-sm font-semibold">
-                Location: {activeAlert.location} • Severity: {activeAlert.severity}
-              </div>
+              <h1 className="text-lg sm:text-xl font-serif font-bold text-[#1F2421] tracking-tight">
+                {viewTitles[activeView]}
+              </h1>
             </div>
           </div>
-          <button
-            onClick={() => setShowEmergencyModal(true)}
-            className="px-4 py-1.5 rounded-xl bg-white text-red-700 font-bold text-xs shadow-xs hover:bg-red-50 transition-colors cursor-pointer self-start sm:self-auto"
-          >
-            Manage / Respond to Alert
-          </button>
-        </div>
-      )}
 
-      {/* ========================================================
-          1. RECEPTION HEADER & OPERATIONS CONTROL BAR
-      ======================================================== */}
-      <div className="rounded-3xl border border-[#E5E8E6] bg-white p-6 sm:p-8 shadow-xs">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          {/* Title and Identification */}
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2.5">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-semibold tracking-wider uppercase bg-[#174C40]/10 text-[#174C40] border border-[#174C40]/20">
-                <Radio className="h-3 w-3 text-emerald-600 animate-pulse" />
-                {t.liveFrontDesk}
-              </span>
-              <span className="text-xs font-mono text-[#77817C] hidden sm:inline">
-                Central OPD &amp; Emergency Reception
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-serif text-[#1F2421] tracking-tight">
-              {t.title}
-            </h1>
-            <p className="text-sm text-[#4A5350]">
-              {t.subtitle}
-            </p>
-          </div>
-
-          {/* Live Controls & Telemetry */}
-          <div className="flex flex-wrap items-center gap-2.5">
+          {/* Right Header Controls */}
+          <div className="flex items-center gap-2.5">
             {/* Multilingual Selector */}
-            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-2xl bg-[#FAFAF7] border border-[#E5E8E6] text-xs font-medium text-[#1F2421]">
+            <div className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-2xl bg-[#FAFAF7] border border-[#E5E8E6] text-xs font-medium text-[#1F2421]">
               <Languages className="h-3.5 w-3.5 text-[#174C40]" />
               <select
                 value={currentLang}
                 onChange={(e) => setCurrentLang(e.target.value as DashboardLanguage)}
                 className="bg-transparent border-none text-xs font-medium text-[#1F2421] focus:outline-hidden cursor-pointer"
-                title="Select interface language"
+                title="Select language"
               >
                 <option value="en">English (US)</option>
                 <option value="es">Español (ES)</option>
@@ -463,248 +496,362 @@ export default function ReceptionistDashboard() {
               </select>
             </div>
 
-            {/* Launch Digital Queue Display TV Screen */}
+            {/* Launch Digital Queue TV */}
             <a
               href="/display/opd-queue"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#FAFAF7] hover:bg-[#F0F2F0] border border-[#E5E8E6] text-xs font-semibold text-[#174C40] shadow-2xs transition-colors cursor-pointer"
-              title="Open the high-contrast TV Queue Display in a separate tab or screen"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FAFAF7] hover:bg-[#F0F2F0] border border-[#E5E8E6] text-xs font-semibold text-[#174C40] shadow-2xs transition-colors cursor-pointer"
+              title="Launch digital waiting TV screen"
             >
               <Tv className="h-3.5 w-3.5 text-[#174C40]" />
-              <span>{t.launchTV}</span>
+              <span>TV Display</span>
               <ExternalLink className="h-3 w-3 opacity-60" />
             </a>
 
-            {/* Emergency Intake Button (High-Visibility Priority) */}
+            {/* Emergency Intake Button */}
             <button
               onClick={() => setShowEmergencyModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
-              title="Quickly admit trauma arrival or broadcast hospital emergency code"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              title="Admit trauma arrival or raise hospital emergency alert"
             >
               <Siren className="h-3.5 w-3.5 animate-bounce" />
-              <span>{t.emergencyIntake}</span>
+              <span className="hidden sm:inline">Emergency Intake</span>
+              <span className="sm:hidden">Emergency</span>
             </button>
 
             {/* Live Clock */}
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#FAFAF7] border border-[#E5E8E6] text-xs font-mono text-[#1F2421]">
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FAFAF7] border border-[#E5E8E6] text-xs font-mono text-[#1F2421]">
               <Clock className="h-3.5 w-3.5 text-[#174C40]" />
               <span className="font-semibold">{currentTime || '--:--:--'}</span>
             </div>
 
-            {/* Auto Refresh Toggle & Progress */}
-            <button
-              onClick={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
-              title={autoRefreshEnabled ? 'Click to pause auto-refresh' : 'Click to resume auto-refresh'}
-              className={`flex items-center gap-2 px-3 py-2 rounded-2xl border text-xs font-medium transition-all cursor-pointer ${
-                autoRefreshEnabled
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                  : 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:bg-zinc-100'
-              }`}
-            >
-              <CircleDot
-                className={`h-3.5 w-3.5 ${
-                  autoRefreshEnabled ? 'text-emerald-600 animate-pulse' : 'text-zinc-400'
-                }`}
-              />
-              <span>
-                {autoRefreshEnabled ? `${t.autoSync}: ${countdown}s` : t.paused}
-              </span>
-            </button>
-
-            {/* Manual Refresh Button */}
+            {/* Refresh Button */}
             <button
               onClick={() => fetchDashboardData(false)}
               disabled={refreshing}
-              className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#174C40] hover:bg-[#123B32] text-white text-xs font-medium shadow-xs transition-colors disabled:opacity-60 cursor-pointer"
+              className="p-2 rounded-2xl bg-[#174C40] hover:bg-[#123B32] text-white shadow-xs transition-colors disabled:opacity-60 cursor-pointer"
+              title="Refresh telemetry"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-              <span>{refreshing ? t.refreshing : t.refresh}</span>
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* Staff Identity & Telemetry Strip */}
-        <div className="mt-5 pt-4 border-t border-[#F0F2F0] flex flex-wrap items-center justify-between gap-3 text-xs text-[#77817C]">
-          <div className="flex items-center gap-3">
-            {session && (
-              <>
-                <span className="font-medium text-[#1F2421]">{t.activeStation}:</span>
-                <span className="px-2.5 py-0.5 rounded-md bg-[#FAFAF7] border border-[#E5E8E6] text-[#174C40] font-mono font-medium">
-                  {session.name} ({session.staffId})
-                </span>
-                <span className="hidden sm:inline">•</span>
-                <span className="hidden sm:inline">{session.department}</span>
-              </>
-            )}
-          </div>
-
-          {/* Real Integrations Gateways Status Bar */}
-          <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono">
-            <span
-              className={`px-2.5 py-0.5 rounded-full border ${
-                integrationsStatus?.twilio_sms?.configured
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-zinc-100 text-zinc-600 border-zinc-200'
-              }`}
-              title={
-                integrationsStatus?.twilio_sms?.configured
-                  ? 'Twilio SMS service active'
-                  : 'Twilio SMS gateway not configured (delivery not simulated)'
-              }
-            >
-              SMS: {integrationsStatus?.twilio_sms?.configured ? 'Active' : 'Unconfigured'}
-            </span>
-
-            <span
-              className={`px-2.5 py-0.5 rounded-full border ${
-                integrationsStatus?.whatsapp?.configured
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-zinc-100 text-zinc-600 border-zinc-200'
-              }`}
-              title={
-                integrationsStatus?.whatsapp?.configured
-                  ? 'WhatsApp Business API active'
-                  : 'WhatsApp API not configured (delivery not simulated)'
-              }
-            >
-              WhatsApp: {integrationsStatus?.whatsapp?.configured ? 'Active' : 'Unconfigured'}
-            </span>
-
-            <div className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>{t.databaseStream}</span>
+        {/* Workspace Body */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
+          {/* Active Emergency Alert Banner */}
+          {activeAlert && (
+            <div className="rounded-2xl border-2 border-red-500 bg-red-600 text-white p-4 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-pulse">
+              <div className="flex items-center gap-3">
+                <Siren className="h-6 w-6 text-white shrink-0 animate-bounce" />
+                <div>
+                  <div className="text-xs font-mono uppercase tracking-widest font-bold">
+                    {t.activeAlertBanner}: {activeAlert.alert_type}
+                  </div>
+                  <div className="text-sm font-semibold">
+                    Location: {activeAlert.location} • Severity: {activeAlert.severity}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowEmergencyModal(true)}
+                className="px-4 py-1.5 rounded-xl bg-white text-red-700 font-bold text-xs shadow-xs hover:bg-red-50 transition-colors cursor-pointer self-start sm:self-auto"
+              >
+                Respond to Code
+              </button>
             </div>
-          </div>
-        </div>
+          )}
 
-        {/* View Selection Tabs */}
-        <div className="mt-6 pt-4 border-t border-[#F0F2F0] flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2 p-1 rounded-2xl bg-[#FAFAF7] border border-[#E5E8E6]">
-            <button
-              onClick={() => setActiveView('queue')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                activeView === 'queue'
-                  ? 'bg-white text-[#174C40] shadow-xs border border-[#E5E8E6]'
-                  : 'text-[#77817C] hover:text-[#1F2421]'
-              }`}
-            >
-              <Activity className="h-3.5 w-3.5" />
-              <span>{t.queueOverview}</span>
-            </button>
+          {/* User Permission Restriction Notice if not receptionist or admin */}
+          {!isAuthorized ? (
+            <div className="p-8 rounded-3xl border border-rose-200 bg-rose-50 text-center space-y-3">
+              <ShieldAlert className="h-12 w-12 text-rose-600 mx-auto" />
+              <h2 className="text-lg font-serif font-bold text-rose-900">
+                Access Restricted per Hospital Security Governance
+              </h2>
+              <p className="text-xs text-rose-700 max-w-md mx-auto">
+                You are currently signed in under the role <strong>{session?.roleName || session?.role}</strong>. The Reception Operations Portal requires verified Front Desk Receptionist or Administrator authorization credentials.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* ========================================================
+                  VIEW 1: DASHBOARD (LIVE OVERVIEW & TELEMETRY)
+              ======================================================== */}
+              {activeView === 'dashboard' && (
+                <div className="space-y-6">
+                  {/* Top Stats Cards (7 Core Statistics) */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {/* 1. Patients Registered Today */}
+                    <div className="p-5 rounded-3xl border border-[#E5E8E6] bg-white shadow-xs space-y-1">
+                      <div className="flex items-center justify-between text-[#77817C]">
+                        <span className="text-[10px] font-mono uppercase tracking-wider">Registered Today</span>
+                        <UserPlus className="h-4 w-4 text-[#174C40]" />
+                      </div>
+                      <div className="text-3xl font-mono font-bold text-[#1F2421]">
+                        {data?.stats?.patientsRegisteredToday || 0}
+                      </div>
+                      <span className="text-[10px] text-emerald-700 block">Intake completed</span>
+                    </div>
 
-            <button
-              onClick={() => setActiveView('appointments')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                activeView === 'appointments'
-                  ? 'bg-white text-[#174C40] shadow-xs border border-[#E5E8E6]'
-                  : 'text-[#77817C] hover:text-[#1F2421]'
-              }`}
-            >
-              <CalendarCheck className="h-3.5 w-3.5" />
-              <span>{t.appointmentsDesk}</span>
-              {data?.stats?.upcomingAppointments !== undefined && (
-                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-full bg-[#174C40]/10 text-[#174C40]">
-                  {data.stats.upcomingAppointments}
-                </span>
+                    {/* 2. Currently Waiting */}
+                    <div className="p-5 rounded-3xl border border-[#E5E8E6] bg-white shadow-xs space-y-1">
+                      <div className="flex items-center justify-between text-[#77817C]">
+                        <span className="text-[10px] font-mono uppercase tracking-wider">Currently Waiting</span>
+                        <Clock className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <div className="text-3xl font-mono font-bold text-amber-700">
+                        {data?.stats?.patientsCurrentlyWaiting || 0}
+                      </div>
+                      <span className="text-[10px] text-amber-800 block">In OPD waiting lounges</span>
+                    </div>
+
+                    {/* 3. Currently Consulting */}
+                    <div className="p-5 rounded-3xl border border-[#E5E8E6] bg-white shadow-xs space-y-1">
+                      <div className="flex items-center justify-between text-[#77817C]">
+                        <span className="text-[10px] font-mono uppercase tracking-wider">In Consultation</span>
+                        <Stethoscope className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div className="text-3xl font-mono font-bold text-blue-700">
+                        {data?.stats?.patientsCurrentlyConsulting || 0}
+                      </div>
+                      <span className="text-[10px] text-blue-800 block">Inside doctor cabins</span>
+                    </div>
+
+                    {/* 4. Completed Consultations */}
+                    <div className="p-5 rounded-3xl border border-[#E5E8E6] bg-white shadow-xs space-y-1">
+                      <div className="flex items-center justify-between text-[#77817C]">
+                        <span className="text-[10px] font-mono uppercase tracking-wider">Completed Today</span>
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      </div>
+                      <div className="text-3xl font-mono font-bold text-emerald-700">
+                        {data?.stats?.completedConsultations || 0}
+                      </div>
+                      <span className="text-[10px] text-emerald-800 block">Consultations concluded</span>
+                    </div>
+
+                    {/* 5. Upcoming Appointments */}
+                    <div className="p-5 rounded-3xl border border-[#E5E8E6] bg-white shadow-xs space-y-1">
+                      <div className="flex items-center justify-between text-[#77817C]">
+                        <span className="text-[10px] font-mono uppercase tracking-wider">Upcoming Bookings</span>
+                        <CalendarCheck className="h-4 w-4 text-[#174C40]" />
+                      </div>
+                      <div className="text-3xl font-mono font-bold text-[#1F2421]">
+                        {data?.stats?.upcomingAppointments || 0}
+                      </div>
+                      <span className="text-[10px] text-[#77817C] block">Future &amp; today slots</span>
+                    </div>
+
+                    {/* 6. Emergency Patients */}
+                    <div className="p-5 rounded-3xl border border-red-200 bg-red-50/50 shadow-xs space-y-1">
+                      <div className="flex items-center justify-between text-red-700">
+                        <span className="text-[10px] font-mono uppercase tracking-wider font-bold">Emergency Cases</span>
+                        <Siren className="h-4 w-4 text-red-600" />
+                      </div>
+                      <div className="text-3xl font-mono font-bold text-red-700">
+                        {data?.stats?.emergencyPatients || 0}
+                      </div>
+                      <span className="text-[10px] text-red-800 block">Trauma &amp; priority admissions</span>
+                    </div>
+
+                    {/* 7. Available Doctors */}
+                    <div className="p-5 rounded-3xl border border-[#E5E8E6] bg-white shadow-xs space-y-1 col-span-2 sm:col-span-1">
+                      <div className="flex items-center justify-between text-[#77817C]">
+                        <span className="text-[10px] font-mono uppercase tracking-wider">Available Doctors</span>
+                        <UserCheck className="h-4 w-4 text-emerald-600" />
+                      </div>
+                      <div className="text-3xl font-mono font-bold text-emerald-700">
+                        {data?.stats?.availableDoctors || 0}
+                        <span className="text-sm font-normal text-[#77817C] ml-1.5">
+                          / {data?.stats?.totalDoctors || 0}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-emerald-800 block">On-duty physicians</span>
+                    </div>
+                  </div>
+
+                  {/* Quick Action Navigation Strip */}
+                  <div className="rounded-3xl border border-[#E5E8E6] bg-white p-5 shadow-xs space-y-3">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#77817C] block">
+                      Rapid Front Desk Shortcuts
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <button
+                        onClick={() => handleSelectView('registration')}
+                        className="p-3.5 rounded-2xl border border-[#E5E8E6] hover:border-[#174C40] hover:bg-[#FAFAF7] text-left transition-all cursor-pointer flex items-center gap-3"
+                      >
+                        <UserPlus className="h-5 w-5 text-[#174C40]" />
+                        <div>
+                          <div className="font-semibold text-xs text-[#1F2421]">Register Patient</div>
+                          <div className="text-[10px] text-[#77817C]">Walk-in Intake Form</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => handleSelectView('tokens')}
+                        className="p-3.5 rounded-2xl border border-[#E5E8E6] hover:border-[#174C40] hover:bg-[#FAFAF7] text-left transition-all cursor-pointer flex items-center gap-3"
+                      >
+                        <Ticket className="h-5 w-5 text-[#174C40]" />
+                        <div>
+                          <div className="font-semibold text-xs text-[#1F2421]">Token Manager</div>
+                          <div className="text-[10px] text-[#77817C]">OPD Queue Control</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => handleSelectView('appointments')}
+                        className="p-3.5 rounded-2xl border border-[#E5E8E6] hover:border-[#174C40] hover:bg-[#FAFAF7] text-left transition-all cursor-pointer flex items-center gap-3"
+                      >
+                        <CalendarCheck className="h-5 w-5 text-[#174C40]" />
+                        <div>
+                          <div className="font-semibold text-xs text-[#1F2421]">Appointments</div>
+                          <div className="text-[10px] text-[#77817C]">Check-in &amp; Booking</div>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => handleSelectView('billing')}
+                        className="p-3.5 rounded-2xl border border-[#E5E8E6] hover:border-[#174C40] hover:bg-[#FAFAF7] text-left transition-all cursor-pointer flex items-center gap-3"
+                      >
+                        <CreditCard className="h-5 w-5 text-[#174C40]" />
+                        <div>
+                          <div className="font-semibold text-xs text-[#1F2421]">Billing Desk</div>
+                          <div className="text-[10px] text-[#77817C]">Payment Invoices</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Department Queues Summary Table */}
+                  <div className="rounded-3xl border border-[#E5E8E6] bg-white p-6 shadow-xs space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-serif font-bold text-base text-[#1F2421]">
+                        Live Department Queue Overview
+                      </h3>
+                      <button
+                        onClick={() => handleSelectView('tokens')}
+                        className="text-xs font-semibold text-[#174C40] hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Open Live Queue Manager</span>
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-[#E5E8E6] text-[#77817C] font-mono uppercase text-[10px]">
+                            <th className="pb-3 font-semibold">Department</th>
+                            <th className="pb-3 font-semibold">Serving Token</th>
+                            <th className="pb-3 font-semibold">Attending Doctor</th>
+                            <th className="pb-3 font-semibold">Patients Waiting</th>
+                            <th className="pb-3 font-semibold">Est. Wait Time</th>
+                            <th className="pb-3 font-semibold">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#F0F2F0]">
+                          {data?.departmentQueues?.map((dept) => (
+                            <tr key={dept.departmentId} className="hover:bg-[#FAFAF7]">
+                              <td className="py-3 font-semibold text-[#1F2421]">
+                                {dept.departmentName}
+                              </td>
+                              <td className="py-3 font-mono font-bold text-[#174C40]">
+                                {dept.currentToken ? `#${dept.currentToken}` : 'None Calling'}
+                              </td>
+                              <td className="py-3 text-[#4A5350]">
+                                {dept.doctorName || 'Cabin Staff On Call'}
+                              </td>
+                              <td className="py-3 font-mono">
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 font-bold border border-amber-200">
+                                  {dept.waitingCount} Waiting
+                                </span>
+                              </td>
+                              <td className="py-3 font-mono text-[#77817C]">
+                                ~{dept.avgWaitMins || 10} mins
+                              </td>
+                              <td className="py-3">
+                                <button
+                                  type="button"
+                                  onClick={() => handleSelectView('tokens')}
+                                  className="text-xs font-semibold text-[#174C40] hover:underline cursor-pointer"
+                                >
+                                  Manage Queue →
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
               )}
-            </button>
 
-            <button
-              onClick={() => setActiveView('billing')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                activeView === 'billing'
-                  ? 'bg-white text-[#174C40] shadow-xs border border-[#E5E8E6]'
-                  : 'text-[#77817C] hover:text-[#1F2421]'
-              }`}
-            >
-              <CreditCard className="h-3.5 w-3.5" />
-              <span>{t.billingDesk}</span>
-            </button>
+              {/* VIEW 2: NEW PATIENT REGISTRATION */}
+              {activeView === 'registration' && (
+                <PatientRegistrationForm
+                  onCancel={() => handleSelectView('dashboard')}
+                  onSuccess={() => {
+                    fetchDashboardData(true);
+                    handleSelectView('tokens');
+                  }}
+                />
+              )}
 
-            <button
-              onClick={() => setActiveView('search')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                activeView === 'search'
-                  ? 'bg-white text-[#174C40] shadow-xs border border-[#E5E8E6]'
-                  : 'text-[#77817C] hover:text-[#1F2421]'
-              }`}
-            >
-              <Search className="h-3.5 w-3.5" />
-              <span>{t.searchDirectory}</span>
-            </button>
+              {/* VIEW 3: PATIENT DIRECTORY */}
+              {activeView === 'directory' && (
+                <PatientSearchLookup
+                  onNavigateRegister={() => handleSelectView('registration')}
+                  onVisitCreated={() => {
+                    fetchDashboardData(true);
+                    handleSelectView('tokens');
+                  }}
+                />
+              )}
 
-            <button
-              onClick={() => setActiveView('registration')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                activeView === 'registration'
-                  ? 'bg-[#174C40] text-white shadow-xs'
-                  : 'text-[#77817C] hover:text-[#1F2421]'
-              }`}
-            >
-              <UserPlus className="h-3.5 w-3.5" />
-              <span>{t.newRegistration}</span>
-            </button>
-          </div>
+              {/* VIEW 4: TOKEN MANAGEMENT */}
+              {activeView === 'tokens' && <LiveQueueManager />}
 
-          <div className="flex items-center gap-2">
-            {activeView !== 'appointments' && (
-              <button
-                onClick={() => setActiveView('appointments')}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#E5E8E6] bg-white hover:bg-[#FAFAF7] text-[#1F2421] text-xs font-medium shadow-2xs transition-colors cursor-pointer"
-              >
-                <CalendarCheck className="h-3.5 w-3.5 text-[#174C40]" />
-                <span>{t.appointmentsDesk}</span>
-              </button>
-            )}
+              {/* VIEW 5: APPOINTMENTS */}
+              {activeView === 'appointments' && <AppointmentManager />}
 
-            {activeView !== 'search' && (
-              <button
-                onClick={() => setActiveView('search')}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#E5E8E6] bg-white hover:bg-[#FAFAF7] text-[#1F2421] text-xs font-medium shadow-2xs transition-colors cursor-pointer"
-              >
-                <Search className="h-3.5 w-3.5 text-[#174C40]" />
-                <span>{t.searchDirectory}</span>
-              </button>
-            )}
+              {/* VIEW 6: DOCTOR AVAILABILITY */}
+              {activeView === 'doctors' && (
+                <DoctorAvailabilityView session={session} />
+              )}
 
-            {activeView !== 'registration' && (
-              <button
-                onClick={() => setActiveView('registration')}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#174C40] hover:bg-[#123B32] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-              >
-                <UserPlus className="h-3.5 w-3.5" />
-                <span>{t.newRegistration}</span>
-              </button>
-            )}
-          </div>
-        </div>
+              {/* VIEW 7: BILLING & PAYMENTS */}
+              {activeView === 'billing' && <BillingDeskManager />}
+
+              {/* VIEW 8: VISIT HISTORY */}
+              {activeView === 'history' && (
+                <VisitHistoryView
+                  onOpenPatientProfile={(id) => setSelectedQueuePatientId(id)}
+                />
+              )}
+
+              {/* VIEW 9: REPORTS */}
+              {activeView === 'reports' && <ReceptionReportsView data={data} />}
+
+              {/* VIEW 10: SETTINGS */}
+              {activeView === 'settings' && (
+                <ReceptionSettingsView
+                  session={session}
+                  currentLang={currentLang}
+                  onChangeLang={setCurrentLang}
+                  integrationsStatus={integrationsStatus}
+                  autoRefreshEnabled={autoRefreshEnabled}
+                  onToggleAutoRefresh={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
+                  countdown={countdown}
+                />
+              )}
+            </>
+          )}
+        </main>
       </div>
 
-      {activeView === 'registration' ? (
-        <PatientRegistrationForm
-          onCancel={() => setActiveView('queue')}
-          onSuccess={() => {
-            fetchDashboardData(true);
-          }}
-        />
-      ) : activeView === 'search' ? (
-        <PatientSearchLookup
-          onNavigateRegister={() => setActiveView('registration')}
-          onVisitCreated={() => {
-            fetchDashboardData(true);
-            setActiveView('queue');
-          }}
-        />
-      ) : activeView === 'appointments' ? (
-        <AppointmentManager />
-      ) : activeView === 'billing' ? (
-        <BillingDeskManager />
-      ) : (
-        <LiveQueueManager />
-      )}
-
-      {/* Patient Profile Modal for Table Rows */}
+      {/* Patient Profile Modal */}
       {selectedQueuePatientId && (
         <PatientProfileModal
           patientId={selectedQueuePatientId}

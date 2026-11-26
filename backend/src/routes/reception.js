@@ -1144,7 +1144,7 @@ router.patch(
  * Lists all departments and active doctors with real-time queue loads for receptionist assignment
  */
 router.get(
-  '/departments-and-doctors',
+  ['/departments-and-doctors', '/visits/available-doctors', '/doctors/availability'],
   asyncHandler(async (_req, res) => {
     const deptsQuery = await query(`
       SELECT 
@@ -4035,30 +4035,6 @@ router.post(
 
       const newToken = tokenRes.rows[0];
 
-      // 5b. Emergency Registration Record (synchronizes emergency portal and reception)
-      const emrRegId = `EMR-REG-${Date.now().toString().slice(-6)}`;
-      await client.query(
-        `INSERT INTO emergency_registrations (
-          id, patient_id, patient_name, is_unknown_identity, arrival_time,
-          arrival_mode, emergency_type, presenting_complaints, assigned_bay,
-          triage_level, queue_status, registered_by, created_at, updated_at
-        ) VALUES (
-          $1, $2, $3, $4, NOW(),
-          'Walk-in / Escorted', 'Trauma', $5, $6,
-          $7, 'In-Queue', $8, NOW(), NOW()
-        )`,
-        [
-          emrRegId,
-          resolvedPatientDbId,
-          finalFullName,
-          Boolean(is_unknown_patient),
-          emergency_notes || 'Emergency arrival intake',
-          assigned_bay,
-          enforcedTriage,
-          `${staff_name} (${staff_role})`,
-        ]
-      );
-
       // 6. Raise Immediate Clinical Alert for Trauma & ER Clinical Staff
       const alertId = `ALT-${Date.now().toString().slice(-6)}`;
       const alertRes = await client.query(
@@ -4067,13 +4043,12 @@ router.post(
           alert_type, severity, condition_summary, notified_groups,
           status, triggered_by, triggered_at, visit_id, triage_level, location
         ) VALUES (
-          $1, $2, $3, $4, $5,
-          'Trauma Influx', 'Critical', $6, '{"Trauma Team", "ER Senior Registrar", "Triage Nurse"}',
-          'Active', $7, NOW(), $8, $9, $5
+          $1, NULL, $2, $3, $4,
+          'Trauma Influx', 'Critical', $5, '{"Trauma Team", "ER Senior Registrar", "Triage Nurse"}',
+          'Active', $6, NOW(), $7, $8, $4
         ) RETURNING *`,
         [
           alertId,
-          emrRegId,
           resolvedPatientDbId,
           finalFullName,
           assigned_bay,
@@ -4237,7 +4212,7 @@ router.get('/integrations/status', (_req, res) => {
 
   const isWhatsAppConfigured = Boolean(
     process.env.WHATSAPP_API_KEY ||
-      (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_WHATSAPP_NUMBER)
+    (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_WHATSAPP_NUMBER)
   );
 
   res.json({
@@ -4288,7 +4263,7 @@ router.post(
 
     const isWhatsAppConfigured = Boolean(
       process.env.WHATSAPP_API_KEY ||
-        (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_WHATSAPP_NUMBER)
+      (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_WHATSAPP_NUMBER)
     );
 
     if (channel === 'sms' && !isTwilioConfigured) {
@@ -4414,6 +4389,59 @@ router.get(
       now_serving: nowServing,
       upcoming_queue: upcomingQueue,
       active_emergency: alertRes.rows[0] || null,
+    });
+  })
+);
+
+/**
+ * PATCH /api/v1/reception/doctors/:id/availability
+ * Updates a doctor's availability status (Available, Busy, On Break, Unavailable).
+ */
+router.patch(
+  '/doctors/:id/availability',
+  asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { status, reason, staff_name } = req.body || {};
+    const validStatuses = ['Available', 'Busy', 'On Break', 'Unavailable'];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid availability status. Must be one of: ${validStatuses.join(', ')}`,
+      });
+    }
+
+    const updateRes = await query(
+      `UPDATE doctors
+       SET availability_status = $1
+       WHERE id = $2
+       RETURNING id, name, specialty, department_id, availability_status`,
+      [status, Number(id)]
+    );
+
+    if (updateRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Doctor not found.' });
+    }
+
+    // Audit log
+    await query(
+      `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+       VALUES ('DOCTOR_AVAILABILITY_OVERRIDE', 'doctors', 'doctors', $1, NOW(), $2)`,
+      [
+        id,
+        JSON.stringify({
+          doctor_id: id,
+          new_status: status,
+          reason: reason || 'Reception front desk schedule update',
+          updated_by: staff_name || 'Reception Staff',
+        }),
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: `Doctor status updated to ${status}.`,
+      doctor: updateRes.rows[0],
     });
   })
 );

@@ -13,9 +13,7 @@ export default function StaffLayout({ children }: { children: React.ReactNode })
       {/* Staff Portal Operational Header Strip */}
       <StaffTopBar />
 
-      <div className="container-editorial py-8 sm:py-12">
-        {children}
-      </div>
+      {children}
     </div>
   );
 }

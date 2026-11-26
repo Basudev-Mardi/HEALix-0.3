@@ -8,10 +8,12 @@ export default function StaffLoginPage() {
   const router = useRouter();
 
   return (
-    <StaffLoginForm
-      onLoginSuccess={() => {
-        router.push('/staff');
-      }}
-    />
+    <div className="container-editorial py-8 sm:py-12">
+      <StaffLoginForm
+        onLoginSuccess={() => {
+          router.push('/staff');
+        }}
+      />
+    </div>
   );
 }

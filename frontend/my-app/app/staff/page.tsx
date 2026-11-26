@@ -48,21 +48,25 @@ export default function StaffPage() {
   // If NOT authenticated: Show ONLY the centered HEALIX Staff Login Portal interface
   if (!currentStaff) {
     return (
-      <StaffLoginForm
-        onLoginSuccess={(staff) => {
-          setCurrentStaff(staff);
-        }}
-      />
+      <div className="container-editorial py-8 sm:py-12">
+        <StaffLoginForm
+          onLoginSuccess={(staff) => {
+            setCurrentStaff(staff);
+          }}
+        />
+      </div>
     );
   }
 
   // If authenticated: Show authorized role-specific dashboard
   return (
-    <StaffAuthorizedDashboard
-      staff={currentStaff}
-      onLogout={() => {
-        setCurrentStaff(null);
-      }}
-    />
+    <div className="container-editorial py-8 sm:py-12">
+      <StaffAuthorizedDashboard
+        staff={currentStaff}
+        onLogout={() => {
+          setCurrentStaff(null);
+        }}
+      />
+    </div>
   );
 }
