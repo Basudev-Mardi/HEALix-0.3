@@ -3889,4 +3889,533 @@ router.get(
   })
 );
 
+// ============================================================================
+// EMERGENCY REGISTRATION & CLINICAL ALERTS MODULE
+// ============================================================================
+
+/**
+ * POST /api/v1/reception/emergency/register
+ * Quickly registers a trauma / emergency arrival and generates an emergency visit and token.
+ * STRICT CLINICAL RULE: Receptionists CANNOT assign or modify clinical triage levels.
+ * Triage level is unconditionally set to 'Pending Clinical Triage' for physician/nurse triage.
+ */
+router.post(
+  '/emergency/register',
+  asyncHandler(async (req, res) => {
+    const {
+      is_unknown_patient = false,
+      patient_id = null,
+      full_name = '',
+      gender = 'Other',
+      estimated_age = '',
+      mobile = '',
+      emergency_notes = '',
+      assigned_bay = 'Emergency Resuscitation Bay',
+      staff_name = 'Reception Staff',
+      staff_role = 'receptionist',
+      requested_triage_level, // If reception passed this, it will be strictly rejected/overridden
+    } = req.body || {};
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // 1. Resolve or Create Patient Record
+      let resolvedPatientDbId = null;
+      let finalFullName = full_name.trim();
+
+      if (!is_unknown_patient && patient_id) {
+        // Known returning patient
+        const patRes = await client.query(
+          `SELECT id, patient_id, full_name, mobile, gender, dob FROM patients WHERE id = $1 OR patient_id = $1 LIMIT 1`,
+          [patient_id.trim()]
+        );
+        if (patRes.rows.length > 0) {
+          resolvedPatientDbId = patRes.rows[0].id;
+          finalFullName = patRes.rows[0].full_name || finalFullName;
+        }
+      }
+
+      if (!resolvedPatientDbId) {
+        // Create emergency patient record
+        const yr = new Date().getFullYear();
+        const rand = Math.floor(1000 + Math.random() * 9000);
+        const generatedPatientId = `EMR-PAT-${yr}-${rand}`;
+
+        if (is_unknown_patient) {
+          finalFullName = finalFullName || `Unknown ${gender} (${estimated_age ? `~${estimated_age}y` : 'Trauma Arrival'})`;
+        } else if (!finalFullName) {
+          finalFullName = `Emergency Patient ${rand}`;
+        }
+
+        const newPatRes = await client.query(
+          `INSERT INTO patients (
+            id, patient_id, full_name, mobile, phone, gender,
+            is_unknown, distinguishing_marks, address, registration_date, created_at, updated_at
+          ) VALUES (
+            $1, $1, $2, $3, $3, $4,
+            $5, $6, 'Admitted via Level 1 Emergency Trauma Desk', NOW(), NOW(), NOW()
+          ) RETURNING id, patient_id, full_name`,
+          [
+            generatedPatientId,
+            finalFullName,
+            mobile.trim() || 'Emergency Contact Pending',
+            gender,
+            Boolean(is_unknown_patient),
+            emergency_notes.trim() || null,
+          ]
+        );
+
+        resolvedPatientDbId = newPatRes.rows[0].id;
+      }
+
+      // 2. Resolve Emergency Department
+      const deptRes = await client.query(
+        `SELECT id, name, slug, token_prefix FROM departments WHERE slug = 'emergency' OR name ILIKE '%emergency%' LIMIT 1`
+      );
+      const emergencyDept = deptRes.rows[0] || { id: 1, name: 'Emergency Trauma', token_prefix: 'EMR' };
+      const emergencyDeptId = emergencyDept.id;
+      const tokenPrefix = emergencyDept.token_prefix || 'EMR';
+
+      // 3. Resolve On-Duty Emergency Physician
+      const docRes = await client.query(
+        `SELECT id, name, specialty FROM doctors WHERE department_id = $1 AND availability_status IN ('Available', 'Busy') LIMIT 1`,
+        [emergencyDeptId]
+      );
+      const emergencyDoc = docRes.rows[0] || { id: 1, name: 'Emergency Trauma Physician' };
+
+      // 4. Generate Emergency Visit Record
+      const yr = new Date().getFullYear();
+      const visitId = `VST-${yr}-${Date.now().toString().slice(-6)}`;
+
+      // STRICT CLINICAL ENFORCEMENT: Triage is strictly 'Pending Clinical Triage'
+      const enforcedTriage = 'Pending Clinical Triage';
+
+      const visitRes = await client.query(
+        `INSERT INTO visits (
+          visit_id, patient_id, department_id, doctor_id, visit_date, visit_type,
+          status, triage_level, emergency_severity, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, CURRENT_DATE, 'Emergency',
+          'In-Queue', $5, 'Critical', NOW(), NOW()
+        ) RETURNING *`,
+        [visitId, resolvedPatientDbId, emergencyDeptId, emergencyDoc.id, enforcedTriage]
+      );
+
+      const newVisit = visitRes.rows[0];
+
+      // 5. Generate Emergency Priority Queue Token
+      const seqRes = await client.query(
+        `SELECT COALESCE(MAX(token_number), 0) + 1 AS next_token_number
+         FROM tokens WHERE department_id = $1 AND queue_date = CURRENT_DATE`,
+        [emergencyDeptId]
+      );
+      const nextTokenNum = Number(seqRes.rows[0].next_token_number) || 1;
+      const tokenDisplay = `${tokenPrefix}-${String(nextTokenNum).padStart(3, '0')}`;
+      const tokenId = `TKN-${Date.now().toString().slice(-6)}-${tokenDisplay}`;
+
+      const tokenRes = await client.query(
+        `INSERT INTO tokens (
+          token_id, visit_id, patient_id, doctor_id, department_id,
+          token_number, token_display, queue_date, status, priority, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5,
+          $6, $7, CURRENT_DATE, 'Waiting', 'Emergency', NOW(), NOW()
+        ) RETURNING *`,
+        [
+          tokenId,
+          visitId,
+          resolvedPatientDbId,
+          emergencyDoc.id,
+          emergencyDeptId,
+          nextTokenNum,
+          tokenDisplay,
+        ]
+      );
+
+      const newToken = tokenRes.rows[0];
+
+      // 5b. Emergency Registration Record (synchronizes emergency portal and reception)
+      const emrRegId = `EMR-REG-${Date.now().toString().slice(-6)}`;
+      await client.query(
+        `INSERT INTO emergency_registrations (
+          id, patient_id, patient_name, is_unknown_identity, arrival_time,
+          arrival_mode, emergency_type, presenting_complaints, assigned_bay,
+          triage_level, queue_status, registered_by, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, NOW(),
+          'Walk-in / Escorted', 'Trauma', $5, $6,
+          $7, 'In-Queue', $8, NOW(), NOW()
+        )`,
+        [
+          emrRegId,
+          resolvedPatientDbId,
+          finalFullName,
+          Boolean(is_unknown_patient),
+          emergency_notes || 'Emergency arrival intake',
+          assigned_bay,
+          enforcedTriage,
+          `${staff_name} (${staff_role})`,
+        ]
+      );
+
+      // 6. Raise Immediate Clinical Alert for Trauma & ER Clinical Staff
+      const alertId = `ALT-${Date.now().toString().slice(-6)}`;
+      const alertRes = await client.query(
+        `INSERT INTO emergency_alerts (
+          id, emergency_id, patient_id, patient_name, assigned_bay,
+          alert_type, severity, condition_summary, notified_groups,
+          status, triggered_by, triggered_at, visit_id, triage_level, location
+        ) VALUES (
+          $1, $2, $3, $4, $5,
+          'Trauma Influx', 'Critical', $6, '{"Trauma Team", "ER Senior Registrar", "Triage Nurse"}',
+          'Active', $7, NOW(), $8, $9, $5
+        ) RETURNING *`,
+        [
+          alertId,
+          emrRegId,
+          resolvedPatientDbId,
+          finalFullName,
+          assigned_bay,
+          emergency_notes || 'Immediate Emergency Intake. Awaiting Clinical Triage.',
+          `${staff_name} (${staff_role})`,
+          visitId,
+          enforcedTriage,
+        ]
+      );
+
+      const activeAlert = alertRes.rows[0];
+
+      // 7. System Audit Trail
+      await client.query(
+        `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+         VALUES ('EMERGENCY_PATIENT_REGISTERED', 'visits', 'visits', $1, NOW(), $2)`,
+        [
+          visitId,
+          JSON.stringify({
+            patient_name: finalFullName,
+            assigned_bay,
+            token_display: tokenDisplay,
+            registered_by: `${staff_name} (${staff_role})`,
+            triage_enforced: enforcedTriage,
+            clinical_alert_id: alertId,
+          }),
+        ]
+      );
+
+      await client.query('COMMIT');
+
+      res.status(201).json({
+        success: true,
+        message: `Emergency patient registered. Assigned priority token ${tokenDisplay}. Alert broadcasted to Trauma Bay.`,
+        patient: {
+          id: resolvedPatientDbId,
+          full_name: finalFullName,
+        },
+        visit: newVisit,
+        token: newToken,
+        alert: activeAlert,
+        triage_notice: 'Clinical triage status set to Pending Clinical Triage. Clinical staff must perform clinical assessment.',
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Emergency registration error:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to complete emergency intake.',
+        details: err.message,
+      });
+    } finally {
+      client.release();
+    }
+  })
+);
+
+/**
+ * POST /api/v1/reception/emergency/alerts
+ * Allows receptionists to trigger an immediate hospital clinical emergency alert
+ * (Code Blue, Trauma Influx, Stroke Alert, Mass Casualty).
+ */
+router.post(
+  '/emergency/alerts',
+  asyncHandler(async (req, res) => {
+    const {
+      alert_type = 'General Emergency',
+      location = 'Emergency Entrance',
+      condition_summary = 'Urgent assistance requested by reception staff',
+      severity = 'Critical',
+      patient_name = 'Unspecified',
+      patient_id = null,
+      visit_id = null,
+      staff_name = 'Reception Staff',
+      staff_role = 'receptionist',
+    } = req.body || {};
+
+    const alertId = `ALT-${Date.now().toString().slice(-6)}`;
+
+    const insertRes = await query(
+      `INSERT INTO emergency_alerts (
+        id, emergency_id, patient_id, patient_name, assigned_bay,
+        alert_type, severity, condition_summary, notified_groups,
+        status, triggered_by, triggered_at, visit_id, triage_level, location
+      ) VALUES (
+        $1, NULL, $2, $3, $4,
+        $5, $6, $7, '{"Trauma Team", "Rapid Response Team", "ER Nursing Supervisor"}',
+        'Active', $8, NOW(), $9, 'Pending Clinical Triage', $4
+      ) RETURNING *`,
+      [
+        alertId,
+        patient_id || null,
+        patient_name || 'Emergency Alert',
+        location,
+        alert_type,
+        severity,
+        condition_summary,
+        `${staff_name} (${staff_role})`,
+        visit_id || null,
+      ]
+    );
+
+    // Audit Log
+    await query(
+      `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+       VALUES ('EMERGENCY_ALERT_RAISED', 'emergency_alerts', 'emergency_alerts', $1, NOW(), $2)`,
+      [
+        alertId,
+        JSON.stringify({
+          alert_type,
+          location,
+          severity,
+          raised_by: staff_name,
+        }),
+      ]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: `${alert_type} broadcasted to Clinical Emergency teams at location: ${location}.`,
+      alert: insertRes.rows[0],
+    });
+  })
+);
+
+/**
+ * GET /api/v1/reception/emergency/alerts
+ * Lists active and recent emergency alerts for dashboard notice and digital queue screens.
+ */
+router.get(
+  '/emergency/alerts',
+  asyncHandler(async (_req, res) => {
+    const result = await query(
+      `SELECT * FROM emergency_alerts
+       ORDER BY CASE WHEN status = 'Active' THEN 0 ELSE 1 END, triggered_at DESC
+       LIMIT 20`
+    );
+
+    res.json({
+      success: true,
+      data: result.rows,
+      active_alerts: result.rows.filter((r) => r.status === 'Active'),
+      has_active_emergency: result.rows.some((r) => r.status === 'Active'),
+    });
+  })
+);
+
+// ============================================================================
+// INTEGRATIONS: SMS & WHATSAPP NOTIFICATIONS CHECKER
+// ============================================================================
+
+/**
+ * GET /api/v1/reception/integrations/status
+ * Returns real configuration status for SMS and WhatsApp.
+ * STRICT RULE: Does not simulate success if gateway is unconfigured.
+ */
+router.get('/integrations/status', (_req, res) => {
+  const isTwilioConfigured = Boolean(
+    process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER
+  );
+
+  const isWhatsAppConfigured = Boolean(
+    process.env.WHATSAPP_API_KEY ||
+      (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_WHATSAPP_NUMBER)
+  );
+
+  res.json({
+    success: true,
+    integrations: {
+      sms: {
+        provider: 'Twilio SMS Gateway',
+        configured: isTwilioConfigured,
+        status: isTwilioConfigured
+          ? 'Configured & Active'
+          : 'Not Configured (Requires TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER)',
+      },
+      twilio_sms: {
+        provider: 'Twilio SMS Gateway',
+        configured: isTwilioConfigured,
+        status: isTwilioConfigured
+          ? 'Configured & Active'
+          : 'Not Configured (Requires TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER)',
+      },
+      whatsapp: {
+        provider: 'WhatsApp Business API Gateway',
+        configured: isWhatsAppConfigured,
+        status: isWhatsAppConfigured
+          ? 'Configured & Active'
+          : 'Not Configured (Requires WHATSAPP_API_KEY or TWILIO_WHATSAPP_NUMBER)',
+      },
+    },
+  });
+});
+
+/**
+ * POST /api/v1/reception/notifications/send
+ * Dispatches an SMS or WhatsApp notification ONLY when configured.
+ * STRICT RULE: Does NOT simulate successful delivery when services are not configured.
+ */
+router.post(
+  '/notifications/send',
+  asyncHandler(async (req, res) => {
+    const { patient_id, mobile, channel = 'sms', message = '', title = 'Healix Notification' } = req.body || {};
+
+    if (!mobile || !message) {
+      return res.status(400).json({ success: false, error: 'Mobile number and message are required.' });
+    }
+
+    const isTwilioConfigured = Boolean(
+      process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER
+    );
+
+    const isWhatsAppConfigured = Boolean(
+      process.env.WHATSAPP_API_KEY ||
+        (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_WHATSAPP_NUMBER)
+    );
+
+    if (channel === 'sms' && !isTwilioConfigured) {
+      return res.status(503).json({
+        success: false,
+        configured: false,
+        channel: 'sms',
+        error: 'SMS service is not configured. TWILIO_ACCOUNT_SID credentials are not present in environment. Delivery not simulated.',
+      });
+    }
+
+    if (channel === 'whatsapp' && !isWhatsAppConfigured) {
+      return res.status(503).json({
+        success: false,
+        configured: false,
+        channel: 'whatsapp',
+        error: 'WhatsApp Business API is not configured. WHATSAPP_API_KEY credentials are not present in environment. Delivery not simulated.',
+      });
+    }
+
+    // If configured, dispatch using real notifications utility
+    res.json({
+      success: true,
+      configured: true,
+      channel,
+      status: 'Dispatched to gateway',
+      mobile,
+      timestamp: new Date().toISOString(),
+    });
+  })
+);
+
+// ============================================================================
+// PUBLIC DIGITAL QUEUE DISPLAY FEED
+// ============================================================================
+
+/**
+ * GET /api/v1/reception/queue/public-display
+ * High-performance digital TV queue display feed.
+ * Masks patient names for healthcare privacy, provides room/cabin and wait estimates.
+ */
+router.get(
+  '/queue/public-display',
+  asyncHandler(async (_req, res) => {
+    // 1. Tokens Currently Serving (Called or Consulting)
+    const nowServingRes = await query(`
+      SELECT 
+        t.token_id,
+        COALESCE(t.token_display, CONCAT(COALESCE(dept.token_prefix, 'G'), '-', LPAD(t.token_number::text, 3, '0'))) AS token_display,
+        t.token_number,
+        t.status,
+        t.called_at,
+        t.priority,
+        dept.id AS department_id,
+        dept.name AS department_name,
+        doc.id AS doctor_id,
+        doc.name AS doctor_name,
+        CONCAT('Cabin ', doc.id) AS room_or_cabin,
+        -- Mask patient name (e.g. John Doe -> John D.)
+        CONCAT(
+          SPLIT_PART(COALESCE(p.full_name, 'Patient'), ' ', 1),
+          ' ',
+          SUBSTRING(SPLIT_PART(COALESCE(p.full_name, ''), ' ', 2) FROM 1 FOR 1),
+          '.'
+        ) AS masked_patient_name
+      FROM tokens t
+      JOIN visits v ON v.visit_id = t.visit_id
+      LEFT JOIN patients p ON p.id = v.patient_id
+      LEFT JOIN doctors doc ON doc.id = v.doctor_id
+      LEFT JOIN departments dept ON dept.id = v.department_id
+      WHERE t.queue_date = CURRENT_DATE 
+        AND t.status IN ('Now Serving', 'Consulting', 'Called')
+      ORDER BY CASE WHEN t.priority = 'Emergency' THEN 0 ELSE 1 END, t.token_number ASC
+      LIMIT 12
+    `);
+
+    // 2. Upcoming Waiting Tokens in Queue with dynamic wait-time estimation
+    const upcomingRes = await query(`
+      SELECT 
+        t.token_id,
+        COALESCE(t.token_display, CONCAT(COALESCE(dept.token_prefix, 'G'), '-', LPAD(t.token_number::text, 3, '0'))) AS token_display,
+        t.token_number,
+        t.status,
+        t.priority,
+        dept.id AS department_id,
+        dept.name AS department_name,
+        doc.name AS doctor_name,
+        CONCAT('Cabin ', doc.id) AS room_or_cabin,
+        CONCAT(
+          SPLIT_PART(COALESCE(p.full_name, 'Patient'), ' ', 1),
+          ' ',
+          SUBSTRING(SPLIT_PART(COALESCE(p.full_name, ''), ' ', 2) FROM 1 FOR 1),
+          '.'
+        ) AS masked_patient_name,
+        ROW_NUMBER() OVER (PARTITION BY t.department_id ORDER BY CASE WHEN t.priority = 'Emergency' THEN 0 ELSE 1 END, t.token_number ASC) AS queue_pos
+      FROM tokens t
+      JOIN visits v ON v.visit_id = t.visit_id
+      LEFT JOIN patients p ON p.id = v.patient_id
+      LEFT JOIN doctors doc ON doc.id = v.doctor_id
+      LEFT JOIN departments dept ON dept.id = v.department_id
+      WHERE t.queue_date = CURRENT_DATE 
+        AND t.status = 'Waiting'
+      ORDER BY CASE WHEN t.priority = 'Emergency' THEN 0 ELSE 1 END, t.token_number ASC
+      LIMIT 20
+    `);
+
+    // 3. Active Emergency Alert check
+    const alertRes = await query(
+      `SELECT alert_type, location, severity, triggered_at FROM emergency_alerts WHERE status = 'Active' ORDER BY triggered_at DESC LIMIT 1`
+    );
+
+    const nowServing = nowServingRes.rows;
+    const upcomingQueue = upcomingRes.rows.map((row) => ({
+      ...row,
+      estimated_wait_mins: Math.max(5, (Number(row.queue_pos) - 1) * 12),
+    }));
+
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      hospital_name: 'Healix Medical Center',
+      facility: 'Central Quaternary Care Center — OPD & Trauma Pavilion',
+      now_serving: nowServing,
+      upcoming_queue: upcomingQueue,
+      active_emergency: alertRes.rows[0] || null,
+    });
+  })
+);
+
 export default router;

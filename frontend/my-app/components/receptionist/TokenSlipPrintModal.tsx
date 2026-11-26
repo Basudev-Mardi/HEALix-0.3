@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import QRCode from 'qrcode';
 import {
   Printer,
   X,
@@ -65,6 +66,29 @@ export default function TokenSlipPrintModal({
   data,
   onClose,
 }: TokenSlipPrintModalProps) {
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+
+  useEffect(() => {
+    const payload = JSON.stringify({
+      system: 'HEALIX-HMS',
+      token_id: data.token.token_id,
+      token: data.token.token_display,
+      patient_id: data.patient.patient_id,
+      department: data.department.name,
+      doctor: data.doctor.name,
+      cabin: data.doctor.cabin,
+      verify: `https://healix.hospital/verify/token?id=${encodeURIComponent(data.token.token_id)}`,
+    });
+    QRCode.toDataURL(payload, {
+      width: 140,
+      margin: 1,
+      color: { dark: '#174C40', light: '#FAFAF7' },
+      errorCorrectionLevel: 'M',
+    })
+      .then((url) => setQrDataUrl(url))
+      .catch((err) => console.error('Failed to generate token QR', err));
+  }, [data]);
+
   const handlePrint = () => {
     window.print();
   };
@@ -208,8 +232,18 @@ export default function TokenSlipPrintModal({
             </div>
           </div>
 
-          {/* Barcode & Notice */}
-          <div className="pt-3 border-t border-[#E5E8E6] space-y-1 text-center">
+          {/* QR Code & Barcode Notice */}
+          <div className="pt-3 border-t border-[#E5E8E6] space-y-2 text-center">
+            {qrDataUrl && (
+              <div className="flex justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={qrDataUrl}
+                  alt={`QR for ${data.token.token_display}`}
+                  className="w-24 h-24 object-contain rounded-lg border border-[#E5E8E6] bg-white p-1"
+                />
+              </div>
+            )}
             <div className="font-mono text-xs tracking-widest text-[#77817C]">
               *{data.token.token_id.slice(-14)}*
             </div>

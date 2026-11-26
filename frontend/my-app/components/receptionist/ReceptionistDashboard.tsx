@@ -19,6 +19,10 @@ import {
   TrendingUp,
   UserPlus,
   CreditCard,
+  Languages,
+  ExternalLink,
+  ShieldAlert,
+  Tv,
 } from 'lucide-react';
 import { getStaffSession, type StaffUser } from '@/lib/staff-auth';
 import PatientRegistrationForm from './PatientRegistrationForm';
@@ -27,6 +31,104 @@ import PatientProfileModal from './PatientProfileModal';
 import LiveQueueManager from './LiveQueueManager';
 import AppointmentManager from './AppointmentManager';
 import BillingDeskManager from './BillingDeskManager';
+import EmergencyIntakeModal from './EmergencyIntakeModal';
+
+export type DashboardLanguage = 'en' | 'es' | 'hi' | 'fr';
+
+const I18N = {
+  en: {
+    liveFrontDesk: 'Live Front Desk',
+    title: 'Reception Operations & Queue Control',
+    subtitle: 'Real-time patient intake, doctor cabin availability, and live queue status.',
+    autoSync: 'Auto-sync',
+    paused: 'Auto-sync Paused',
+    refresh: 'Refresh',
+    refreshing: 'Refreshing...',
+    emergencyIntake: 'Emergency Intake & Alert',
+    launchTV: 'Digital Queue TV',
+    queueOverview: 'Live Queue & Overview',
+    appointmentsDesk: 'Appointments Desk',
+    billingDesk: 'Billing & Payments',
+    searchDirectory: 'Patient Search & Directory',
+    newRegistration: '+ Register New Patient',
+    activeStation: 'Active Station',
+    databaseStream: 'Database Real-time Stream Online',
+    smsGateway: 'SMS Gateway',
+    whatsappGateway: 'WhatsApp API',
+    unconfigured: 'Unconfigured (Live dispatch blocked per policy)',
+    configured: 'Configured & Online',
+    activeAlertBanner: 'ACTIVE CLINICAL ALERT',
+  },
+  es: {
+    liveFrontDesk: 'Mesa de Recepción en Vivo',
+    title: 'Operaciones de Recepción y Control de Colas',
+    subtitle: 'Admisión de pacientes en tiempo real, disponibilidad de consultorios y estado de la cola.',
+    autoSync: 'Auto-sincronización',
+    paused: 'Sincronización Pausada',
+    refresh: 'Actualizar',
+    refreshing: 'Actualizando...',
+    emergencyIntake: 'Admisión de Emergencia y Alerta',
+    launchTV: 'Pantalla de TV de Colas',
+    queueOverview: 'Cola en Vivo y Resumen',
+    appointmentsDesk: 'Gestión de Citas',
+    billingDesk: 'Facturación y Pagos',
+    searchDirectory: 'Búsqueda de Pacientes',
+    newRegistration: '+ Registrar Nuevo Paciente',
+    activeStation: 'Puesto Activo',
+    databaseStream: 'Transmisión de Base de Datos en Línea',
+    smsGateway: 'Pasarela SMS',
+    whatsappGateway: 'API de WhatsApp',
+    unconfigured: 'No Configurado (Envíos bloqueados por política)',
+    configured: 'Configurado y en Línea',
+    activeAlertBanner: 'ALERTA CLÍNICA ACTIVA',
+  },
+  hi: {
+    liveFrontDesk: 'लाइव फ्रंट डेस्क',
+    title: 'रिसेप्शन संचालन एवं कतार नियंत्रण',
+    subtitle: 'वास्तविक समय में रोगी पंजीकरण, डॉक्टर उपलब्धता और कतार की स्थिति।',
+    autoSync: 'स्वतः सिंक',
+    paused: 'सिंक रोक दिया गया',
+    refresh: 'रिफ्रेश करें',
+    refreshing: 'लोड हो रहा है...',
+    emergencyIntake: 'आपातकालीन प्रवेश एवं अलर्ट',
+    launchTV: 'डिजिटल कतार टीवी स्क्रीन',
+    queueOverview: 'लाइव कतार एवं विवरण',
+    appointmentsDesk: 'अपॉइंटमेंट डेस्क',
+    billingDesk: 'बिलिंग एवं भुगतान',
+    searchDirectory: 'मरीज़ खोजें',
+    newRegistration: '+ नया मरीज़ पंजीकृत करें',
+    activeStation: 'सक्रिय डेस्क',
+    databaseStream: 'डेटाबेस रियल-टाइम स्ट्रीम ऑनलाइन',
+    smsGateway: 'एसएमएस गेटवे',
+    whatsappGateway: 'व्हाट्सएप एपीआई',
+    unconfigured: 'असंबद्ध (डिलीवरी नीति अनुसार रोकी गई)',
+    configured: 'सक्रिय एवं कनेक्टेड',
+    activeAlertBanner: 'सक्रिय आपातकालीन अलर्ट',
+  },
+  fr: {
+    liveFrontDesk: 'Accueil en Direct',
+    title: 'Opérations de Réception & Contrôle de File',
+    subtitle: 'Enregistrement en temps réel, disponibilité des cabinets et suivi de file.',
+    autoSync: 'Auto-sync',
+    paused: 'Auto-sync en pause',
+    refresh: 'Actualiser',
+    refreshing: 'Actualisation...',
+    emergencyIntake: 'Admission Urgences & Alerte',
+    launchTV: 'Écran TV d’Attente',
+    queueOverview: 'File d’Attente en Direct',
+    appointmentsDesk: 'Gestion des Rendez-vous',
+    billingDesk: 'Facturation & Paiements',
+    searchDirectory: 'Recherche de Patients',
+    newRegistration: '+ Nouveau Patient',
+    activeStation: 'Poste Actif',
+    databaseStream: 'Flux de Données en Direct Connecté',
+    smsGateway: 'Passerelle SMS',
+    whatsappGateway: 'API WhatsApp',
+    unconfigured: 'Non configuré (Envois bloqués selon la politique)',
+    configured: 'Configuré et en ligne',
+    activeAlertBanner: 'ALERTE CLINIQUE ACTIVE',
+  },
+};
 
 interface DashboardStats {
   patientsRegisteredToday: number;
@@ -116,6 +218,25 @@ export default function ReceptionistDashboard() {
   const [activeView, setActiveView] = useState<'queue' | 'appointments' | 'billing' | 'search' | 'registration'>('queue');
   const [selectedQueuePatientId, setSelectedQueuePatientId] = useState<string | null>(null);
 
+  // Multilingual State
+  const [currentLang, setCurrentLang] = useState<DashboardLanguage>('en');
+  const t = I18N[currentLang];
+
+  // Emergency Intake Modal & Live Alert state
+  const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false);
+  const [activeAlert, setActiveAlert] = useState<{
+    alert_type: string;
+    location: string;
+    severity: string;
+    triggered_at: string;
+  } | null>(null);
+
+  // Integrations state (SMS / WhatsApp)
+  const [integrationsStatus, setIntegrationsStatus] = useState<{
+    twilio_sms: { configured: boolean; message: string };
+    whatsapp: { configured: boolean; message: string };
+  } | null>(null);
+
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedDeptFilter, setSelectedDeptFilter] = useState<string>('all');
@@ -175,6 +296,38 @@ export default function ReceptionistDashboard() {
         setData(json);
       } else {
         throw new Error('Unexpected response format from reception API');
+      }
+
+      // Concurrently fetch active emergency alerts
+      try {
+        let alertRes = await fetch('/api/v1/reception/emergency/alerts');
+        if (!alertRes.ok) {
+          alertRes = await fetch('http://localhost:5000/api/v1/reception/emergency/alerts');
+        }
+        if (alertRes.ok) {
+          const alertJson = await alertRes.json();
+          if (alertJson.has_active_emergency && alertJson.active_alerts?.length > 0) {
+            setActiveAlert(alertJson.active_alerts[0]);
+          } else {
+            setActiveAlert(null);
+          }
+        }
+      } catch {
+        // Silently skip if alerts table non-critical
+      }
+
+      // Concurrently fetch integrations configuration status
+      try {
+        let intRes = await fetch('/api/v1/reception/integrations/status');
+        if (!intRes.ok) {
+          intRes = await fetch('http://localhost:5000/api/v1/reception/integrations/status');
+        }
+        if (intRes.ok) {
+          const intJson = await intRes.json();
+          setIntegrationsStatus(intJson.integrations);
+        }
+      } catch {
+        // Non-blocking
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to connect to Reception API';
@@ -244,6 +397,31 @@ export default function ReceptionistDashboard() {
   return (
     <div className="w-full space-y-8">
       {/* ========================================================
+          ACTIVE EMERGENCY ALERT BANNER (CRITICAL)
+      ======================================================== */}
+      {activeAlert && (
+        <div className="rounded-2xl border-2 border-red-500 bg-red-600 text-white p-4 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-pulse">
+          <div className="flex items-center gap-3">
+            <Siren className="h-6 w-6 text-white shrink-0 animate-bounce" />
+            <div>
+              <div className="text-xs font-mono uppercase tracking-widest font-bold">
+                {t.activeAlertBanner}: {activeAlert.alert_type}
+              </div>
+              <div className="text-sm font-semibold">
+                Location: {activeAlert.location} • Severity: {activeAlert.severity}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowEmergencyModal(true)}
+            className="px-4 py-1.5 rounded-xl bg-white text-red-700 font-bold text-xs shadow-xs hover:bg-red-50 transition-colors cursor-pointer self-start sm:self-auto"
+          >
+            Manage / Respond to Alert
+          </button>
+        </div>
+      )}
+
+      {/* ========================================================
           1. RECEPTION HEADER & OPERATIONS CONTROL BAR
       ======================================================== */}
       <div className="rounded-3xl border border-[#E5E8E6] bg-white p-6 sm:p-8 shadow-xs">
@@ -253,22 +431,61 @@ export default function ReceptionistDashboard() {
             <div className="flex items-center gap-2.5">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-semibold tracking-wider uppercase bg-[#174C40]/10 text-[#174C40] border border-[#174C40]/20">
                 <Radio className="h-3 w-3 text-emerald-600 animate-pulse" />
-                Live Front Desk
+                {t.liveFrontDesk}
               </span>
               <span className="text-xs font-mono text-[#77817C] hidden sm:inline">
                 Central OPD &amp; Emergency Reception
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-serif text-[#1F2421] tracking-tight">
-              Reception Operations &amp; Queue Control
+              {t.title}
             </h1>
             <p className="text-sm text-[#4A5350]">
-              Real-time patient intake, doctor cabin availability, and live queue status.
+              {t.subtitle}
             </p>
           </div>
 
           {/* Live Controls & Telemetry */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Multilingual Selector */}
+            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-2xl bg-[#FAFAF7] border border-[#E5E8E6] text-xs font-medium text-[#1F2421]">
+              <Languages className="h-3.5 w-3.5 text-[#174C40]" />
+              <select
+                value={currentLang}
+                onChange={(e) => setCurrentLang(e.target.value as DashboardLanguage)}
+                className="bg-transparent border-none text-xs font-medium text-[#1F2421] focus:outline-hidden cursor-pointer"
+                title="Select interface language"
+              >
+                <option value="en">English (US)</option>
+                <option value="es">Español (ES)</option>
+                <option value="hi">हिन्दी (IN)</option>
+                <option value="fr">Français (FR)</option>
+              </select>
+            </div>
+
+            {/* Launch Digital Queue Display TV Screen */}
+            <a
+              href="/display/opd-queue"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#FAFAF7] hover:bg-[#F0F2F0] border border-[#E5E8E6] text-xs font-semibold text-[#174C40] shadow-2xs transition-colors cursor-pointer"
+              title="Open the high-contrast TV Queue Display in a separate tab or screen"
+            >
+              <Tv className="h-3.5 w-3.5 text-[#174C40]" />
+              <span>{t.launchTV}</span>
+              <ExternalLink className="h-3 w-3 opacity-60" />
+            </a>
+
+            {/* Emergency Intake Button (High-Visibility Priority) */}
+            <button
+              onClick={() => setShowEmergencyModal(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              title="Quickly admit trauma arrival or broadcast hospital emergency code"
+            >
+              <Siren className="h-3.5 w-3.5 animate-bounce" />
+              <span>{t.emergencyIntake}</span>
+            </button>
+
             {/* Live Clock */}
             <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#FAFAF7] border border-[#E5E8E6] text-xs font-mono text-[#1F2421]">
               <Clock className="h-3.5 w-3.5 text-[#174C40]" />
@@ -291,7 +508,7 @@ export default function ReceptionistDashboard() {
                 }`}
               />
               <span>
-                {autoRefreshEnabled ? `Auto-sync: ${countdown}s` : 'Auto-sync Paused'}
+                {autoRefreshEnabled ? `${t.autoSync}: ${countdown}s` : t.paused}
               </span>
             </button>
 
@@ -302,28 +519,64 @@ export default function ReceptionistDashboard() {
               className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#174C40] hover:bg-[#123B32] text-white text-xs font-medium shadow-xs transition-colors disabled:opacity-60 cursor-pointer"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-              <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+              <span>{refreshing ? t.refreshing : t.refresh}</span>
             </button>
           </div>
         </div>
 
-        {/* Staff Identity Strip */}
-        {session && (
-          <div className="mt-5 pt-4 border-t border-[#F0F2F0] flex flex-wrap items-center justify-between gap-3 text-xs text-[#77817C]">
-            <div className="flex items-center gap-3">
-              <span className="font-medium text-[#1F2421]">Active Station:</span>
-              <span className="px-2.5 py-0.5 rounded-md bg-[#FAFAF7] border border-[#E5E8E6] text-[#174C40] font-mono font-medium">
-                {session.name} ({session.staffId})
-              </span>
-              <span className="hidden sm:inline">•</span>
-              <span className="hidden sm:inline">{session.department}</span>
-            </div>
-            <div className="flex items-center gap-2 text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+        {/* Staff Identity & Telemetry Strip */}
+        <div className="mt-5 pt-4 border-t border-[#F0F2F0] flex flex-wrap items-center justify-between gap-3 text-xs text-[#77817C]">
+          <div className="flex items-center gap-3">
+            {session && (
+              <>
+                <span className="font-medium text-[#1F2421]">{t.activeStation}:</span>
+                <span className="px-2.5 py-0.5 rounded-md bg-[#FAFAF7] border border-[#E5E8E6] text-[#174C40] font-mono font-medium">
+                  {session.name} ({session.staffId})
+                </span>
+                <span className="hidden sm:inline">•</span>
+                <span className="hidden sm:inline">{session.department}</span>
+              </>
+            )}
+          </div>
+
+          {/* Real Integrations Gateways Status Bar */}
+          <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono">
+            <span
+              className={`px-2.5 py-0.5 rounded-full border ${
+                integrationsStatus?.twilio_sms?.configured
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-zinc-100 text-zinc-600 border-zinc-200'
+              }`}
+              title={
+                integrationsStatus?.twilio_sms?.configured
+                  ? 'Twilio SMS service active'
+                  : 'Twilio SMS gateway not configured (delivery not simulated)'
+              }
+            >
+              SMS: {integrationsStatus?.twilio_sms?.configured ? 'Active' : 'Unconfigured'}
+            </span>
+
+            <span
+              className={`px-2.5 py-0.5 rounded-full border ${
+                integrationsStatus?.whatsapp?.configured
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-zinc-100 text-zinc-600 border-zinc-200'
+              }`}
+              title={
+                integrationsStatus?.whatsapp?.configured
+                  ? 'WhatsApp Business API active'
+                  : 'WhatsApp API not configured (delivery not simulated)'
+              }
+            >
+              WhatsApp: {integrationsStatus?.whatsapp?.configured ? 'Active' : 'Unconfigured'}
+            </span>
+
+            <div className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Database Real-time Stream Online
+              <span>{t.databaseStream}</span>
             </div>
           </div>
-        )}
+        </div>
 
         {/* View Selection Tabs */}
         <div className="mt-6 pt-4 border-t border-[#F0F2F0] flex flex-wrap items-center justify-between gap-3">
@@ -337,7 +590,7 @@ export default function ReceptionistDashboard() {
               }`}
             >
               <Activity className="h-3.5 w-3.5" />
-              <span>Live Queue &amp; Overview</span>
+              <span>{t.queueOverview}</span>
             </button>
 
             <button
@@ -349,7 +602,7 @@ export default function ReceptionistDashboard() {
               }`}
             >
               <CalendarCheck className="h-3.5 w-3.5" />
-              <span>Appointments Desk</span>
+              <span>{t.appointmentsDesk}</span>
               {data?.stats?.upcomingAppointments !== undefined && (
                 <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-full bg-[#174C40]/10 text-[#174C40]">
                   {data.stats.upcomingAppointments}
@@ -366,7 +619,7 @@ export default function ReceptionistDashboard() {
               }`}
             >
               <CreditCard className="h-3.5 w-3.5" />
-              <span>Billing &amp; Payments</span>
+              <span>{t.billingDesk}</span>
             </button>
 
             <button
@@ -378,7 +631,7 @@ export default function ReceptionistDashboard() {
               }`}
             >
               <Search className="h-3.5 w-3.5" />
-              <span>Patient Search &amp; Returning Directory</span>
+              <span>{t.searchDirectory}</span>
             </button>
 
             <button
@@ -390,7 +643,7 @@ export default function ReceptionistDashboard() {
               }`}
             >
               <UserPlus className="h-3.5 w-3.5" />
-              <span>+ Register New Patient</span>
+              <span>{t.newRegistration}</span>
             </button>
           </div>
 
@@ -401,7 +654,7 @@ export default function ReceptionistDashboard() {
                 className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#E5E8E6] bg-white hover:bg-[#FAFAF7] text-[#1F2421] text-xs font-medium shadow-2xs transition-colors cursor-pointer"
               >
                 <CalendarCheck className="h-3.5 w-3.5 text-[#174C40]" />
-                <span>Appointments</span>
+                <span>{t.appointmentsDesk}</span>
               </button>
             )}
 
@@ -411,7 +664,7 @@ export default function ReceptionistDashboard() {
                 className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#E5E8E6] bg-white hover:bg-[#FAFAF7] text-[#1F2421] text-xs font-medium shadow-2xs transition-colors cursor-pointer"
               >
                 <Search className="h-3.5 w-3.5 text-[#174C40]" />
-                <span>Search Patient</span>
+                <span>{t.searchDirectory}</span>
               </button>
             )}
 
@@ -421,7 +674,7 @@ export default function ReceptionistDashboard() {
                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#174C40] hover:bg-[#123B32] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               >
                 <UserPlus className="h-3.5 w-3.5" />
-                <span>New Registration</span>
+                <span>{t.newRegistration}</span>
               </button>
             )}
           </div>
@@ -456,6 +709,16 @@ export default function ReceptionistDashboard() {
         <PatientProfileModal
           patientId={selectedQueuePatientId}
           onClose={() => setSelectedQueuePatientId(null)}
+        />
+      )}
+
+      {/* Emergency Department Intake & Alert Modal */}
+      {showEmergencyModal && (
+        <EmergencyIntakeModal
+          onClose={() => setShowEmergencyModal(false)}
+          onSuccess={() => {
+            fetchDashboardData(true);
+          }}
         />
       )}
     </div>

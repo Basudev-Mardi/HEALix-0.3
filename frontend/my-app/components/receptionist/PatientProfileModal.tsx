@@ -26,8 +26,12 @@ import {
   Receipt,
   Check,
   AlertTriangle,
+  QrCode,
+  MessageSquare,
+  Send,
 } from 'lucide-react';
 import { getStaffSession } from '@/lib/staff-auth';
+import PatientQRCodeModal from './PatientQRCodeModal';
 
 interface PatientVisit {
   visit_id: string;
@@ -145,6 +149,58 @@ export default function PatientProfileModal({
   const [editEmergency, setEditEmergency] = useState<string>('');
   const [savingEdit, setSavingEdit] = useState<boolean>(false);
   const [updateFeedback, setUpdateFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [showQRModal, setShowQRModal] = useState<boolean>(false);
+  const [notificationFeedback, setNotificationFeedback] = useState<{ status: 'sent' | 'unconfigured' | 'error'; message: string } | null>(null);
+  const [sendingNotification, setSendingNotification] = useState<boolean>(false);
+
+  const dispatchNotification = async (channel: 'sms' | 'whatsapp') => {
+    if (!patient) return;
+    setSendingNotification(true);
+    setNotificationFeedback(null);
+    try {
+      const payload = {
+        channel,
+        patient_id: patient.patient_id,
+        mobile: patient.mobile,
+        message: `Hello ${patient.full_name}, your Healix medical record (${patient.patient_id}) has been updated. Please check in at OPD reception.`,
+      };
+      let res: Response;
+      try {
+        res = await fetch('/api/v1/reception/notifications/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } catch {
+        res = await fetch('http://localhost:5000/api/v1/reception/notifications/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+      const json = await res.json();
+      if (res.status === 503 || !json.configured) {
+        setNotificationFeedback({
+          status: 'unconfigured',
+          message: `${channel.toUpperCase()} Gateway Unconfigured: Delivery blocked per policy (no fake simulations).`,
+        });
+      } else if (!res.ok) {
+        throw new Error(json.error || `HTTP ${res.status}`);
+      } else {
+        setNotificationFeedback({
+          status: 'sent',
+          message: `${channel.toUpperCase()} successfully dispatched to gateway.`,
+        });
+      }
+    } catch (err: unknown) {
+      setNotificationFeedback({
+        status: 'error',
+        message: err instanceof Error ? err.message : 'Notification dispatch failed',
+      });
+    } finally {
+      setSendingNotification(false);
+    }
+  };
 
   const loadProfile = async () => {
     setLoading(true);
@@ -300,8 +356,40 @@ export default function PatientProfileModal({
                 </div>
               </div>
 
-              {/* Action Buttons: Edit Demographics & Create Visit */}
-              <div className="flex items-center gap-2 self-start sm:self-auto">
+              {/* Action Buttons: QR, Notifications, Edit Demographics & Create Visit */}
+              <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setShowQRModal(true)}
+                  className="px-3.5 py-2 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-[#174C40] text-xs font-semibold shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                  title="Generate & print digital QR identification card"
+                >
+                  <QrCode className="h-3.5 w-3.5" />
+                  <span>QR ID Card</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={sendingNotification}
+                  onClick={() => dispatchNotification('sms')}
+                  className="px-3 py-2 rounded-xl border border-[#E5E8E6] bg-white hover:bg-[#FAFAF7] text-[#1F2421] text-xs font-medium shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  title="Send SMS notification (checked against configured gateway)"
+                >
+                  <MessageSquare className="h-3.5 w-3.5 text-blue-600" />
+                  <span>SMS</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={sendingNotification}
+                  onClick={() => dispatchNotification('whatsapp')}
+                  className="px-3 py-2 rounded-xl border border-[#E5E8E6] bg-white hover:bg-[#FAFAF7] text-[#1F2421] text-xs font-medium shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  title="Send WhatsApp appointment reminder (checked against configured gateway)"
+                >
+                  <Send className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>WhatsApp</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => {
@@ -326,6 +414,26 @@ export default function PatientProfileModal({
                 )}
               </div>
             </div>
+
+            {/* Notification Dispatch Feedback */}
+            {notificationFeedback && (
+              <div
+                className={`p-3 rounded-2xl flex items-center gap-2 text-xs font-medium ${
+                  notificationFeedback.status === 'sent'
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                    : notificationFeedback.status === 'unconfigured'
+                    ? 'bg-amber-50 text-amber-900 border border-amber-300'
+                    : 'bg-rose-50 text-rose-800 border border-rose-200'
+                }`}
+              >
+                {notificationFeedback.status === 'sent' ? (
+                  <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                )}
+                <span>{notificationFeedback.message}</span>
+              </div>
+            )}
 
             {/* Feedback alert */}
             {updateFeedback && (
@@ -832,6 +940,14 @@ export default function PatientProfileModal({
             </div>
           </>
         ) : null}
+
+        {/* Universal Patient QR Identifier Modal */}
+        {showQRModal && patient && (
+          <PatientQRCodeModal
+            patient={patient}
+            onClose={() => setShowQRModal(false)}
+          />
+        )}
       </div>
     </div>
   );
