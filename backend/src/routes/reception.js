@@ -37,7 +37,7 @@ async function ensureTodayQueueSeeded() {
       {
         tokenNumber: 101,
         docIdx: 0,
-        status: 'In-Consultation',
+        status: 'Consulting',
         visitType: 'OPD Consultation',
         patIdx: 0,
         fee: 150.0,
@@ -45,7 +45,7 @@ async function ensureTodayQueueSeeded() {
       {
         tokenNumber: 102,
         docIdx: 1 % docMap.length,
-        status: 'In-Consultation',
+        status: 'Consulting',
         visitType: 'Follow-up',
         patIdx: 1 % patList.length,
         fee: 100.0,
@@ -53,7 +53,7 @@ async function ensureTodayQueueSeeded() {
       {
         tokenNumber: 103,
         docIdx: 2 % docMap.length,
-        status: 'Called',
+        status: 'Now Serving',
         visitType: 'Specialist',
         patIdx: 2 % patList.length,
         fee: 200.0,
@@ -100,6 +100,8 @@ async function ensureTodayQueueSeeded() {
       const visitId = `VST-${Date.now().toString().slice(-6)}-${item.tokenNumber}`;
       const tokenId = `TKN-${Date.now().toString().slice(-6)}-${item.tokenNumber}`;
       const paymentId = `PAY-${Date.now().toString().slice(-6)}-${item.tokenNumber}`;
+      const tokenPrefix = deptId === 1 ? 'C' : deptId === 2 ? 'N' : deptId === 3 ? 'O' : deptId === 4 ? 'ON' : deptId === 5 ? 'P' : 'G';
+      const tokenDisplay = `${tokenPrefix}-${item.tokenNumber}`;
 
       await query('BEGIN');
       try {
@@ -113,15 +115,21 @@ async function ensureTodayQueueSeeded() {
             deptId,
             doc.id,
             item.visitType,
-            item.status === 'Completed' ? 'Completed' : 'In-Queue',
+            item.status === 'Completed' ? 'Completed' : item.status === 'Now Serving' ? 'Now Serving' : item.status === 'Consulting' ? 'Consulting' : 'In-Queue',
           ]
         );
 
         await query(
-          `INSERT INTO tokens (token_id, visit_id, doctor_id, department_id, token_number, queue_date, status)
-           VALUES ($1, $2, $3, $4, $5, CURRENT_DATE, $6)
-           ON CONFLICT (doctor_id, queue_date, token_number) DO UPDATE SET status = EXCLUDED.status`,
-          [tokenId, visitId, doc.id, deptId, item.tokenNumber, item.status]
+          `INSERT INTO tokens (token_id, visit_id, patient_id, doctor_id, department_id, token_number, token_display, queue_date, status, called_at, consultation_start_at, consultation_end_at)
+           VALUES (
+             $1, $2, $3, $4, $5, $6, $7, CURRENT_DATE, $8,
+             CASE WHEN $8 = 'Now Serving' THEN NOW() WHEN $8 = 'Consulting' THEN NOW() - INTERVAL '15 minutes' WHEN $8 = 'Completed' THEN NOW() - INTERVAL '35 minutes' ELSE NULL END,
+             CASE WHEN $8 = 'Consulting' THEN NOW() - INTERVAL '10 minutes' WHEN $8 = 'Completed' THEN NOW() - INTERVAL '30 minutes' ELSE NULL END,
+             CASE WHEN $8 = 'Completed' THEN NOW() - INTERVAL '10 minutes' ELSE NULL END
+           )
+           ON CONFLICT (doctor_id, queue_date, token_number) DO UPDATE 
+           SET status = EXCLUDED.status, token_display = EXCLUDED.token_display, patient_id = EXCLUDED.patient_id`,
+          [tokenId, visitId, patient.id, doc.id, deptId, item.tokenNumber, tokenDisplay, item.status]
         );
 
         await query(
@@ -163,9 +171,9 @@ router.get(
         (SELECT COUNT(*)::int FROM tokens 
          WHERE queue_date = CURRENT_DATE AND status = 'Waiting') AS currently_waiting,
 
-        -- 3. Patients currently consulting (In-Consultation or Called)
+        -- 3. Patients currently consulting (Now Serving or Consulting or legacy Called/In-Consultation)
         (SELECT COUNT(*)::int FROM tokens 
-         WHERE queue_date = CURRENT_DATE AND status IN ('In-Consultation', 'Called')) AS currently_consulting,
+         WHERE queue_date = CURRENT_DATE AND status IN ('Now Serving', 'Consulting', 'In-Consultation', 'Called')) AS currently_consulting,
 
         -- 4. Completed consultations
         (SELECT COUNT(*)::int FROM tokens 
@@ -222,8 +230,8 @@ router.get(
         LEFT JOIN doctors doc ON doc.id = t.doctor_id
         WHERE t.department_id = d.id 
           AND t.queue_date = CURRENT_DATE 
-          AND t.status IN ('In-Consultation', 'Called')
-        ORDER BY t.token_number ASC
+          AND t.status IN ('Now Serving', 'Consulting', 'In-Consultation', 'Called')
+        ORDER BY CASE WHEN t.status = 'Now Serving' THEN 0 ELSE 1 END, t.token_number ASC
         LIMIT 1
       ) serving ON true
       WHERE d.status = 'active' OR d.status IS NULL
@@ -234,9 +242,12 @@ router.get(
     const activeServingQuery = await query(`
       SELECT 
         t.token_id,
+        COALESCE(t.token_display, CONCAT(COALESCE(dept.token_prefix, 'G'), '-', LPAD(t.token_number::text, 3, '0'))) AS token_display,
         t.token_number,
         t.status,
         t.queue_date,
+        t.called_at,
+        t.consultation_start_at,
         t.created_at,
         v.visit_id,
         v.visit_type,
@@ -257,7 +268,7 @@ router.get(
       LEFT JOIN doctors doc ON doc.id = t.doctor_id
       LEFT JOIN departments dept ON dept.id = t.department_id
       WHERE t.queue_date = CURRENT_DATE 
-        AND t.status IN ('In-Consultation', 'Called')
+        AND t.status IN ('Now Serving', 'Consulting', 'In-Consultation', 'Called')
       ORDER BY t.token_number ASC
     `);
 
@@ -1233,6 +1244,611 @@ router.post(
     } finally {
       client.release();
     }
+  })
+);
+
+/**
+ * ============================================================================
+ * LIVE OPD QUEUE MANAGEMENT ENDPOINTS
+ * ============================================================================
+ */
+
+/**
+ * GET /api/v1/reception/queue/live
+ * Fetches the synchronized, live OPD queue for today with waiting positions,
+ * timing metrics, currently serving tokens, and active cabin assignments.
+ */
+router.get(
+  '/queue/live',
+  asyncHandler(async (req, res) => {
+    await ensureTodayQueueSeeded();
+
+    const {
+      department_id,
+      doctor_id,
+      status = 'all',
+      search = '',
+    } = req.query || {};
+
+    const deptId = department_id && department_id !== 'all' ? Number(department_id) : null;
+    const docId = doctor_id && doctor_id !== 'all' ? Number(doctor_id) : null;
+    const filterStatus = status && status !== 'all' ? status.trim() : null;
+    const searchFilter = search ? `%${search.trim().toLowerCase()}%` : null;
+
+    // 1. Calculate Average Consultation Time Today
+    const avgDurationQuery = await query(`
+      SELECT 
+        COALESCE(
+          ROUND(AVG(EXTRACT(EPOCH FROM (consultation_end_at - consultation_start_at)) / 60)::numeric, 1),
+          12.0
+        ) AS avg_duration_mins,
+        COUNT(consultation_end_at)::int AS completed_with_timing_count
+      FROM tokens
+      WHERE queue_date = CURRENT_DATE 
+        AND status = 'Completed'
+        AND consultation_start_at IS NOT NULL 
+        AND consultation_end_at IS NOT NULL
+        AND consultation_end_at > consultation_start_at
+    `);
+    const avgConsultationMins = Number(avgDurationQuery.rows[0]?.avg_duration_mins) || 12.0;
+
+    // 2. Aggregate Queue Statistics for Today
+    const statsQuery = await query(`
+      SELECT
+        COUNT(*)::int AS total_today,
+        COUNT(*) FILTER (WHERE status = 'Waiting')::int AS waiting_count,
+        COUNT(*) FILTER (WHERE status = 'Now Serving' OR status = 'Called')::int AS now_serving_count,
+        COUNT(*) FILTER (WHERE status = 'Consulting' OR status = 'In-Consultation')::int AS consulting_count,
+        COUNT(*) FILTER (WHERE status = 'Completed')::int AS completed_count,
+        COUNT(*) FILTER (WHERE status = 'Cancelled')::int AS cancelled_count,
+        COUNT(*) FILTER (WHERE status = 'Waiting' AND priority = 'Emergency')::int AS emergency_waiting_count
+      FROM tokens
+      WHERE queue_date = CURRENT_DATE
+        AND ($1::int IS NULL OR department_id = $1)
+        AND ($2::int IS NULL OR doctor_id = $2)
+    `, [deptId, docId]);
+
+    const stats = statsQuery.rows[0] || {};
+
+    // 3. Currently Serving Tokens (Prominent cabin tokens in Now Serving or Consulting)
+    const servingQuery = await query(`
+      SELECT 
+        t.token_id,
+        COALESCE(t.token_display, CONCAT(COALESCE(dept.token_prefix, 'G'), '-', LPAD(t.token_number::text, 3, '0'))) AS token_display,
+        t.token_number,
+        CASE WHEN t.status = 'Called' THEN 'Now Serving' WHEN t.status = 'In-Consultation' THEN 'Consulting' ELSE t.status END AS status,
+        t.priority,
+        t.called_at,
+        t.consultation_start_at,
+        t.queue_date,
+        v.visit_id,
+        v.visit_type,
+        v.reason,
+        p.id AS patient_id,
+        COALESCE(p.patient_id, p.id) AS patient_code,
+        COALESCE(p.full_name, CONCAT(p.first_name, ' ', p.last_name), 'Patient') AS patient_name,
+        p.mobile,
+        p.gender,
+        p.dob,
+        p.blood_group,
+        p.allergies,
+        doc.id AS doctor_id,
+        doc.name AS doctor_name,
+        CONCAT('Cabin ', doc.id) AS doctor_cabin,
+        doc.specialty,
+        dept.id AS department_id,
+        dept.name AS department_name,
+        COALESCE(dept.token_prefix, 'G') AS token_prefix,
+        ROUND(EXTRACT(EPOCH FROM (NOW() - COALESCE(t.consultation_start_at, t.called_at, t.created_at)))::numeric) AS elapsed_seconds
+      FROM tokens t
+      JOIN visits v ON v.visit_id = t.visit_id
+      JOIN patients p ON p.id = v.patient_id
+      LEFT JOIN doctors doc ON doc.id = t.doctor_id
+      LEFT JOIN departments dept ON dept.id = t.department_id
+      WHERE t.queue_date = CURRENT_DATE
+        AND t.status IN ('Now Serving', 'Consulting', 'Called', 'In-Consultation')
+        AND ($1::int IS NULL OR t.department_id = $1)
+        AND ($2::int IS NULL OR t.doctor_id = $2)
+      ORDER BY 
+        CASE WHEN t.status IN ('Now Serving', 'Called') THEN 0 ELSE 1 END,
+        t.token_number ASC
+    `, [deptId, docId]);
+
+    // 4. Main Today OPD Queue (Ordered with real-time queue position for waiting patients)
+    const queueQuery = await query(`
+      WITH waiting_ranked AS (
+        SELECT 
+          token_id,
+          ROW_NUMBER() OVER (
+            PARTITION BY department_id
+            ORDER BY 
+              CASE WHEN priority = 'Emergency' THEN 0 ELSE 1 END,
+              token_number ASC
+          ) AS dept_queue_position,
+          ROW_NUMBER() OVER (
+            PARTITION BY doctor_id
+            ORDER BY 
+              CASE WHEN priority = 'Emergency' THEN 0 ELSE 1 END,
+              token_number ASC
+          ) AS doc_queue_position
+        FROM tokens
+        WHERE queue_date = CURRENT_DATE AND status = 'Waiting'
+      )
+      SELECT 
+        t.token_id,
+        COALESCE(t.token_display, CONCAT(COALESCE(dept.token_prefix, 'G'), '-', LPAD(t.token_number::text, 3, '0'))) AS token_display,
+        t.token_number,
+        CASE 
+          WHEN t.status = 'Called' THEN 'Now Serving' 
+          WHEN t.status = 'In-Consultation' THEN 'Consulting' 
+          ELSE t.status 
+        END AS status,
+        COALESCE(t.priority, 'Standard') AS priority,
+        t.called_at,
+        t.consultation_start_at,
+        t.consultation_end_at,
+        t.cancellation_reason,
+        t.queue_date,
+        t.created_at,
+        t.updated_at,
+        v.visit_id,
+        v.visit_type,
+        v.reason,
+        p.id AS patient_id,
+        COALESCE(p.patient_id, p.id) AS patient_code,
+        COALESCE(p.full_name, CONCAT(p.first_name, ' ', p.last_name), 'Patient') AS patient_name,
+        p.mobile,
+        p.gender,
+        p.dob,
+        p.blood_group,
+        p.allergies,
+        doc.id AS doctor_id,
+        doc.name AS doctor_name,
+        CONCAT('Cabin ', doc.id) AS doctor_cabin,
+        doc.specialty,
+        dept.id AS department_id,
+        dept.name AS department_name,
+        COALESCE(dept.token_prefix, 'G') AS token_prefix,
+        wr.dept_queue_position AS queue_position,
+        wr.doc_queue_position
+      FROM tokens t
+      JOIN visits v ON v.visit_id = t.visit_id
+      JOIN patients p ON p.id = v.patient_id
+      LEFT JOIN doctors doc ON doc.id = t.doctor_id
+      LEFT JOIN departments dept ON dept.id = t.department_id
+      LEFT JOIN waiting_ranked wr ON wr.token_id = t.token_id
+      WHERE t.queue_date = CURRENT_DATE
+        AND ($1::int IS NULL OR t.department_id = $1)
+        AND ($2::int IS NULL OR t.doctor_id = $2)
+        AND (
+          $3::text IS NULL 
+          OR ($3::text = 'Now Serving' AND t.status IN ('Now Serving', 'Called'))
+          OR ($3::text = 'Consulting' AND t.status IN ('Consulting', 'In-Consultation'))
+          OR t.status = $3
+        )
+        AND (
+          $4::text IS NULL
+          OR LOWER(COALESCE(p.full_name, '')) LIKE $4
+          OR LOWER(COALESCE(t.token_display, '')) LIKE $4
+          OR LOWER(COALESCE(p.patient_id, p.id)) LIKE $4
+          OR LOWER(COALESCE(doc.name, '')) LIKE $4
+        )
+      ORDER BY 
+        CASE 
+          WHEN t.status IN ('Now Serving', 'Called') THEN 1
+          WHEN t.status IN ('Consulting', 'In-Consultation') THEN 2
+          WHEN t.status = 'Waiting' AND t.priority = 'Emergency' THEN 3
+          WHEN t.status = 'Waiting' THEN 4
+          WHEN t.status = 'Completed' THEN 5
+          WHEN t.status = 'Cancelled' THEN 6
+          ELSE 7
+        END,
+        t.token_number ASC
+    `, [deptId, docId, filterStatus, searchFilter]);
+
+    // Attach estimated wait times for waiting patients
+    const formattedQueue = queueQuery.rows.map((row) => {
+      const pos = row.queue_position ? Number(row.queue_position) : null;
+      const estimatedMins = pos ? Math.round(pos * avgConsultationMins) : null;
+      return {
+        ...row,
+        queue_position: pos,
+        estimated_wait_mins: estimatedMins,
+        age: row.dob ? calculateAgeFromDob(row.dob) : null,
+      };
+    });
+
+    // 5. Department Queue Status Summary
+    const deptSummaryQuery = await query(`
+      SELECT 
+        d.id AS department_id,
+        d.name AS department_name,
+        d.slug AS department_slug,
+        COALESCE(d.token_prefix, 'G') AS token_prefix,
+        COUNT(t.token_id) FILTER (WHERE t.status = 'Waiting')::int AS waiting_count,
+        COUNT(t.token_id) FILTER (WHERE t.status IN ('Now Serving', 'Consulting', 'Called', 'In-Consultation'))::int AS serving_count,
+        COUNT(t.token_id) FILTER (WHERE t.status = 'Completed')::int AS completed_count,
+        (
+          SELECT t2.token_display
+          FROM tokens t2
+          WHERE t2.department_id = d.id AND t2.queue_date = CURRENT_DATE AND t2.status IN ('Now Serving', 'Consulting', 'Called')
+          ORDER BY CASE WHEN t2.status IN ('Now Serving', 'Called') THEN 0 ELSE 1 END, t2.token_number ASC
+          LIMIT 1
+        ) AS current_serving_token
+      FROM departments d
+      LEFT JOIN tokens t ON t.department_id = d.id AND t.queue_date = CURRENT_DATE
+      WHERE d.status = 'active' OR d.status IS NULL
+      GROUP BY d.id, d.name, d.slug, d.token_prefix
+      ORDER BY waiting_count DESC, d.id ASC
+    `);
+
+    // 6. Doctors Queue Status Summary
+    const docsSummaryQuery = await query(`
+      SELECT 
+        d.id AS doctor_id,
+        d.name AS doctor_name,
+        d.department_id,
+        dept.name AS department_name,
+        CONCAT('Cabin ', d.id) AS room_or_cabin,
+        COALESCE(d.availability_status, 'Available') AS availability_status,
+        COUNT(t.token_id) FILTER (WHERE t.status = 'Waiting')::int AS waiting_count,
+        (
+          SELECT t2.token_display
+          FROM tokens t2
+          WHERE t2.doctor_id = d.id AND t2.queue_date = CURRENT_DATE AND t2.status IN ('Now Serving', 'Consulting', 'Called')
+          ORDER BY CASE WHEN t2.status IN ('Now Serving', 'Called') THEN 0 ELSE 1 END, t2.token_number ASC
+          LIMIT 1
+        ) AS current_serving_token
+      FROM doctors d
+      JOIN departments dept ON dept.id = d.department_id
+      LEFT JOIN tokens t ON t.doctor_id = d.id AND t.queue_date = CURRENT_DATE
+      GROUP BY d.id, d.name, d.department_id, dept.name, d.availability_status
+      ORDER BY d.department_id ASC, d.id ASC
+    `);
+
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      stats: {
+        totalToday: Number(stats.total_today) || 0,
+        waitingCount: Number(stats.waiting_count) || 0,
+        nowServingCount: Number(stats.now_serving_count) || 0,
+        consultingCount: Number(stats.consulting_count) || 0,
+        completedCount: Number(stats.completed_count) || 0,
+        cancelledCount: Number(stats.cancelled_count) || 0,
+        emergencyWaitingCount: Number(stats.emergency_waiting_count) || 0,
+        avgConsultationMins,
+      },
+      nowServing: servingQuery.rows.map((r) => ({
+        ...r,
+        age: r.dob ? calculateAgeFromDob(r.dob) : null,
+      })),
+      queue: formattedQueue,
+      departments: deptSummaryQuery.rows,
+      doctors: docsSummaryQuery.rows,
+    });
+  })
+);
+
+/**
+ * POST /api/v1/reception/queue/call-next
+ * Calls the next waiting patient or specifically selected token into 'Now Serving'.
+ * Concurrency protected to prevent duplicate calls across receptionists/doctors.
+ */
+router.post(
+  '/queue/call-next',
+  asyncHandler(async (req, res) => {
+    const {
+      department_id,
+      doctor_id,
+      token_id,
+      staff_name = 'Reception Staff',
+      staff_role = 'receptionist',
+    } = req.body || {};
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      let targetToken = null;
+
+      // Case A: Specific token ID provided
+      if (token_id) {
+        const tokenRes = await client.query(
+          `SELECT t.*, v.visit_id, doc.id AS assigned_doc_id, doc.name AS doctor_name, dept.name AS department_name
+           FROM tokens t
+           JOIN visits v ON v.visit_id = t.visit_id
+           LEFT JOIN doctors doc ON doc.id = t.doctor_id
+           LEFT JOIN departments dept ON dept.id = t.department_id
+           WHERE t.token_id = $1 AND t.queue_date = CURRENT_DATE
+           FOR UPDATE`,
+          [token_id]
+        );
+
+        if (tokenRes.rows.length === 0) {
+          await client.query('ROLLBACK');
+          return res.status(404).json({ success: false, error: 'Token not found for today.' });
+        }
+
+        targetToken = tokenRes.rows[0];
+      } else {
+        // Case B: Auto-pick next waiting patient (Emergency priority first, then lowest token number)
+        const deptId = department_id ? Number(department_id) : null;
+        const docId = doctor_id ? Number(doctor_id) : null;
+
+        const nextRes = await client.query(
+          `SELECT t.*, v.visit_id, doc.id AS assigned_doc_id, doc.name AS doctor_name, dept.name AS department_name
+           FROM tokens t
+           JOIN visits v ON v.visit_id = t.visit_id
+           LEFT JOIN doctors doc ON doc.id = t.doctor_id
+           LEFT JOIN departments dept ON dept.id = t.department_id
+           WHERE t.queue_date = CURRENT_DATE
+             AND t.status = 'Waiting'
+             AND ($1::int IS NULL OR t.department_id = $1)
+             AND ($2::int IS NULL OR t.doctor_id = $2)
+           ORDER BY 
+             CASE WHEN t.priority = 'Emergency' THEN 0 ELSE 1 END,
+             t.token_number ASC
+           LIMIT 1
+           FOR UPDATE`,
+          [deptId, docId]
+        );
+
+        if (nextRes.rows.length === 0) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({
+            success: false,
+            error: 'No waiting patients found in this queue.',
+          });
+        }
+
+        targetToken = nextRes.rows[0];
+      }
+
+      const assignedDocId = targetToken.doctor_id;
+
+      // Conflict Prevention: If this doctor currently has another token in 'Now Serving',
+      // automatically advance the previous token to 'Consulting' so only ONE token is Now Serving at a time!
+      if (assignedDocId) {
+        await client.query(
+          `UPDATE tokens
+           SET status = 'Consulting',
+               consultation_start_at = COALESCE(consultation_start_at, NOW()),
+               updated_at = NOW()
+           WHERE doctor_id = $1 
+             AND queue_date = CURRENT_DATE 
+             AND status IN ('Now Serving', 'Called')
+             AND token_id != $2`,
+          [assignedDocId, targetToken.token_id]
+        );
+      }
+
+      // Update Target Token to 'Now Serving'
+      const updatedRes = await client.query(
+        `UPDATE tokens
+         SET status = 'Now Serving',
+             called_at = NOW(),
+             updated_at = NOW()
+         WHERE token_id = $1
+         RETURNING *`,
+        [targetToken.token_id]
+      );
+
+      // Update associated Visit
+      await client.query(
+        `UPDATE visits
+         SET status = 'Now Serving',
+             updated_at = NOW()
+         WHERE visit_id = $1`,
+        [targetToken.visit_id]
+      );
+
+      // Audit Log
+      await client.query(
+        `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+         VALUES ('OPD_TOKEN_CALLED', 'tokens', 'tokens', $1, NOW(), $2)`,
+        [
+          targetToken.token_id,
+          JSON.stringify({
+            token_display: targetToken.token_display,
+            token_number: targetToken.token_number,
+            called_by_name: staff_name,
+            called_by_role: staff_role,
+            doctor_name: targetToken.doctor_name,
+            department_name: targetToken.department_name,
+            previous_status: targetToken.status,
+            new_status: 'Now Serving',
+          }),
+        ]
+      );
+
+      await client.query('COMMIT');
+
+      res.json({
+        success: true,
+        message: `Token ${targetToken.token_display || targetToken.token_number} called successfully to Cabin.`,
+        token: updatedRes.rows[0],
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Call next error:', err);
+      res.status(500).json({ success: false, error: 'Failed to call token.', details: err.message });
+    } finally {
+      client.release();
+    }
+  })
+);
+
+/**
+ * PATCH /api/v1/reception/queue/tokens/:tokenId/status
+ * Updates a token's consultation status.
+ * Supported statuses: 'Waiting', 'Now Serving', 'Consulting', 'Completed', 'Cancelled'.
+ * Row locked to avoid race conditions.
+ */
+router.patch(
+  '/queue/tokens/:tokenId/status',
+  asyncHandler(async (req, res) => {
+    const { tokenId } = req.params;
+    const {
+      status,
+      cancellation_reason = '',
+      staff_name = 'Staff Member',
+      staff_role = 'staff',
+    } = req.body || {};
+
+    const validStatuses = ['Waiting', 'Now Serving', 'Consulting', 'Completed', 'Cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid status '${status}'. Must be one of: ${validStatuses.join(', ')}`,
+      });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const tokenRes = await client.query(
+        `SELECT t.*, v.visit_id 
+         FROM tokens t
+         JOIN visits v ON v.visit_id = t.visit_id
+         WHERE t.token_id = $1 AND t.queue_date = CURRENT_DATE
+         FOR UPDATE`,
+        [tokenId]
+      );
+
+      if (tokenRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ success: false, error: 'Token not found for today.' });
+      }
+
+      const currentToken = tokenRes.rows[0];
+
+      // Update Token Timestamps based on new status
+      let updateSql = `
+        UPDATE tokens
+        SET status = $1,
+            updated_at = NOW()
+      `;
+      const params = [status, tokenId];
+
+      if (status === 'Now Serving') {
+        updateSql += `, called_at = NOW()`;
+      } else if (status === 'Consulting') {
+        updateSql += `, consultation_start_at = COALESCE(consultation_start_at, NOW())`;
+      } else if (status === 'Completed') {
+        updateSql += `, consultation_end_at = NOW()`;
+      } else if (status === 'Cancelled') {
+        params.push(cancellation_reason.trim());
+        updateSql += `, cancellation_reason = $${params.length}`;
+      } else if (status === 'Waiting') {
+        // Return to queue
+        updateSql += `, called_at = NULL, consultation_start_at = NULL`;
+      }
+
+      updateSql += ` WHERE token_id = $2 RETURNING *;`;
+
+      const updatedTokenRes = await client.query(updateSql, params);
+      const updatedToken = updatedTokenRes.rows[0];
+
+      // Sync Associated Visit Status
+      const visitStatusMap = {
+        'Waiting': 'In-Queue',
+        'Now Serving': 'Now Serving',
+        'Consulting': 'Consulting',
+        'Completed': 'Completed',
+        'Cancelled': 'Cancelled',
+      };
+      const newVisitStatus = visitStatusMap[status] || 'In-Queue';
+
+      await client.query(
+        `UPDATE visits
+         SET status = $1,
+             updated_at = NOW()
+         WHERE visit_id = $2`,
+        [newVisitStatus, currentToken.visit_id]
+      );
+
+      // Audit Log
+      await client.query(
+        `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+         VALUES ('OPD_QUEUE_STATUS_UPDATED', 'tokens', 'tokens', $1, NOW(), $2)`,
+        [
+          tokenId,
+          JSON.stringify({
+            token_display: updatedToken.token_display,
+            from_status: currentToken.status,
+            to_status: status,
+            cancellation_reason,
+            updated_by_name: staff_name,
+            updated_by_role: staff_role,
+          }),
+        ]
+      );
+
+      await client.query('COMMIT');
+
+      res.json({
+        success: true,
+        message: `Token ${updatedToken.token_display || updatedToken.token_number} transitioned to '${status}'.`,
+        token: updatedToken,
+      });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Update status error:', err);
+      res.status(500).json({ success: false, error: 'Failed to update token status.', details: err.message });
+    } finally {
+      client.release();
+    }
+  })
+);
+
+/**
+ * POST /api/v1/reception/queue/recall
+ * Re-announces the currently called token without changing its status.
+ */
+router.post(
+  '/queue/recall',
+  asyncHandler(async (req, res) => {
+    const { token_id, staff_name = 'Staff Member' } = req.body || {};
+
+    if (!token_id) {
+      return res.status(400).json({ success: false, error: 'Token ID is required to recall.' });
+    }
+
+    const tokenRes = await query(
+      `UPDATE tokens
+       SET called_at = NOW(),
+           updated_at = NOW()
+       WHERE token_id = $1 AND queue_date = CURRENT_DATE
+       RETURNING *`,
+      [token_id]
+    );
+
+    if (tokenRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Token not found for today.' });
+    }
+
+    const token = tokenRes.rows[0];
+
+    // Audit Log
+    await query(
+      `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
+       VALUES ('OPD_TOKEN_RECALLED', 'tokens', 'tokens', $1, NOW(), $2)`,
+      [
+        token_id,
+        JSON.stringify({
+          token_display: token.token_display,
+          recalled_by: staff_name,
+        }),
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: `Token ${token.token_display || token.token_number} re-announced successfully.`,
+      token,
+    });
   })
 );
 

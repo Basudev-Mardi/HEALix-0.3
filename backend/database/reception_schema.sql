@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS visits (
   doctor_id INTEGER REFERENCES doctors(id) ON DELETE SET NULL,
   visit_date DATE NOT NULL DEFAULT CURRENT_DATE,
   visit_type TEXT NOT NULL DEFAULT 'OPD Consultation' CHECK (visit_type IN ('OPD Consultation', 'Follow-up', 'Emergency', 'Walk-in', 'Diagnostics', 'Specialist')),
-  status TEXT NOT NULL DEFAULT 'Registered' CHECK (status IN ('Registered', 'In-Queue', 'With Doctor', 'Completed', 'Cancelled', 'Admitted')),
+  status TEXT NOT NULL DEFAULT 'Registered' CHECK (status IN ('Registered', 'In-Queue', 'Now Serving', 'Consulting', 'With Doctor', 'Completed', 'Cancelled', 'Admitted')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS tokens (
   department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,
   token_number INTEGER NOT NULL,
   queue_date DATE NOT NULL DEFAULT CURRENT_DATE,
-  status TEXT NOT NULL DEFAULT 'Waiting' CHECK (status IN ('Waiting', 'Called', 'In-Consultation', 'Completed', 'Skipped', 'Cancelled')),
+  status TEXT NOT NULL DEFAULT 'Waiting' CHECK (status IN ('Waiting', 'Now Serving', 'Consulting', 'Completed', 'Cancelled', 'Called', 'In-Consultation', 'Skipped')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT uq_tokens_doctor_queue_number UNIQUE (doctor_id, queue_date, token_number)
@@ -123,6 +123,10 @@ CREATE INDEX IF NOT EXISTS idx_tokens_dept_date ON tokens(department_id, queue_d
 ALTER TABLE tokens ADD COLUMN IF NOT EXISTS token_display TEXT;
 ALTER TABLE tokens ADD COLUMN IF NOT EXISTS patient_id TEXT REFERENCES patients(id) ON DELETE CASCADE;
 ALTER TABLE tokens ADD COLUMN IF NOT EXISTS priority TEXT DEFAULT 'Standard';
+ALTER TABLE tokens ADD COLUMN IF NOT EXISTS called_at TIMESTAMPTZ;
+ALTER TABLE tokens ADD COLUMN IF NOT EXISTS consultation_start_at TIMESTAMPTZ;
+ALTER TABLE tokens ADD COLUMN IF NOT EXISTS consultation_end_at TIMESTAMPTZ;
+ALTER TABLE tokens ADD COLUMN IF NOT EXISTS cancellation_reason TEXT;
 
 UPDATE tokens t
 SET token_display = CONCAT(COALESCE(d.token_prefix, 'G'), '-', LPAD(t.token_number::text, 3, '0'))
