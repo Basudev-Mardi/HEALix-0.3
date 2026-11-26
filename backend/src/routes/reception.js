@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { query } from '../db.js';
+import { query, pool } from '../db.js';
 
 const router = Router();
 
@@ -932,8 +932,62 @@ router.get(
 );
 
 /**
+ * GET /api/v1/reception/departments-and-doctors
+ * Lists all departments and active doctors with real-time queue loads for receptionist assignment
+ */
+router.get(
+  '/departments-and-doctors',
+  asyncHandler(async (_req, res) => {
+    const deptsQuery = await query(`
+      SELECT 
+        id, 
+        name, 
+        slug, 
+        COALESCE(token_prefix, 'G') AS token_prefix,
+        COALESCE(description, '') AS description
+      FROM departments 
+      WHERE status = 'active' OR status IS NULL
+      ORDER BY id ASC
+    `);
+
+    const docsQuery = await query(`
+      SELECT 
+        d.id, 
+        d.name, 
+        d.title, 
+        d.specialty, 
+        d.department_id,
+        COALESCE(d.availability_status, 'Available') AS availability_status,
+        CONCAT('Cabin ', d.id) AS room_or_cabin,
+        (
+          SELECT COUNT(*)::int 
+          FROM tokens t 
+          WHERE t.doctor_id = d.id AND t.queue_date = CURRENT_DATE AND t.status = 'Waiting'
+        ) AS waiting_count
+      FROM doctors d
+      ORDER BY d.department_id ASC, d.id ASC
+    `);
+
+    res.json({
+      success: true,
+      departments: deptsQuery.rows,
+      doctors: docsQuery.rows,
+    });
+  })
+);
+
+/**
  * POST /api/v1/reception/visits
- * Creates a new hospital encounter visit for an existing patient without re-registering!
+ * Creates a unique visit encounter and automatically generates a sequential OPD queue token.
+ * 
+ * Token Features:
+ * - Department-specific prefixes (e.g. C-012, G-012, E-001)
+ * - Sequential within department queue and date
+ * - Concurrency protected via PostgreSQL advisory locks
+ * - Daily reset of sequence per department
+ * - Supports automatic doctor assignment or explicit physician selection
+ * - Supports Walk-in registrations
+ * - Linked transactionally to visit, patient, department, and doctor
  */
 router.post(
   '/visits',
@@ -942,7 +996,7 @@ router.post(
       patient_id,
       department_id,
       doctor_id,
-      visit_type = 'OPD Consultation',
+      visit_type = 'Walk-in',
       priority = 'Standard',
       reason = '',
     } = req.body || {};
@@ -951,9 +1005,15 @@ router.post(
       return res.status(400).json({ success: false, error: 'Patient ID is required to create a visit' });
     }
 
-    // Verify patient exists
+    if (!department_id) {
+      return res.status(400).json({ success: false, error: 'Department ID is required' });
+    }
+
+    // 1. Verify patient exists
     const patientCheck = await query(
-      `SELECT id, patient_id, full_name, mobile FROM patients WHERE id = $1 OR patient_id = $1 LIMIT 1`,
+      `SELECT id, patient_id, patient_number, full_name, dob, gender, mobile, address, blood_group
+       FROM patients 
+       WHERE id = $1 OR patient_id = $1 LIMIT 1`,
       [patient_id]
     );
 
@@ -963,79 +1023,215 @@ router.post(
 
     const patient = patientCheck.rows[0];
     const patientDbId = patient.id;
+    const deptId = Number(department_id);
 
-    // Fallback or resolve department and doctor
-    let deptId = department_id ? Number(department_id) : null;
-    let docId = doctor_id ? Number(doctor_id) : null;
+    // 2. Resolve department and token prefix
+    const deptRes = await query(
+      `SELECT id, name, COALESCE(token_prefix, 'G') AS token_prefix 
+       FROM departments WHERE id = $1 LIMIT 1`,
+      [deptId]
+    );
 
-    if (!deptId) {
-      const defaultDept = await query(`SELECT id FROM departments ORDER BY id LIMIT 1`);
-      deptId = defaultDept.rows[0]?.id || 1;
+    if (deptRes.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Selected department not found' });
     }
 
-    if (!docId) {
-      const defaultDoc = await query(`SELECT id FROM doctors WHERE department_id = $1 ORDER BY id LIMIT 1`, [deptId]);
-      docId = defaultDoc.rows[0]?.id || (await query(`SELECT id FROM doctors ORDER BY id LIMIT 1`)).rows[0]?.id || 1;
-    }
+    const department = deptRes.rows[0];
+    const tokenPrefix = department.token_prefix;
 
-    const yr = new Date().getFullYear();
-    const visitId = `VST-${yr}-${Date.now().toString().slice(-6)}`;
-
-    await query('BEGIN');
+    // Begin atomic transaction on dedicated pool client
+    const client = await pool.connect();
     try {
-      const visitRes = await query(
+      await client.query('BEGIN');
+
+      // 3. Acquire transactional advisory lock for concurrency protection
+      // This serializes token generation for this department for CURRENT_DATE
+      await client.query(
+        `SELECT pg_advisory_xact_lock(hashtext(CONCAT('queue_', $1::text, '_', CURRENT_DATE::text)))`,
+        [deptId]
+      );
+
+      // 4. Resolve doctor assignment (explicit or automatic least-loaded doctor)
+      let resolvedDocId = null;
+      let doctorName = 'Attending Physician';
+      let doctorRoom = 'Cabin 1';
+
+      if (doctor_id && doctor_id !== 'auto') {
+        const docCheck = await client.query(
+          `SELECT id, name, availability_status FROM doctors WHERE id = $1 LIMIT 1`,
+          [Number(doctor_id)]
+        );
+        if (docCheck.rows.length > 0) {
+          resolvedDocId = docCheck.rows[0].id;
+          doctorName = docCheck.rows[0].name;
+          doctorRoom = `Cabin ${resolvedDocId}`;
+        }
+      }
+
+      // Automatic assignment if doctor not resolved
+      if (!resolvedDocId) {
+        const autoDocRes = await client.query(
+          `SELECT d.id, d.name,
+                  COUNT(t.token_id) FILTER (WHERE t.status = 'Waiting' AND t.queue_date = CURRENT_DATE) AS waiting_count
+           FROM doctors d
+           LEFT JOIN tokens t ON t.doctor_id = d.id AND t.queue_date = CURRENT_DATE
+           WHERE d.department_id = $1 AND (d.availability_status = 'Available' OR d.availability_status IS NULL)
+           GROUP BY d.id, d.name
+           ORDER BY waiting_count ASC, d.id ASC
+           LIMIT 1`,
+          [deptId]
+        );
+
+        if (autoDocRes.rows.length > 0) {
+          resolvedDocId = autoDocRes.rows[0].id;
+          doctorName = autoDocRes.rows[0].name;
+          doctorRoom = `Cabin ${resolvedDocId}`;
+        } else {
+          // Fallback to any doctor in department or default
+          const fallbackDoc = await client.query(`SELECT id, name FROM doctors WHERE department_id = $1 LIMIT 1`, [deptId]);
+          resolvedDocId = fallbackDoc.rows[0]?.id || 1;
+          doctorName = fallbackDoc.rows[0]?.name || 'Staff Clinician';
+          doctorRoom = `Cabin ${resolvedDocId}`;
+        }
+      }
+
+      // 5. Generate Sequential Token Number for Today
+      const seqRes = await client.query(
+        `SELECT COALESCE(MAX(token_number), 0) + 1 AS next_token_number
+         FROM tokens
+         WHERE department_id = $1 AND queue_date = CURRENT_DATE`,
+        [deptId]
+      );
+
+      const nextTokenNumber = Number(seqRes.rows[0].next_token_number) || 1;
+      const tokenDisplay = `${tokenPrefix}-${String(nextTokenNumber).padStart(3, '0')}`;
+
+      // 6. Generate Unique Visit ID and Insert Visit Record
+      const yr = new Date().getFullYear();
+      const visitId = `VST-${yr}-${Date.now().toString().slice(-6)}`;
+
+      const visitRes = await client.query(
         `INSERT INTO visits (
           visit_id, patient_id, department_id, doctor_id, visit_date, visit_type, status, created_at, updated_at
         ) VALUES (
           $1, $2, $3, $4, CURRENT_DATE, $5, 'In-Queue', NOW(), NOW()
         ) RETURNING visit_id, patient_id, department_id, doctor_id, visit_date, visit_type, status, created_at`,
-        [visitId, patientDbId, deptId, docId, visit_type]
+        [visitId, patientDbId, deptId, resolvedDocId, visit_type]
       );
 
       const newVisit = visitRes.rows[0];
 
-      // Audit log entry
-      await query(
+      // 7. Insert Token Record
+      const tokenId = `TKN-${Date.now().toString().slice(-6)}-${tokenDisplay}`;
+
+      const tokenRes = await client.query(
+        `INSERT INTO tokens (
+          token_id,
+          visit_id,
+          patient_id,
+          doctor_id,
+          department_id,
+          token_number,
+          token_display,
+          queue_date,
+          status,
+          priority,
+          created_at,
+          updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, CURRENT_DATE, 'Waiting', $8, NOW(), NOW()
+        ) RETURNING
+          token_id,
+          visit_id,
+          token_number,
+          token_display,
+          queue_date,
+          status,
+          priority,
+          created_at`,
+        [tokenId, visitId, patientDbId, resolvedDocId, deptId, nextTokenNumber, tokenDisplay, priority]
+      );
+
+      const newToken = tokenRes.rows[0];
+
+      // 8. Calculate Waiting Ahead and Estimated Wait
+      const waitAheadRes = await client.query(
+        `SELECT COUNT(*)::int AS waiting_ahead
+         FROM tokens
+         WHERE department_id = $1 AND queue_date = CURRENT_DATE AND status = 'Waiting' AND token_number < $2`,
+        [deptId, nextTokenNumber]
+      );
+
+      const waitingAhead = Number(waitAheadRes.rows[0]?.waiting_ahead) || 0;
+      const estimatedWaitMins = waitingAhead * 10;
+
+      // 9. Audit Log
+      await client.query(
         `INSERT INTO audit_logs (action, entity, entity_type, entity_id, timestamp, details)
-         VALUES ('PATIENT_VISIT_CREATED', 'visits', 'visits', $1, NOW(), $2)`,
+         VALUES ('OPD_TOKEN_GENERATED', 'tokens', 'tokens', $1, NOW(), $2)`,
         [
-          visitId,
+          tokenId,
           JSON.stringify({
+            token_display: tokenDisplay,
+            token_number: nextTokenNumber,
             visit_id: visitId,
             patient_id: patient.patient_id || patient.id,
             patient_name: patient.full_name,
-            department_id: deptId,
-            doctor_id: docId,
+            department_name: department.name,
+            doctor_name: doctorName,
             visit_type,
             reason,
           }),
         ]
       );
 
-      await query('COMMIT');
+      await client.query('COMMIT');
 
-      // Fetch department and doctor names for response
-      const deptName = (await query(`SELECT name FROM departments WHERE id = $1`, [deptId])).rows[0]?.name || 'Central OPD';
-      const docName = (await query(`SELECT name FROM doctors WHERE id = $1`, [docId])).rows[0]?.name || 'Attending Physician';
-
+      // Return comprehensive response for immediate display and printing
       res.status(201).json({
         success: true,
-        message: 'New visit encounter created successfully for returning patient.',
+        message: 'Visit registered and OPD token generated successfully.',
         visit: {
           ...newVisit,
-          patient_name: patient.full_name,
-          department_name: deptName,
-          doctor_name: docName,
+          visit_type,
+        },
+        token: {
+          ...newToken,
+          token_display: tokenDisplay,
+          waiting_ahead: waitingAhead,
+          estimated_wait_mins: estimatedWaitMins,
+        },
+        patient: {
+          patient_id: patient.patient_id || patient.id,
+          patient_number: patient.patient_number,
+          full_name: patient.full_name,
+          dob: patient.dob,
+          age: patient.dob ? calculateAgeFromDob(patient.dob) : null,
+          gender: patient.gender,
+          mobile: patient.mobile,
+          blood_group: patient.blood_group,
+        },
+        department: {
+          id: department.id,
+          name: department.name,
+          prefix: tokenPrefix,
+        },
+        doctor: {
+          id: resolvedDocId,
+          name: doctorName,
+          cabin: doctorRoom,
         },
       });
     } catch (err) {
-      await query('ROLLBACK');
-      console.error('Failed to create visit encounter:', err);
+      await client.query('ROLLBACK');
+      console.error('Failed to register visit and generate OPD token:', err);
       res.status(500).json({
         success: false,
-        error: 'Database error occurred while creating visit encounter.',
+        error: 'Database error occurred while generating OPD queue token.',
         details: err.message,
       });
+    } finally {
+      client.release();
     }
   })
 );

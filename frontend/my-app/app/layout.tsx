@@ -96,6 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       className={`${manrope.variable} ${inter.variable} h-full antialiased`}
+      data-scroll-behavior="smooth"
     >
       <head>
         <script

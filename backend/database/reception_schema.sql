@@ -47,6 +47,14 @@ UPDATE departments SET department_id = id WHERE department_id IS NULL;
 ALTER TABLE departments ADD COLUMN IF NOT EXISTS department_name TEXT;
 UPDATE departments SET department_name = name WHERE department_name IS NULL OR department_name = '';
 
+ALTER TABLE departments ADD COLUMN IF NOT EXISTS token_prefix TEXT DEFAULT 'G';
+UPDATE departments SET token_prefix = 'C' WHERE id = 1 OR slug = 'cardiology';
+UPDATE departments SET token_prefix = 'N' WHERE id = 2 OR slug = 'neurology';
+UPDATE departments SET token_prefix = 'O' WHERE id = 3 OR slug = 'orthopedics';
+UPDATE departments SET token_prefix = 'ON' WHERE id = 4 OR slug = 'oncology';
+UPDATE departments SET token_prefix = 'P' WHERE id = 5 OR slug = 'pediatrics';
+UPDATE departments SET token_prefix = 'E' WHERE id = 6 OR slug = 'emergency';
+
 CREATE INDEX IF NOT EXISTS idx_departments_dept_id ON departments(department_id);
 
 -- 4. Entity: doctors (Staff doctors with availability and department linkage)
@@ -111,6 +119,18 @@ CREATE TABLE IF NOT EXISTS tokens (
 CREATE INDEX IF NOT EXISTS idx_tokens_visit ON tokens(visit_id);
 CREATE INDEX IF NOT EXISTS idx_tokens_doctor_date_status ON tokens(doctor_id, queue_date, status);
 CREATE INDEX IF NOT EXISTS idx_tokens_dept_date ON tokens(department_id, queue_date);
+
+ALTER TABLE tokens ADD COLUMN IF NOT EXISTS token_display TEXT;
+ALTER TABLE tokens ADD COLUMN IF NOT EXISTS patient_id TEXT REFERENCES patients(id) ON DELETE CASCADE;
+ALTER TABLE tokens ADD COLUMN IF NOT EXISTS priority TEXT DEFAULT 'Standard';
+
+UPDATE tokens t
+SET token_display = CONCAT(COALESCE(d.token_prefix, 'G'), '-', LPAD(t.token_number::text, 3, '0'))
+FROM departments d
+WHERE d.id = t.department_id AND (t.token_display IS NULL OR t.token_display = '');
+
+CREATE INDEX IF NOT EXISTS idx_tokens_display ON tokens(token_display);
+CREATE INDEX IF NOT EXISTS idx_tokens_patient ON tokens(patient_id);
 
 -- 9. Entity: payments (Payments - Each visit can have its own payments)
 CREATE TABLE IF NOT EXISTS payments (

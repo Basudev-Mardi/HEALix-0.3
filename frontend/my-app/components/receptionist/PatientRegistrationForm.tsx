@@ -22,6 +22,7 @@ import {
   Users,
   PlusCircle,
   FileText,
+  Ticket,
 } from 'lucide-react';
 import PatientProfileModal from './PatientProfileModal';
 import CreateVisitModal from './CreateVisitModal';
@@ -509,14 +510,37 @@ export default function PatientRegistrationForm({
               Back to Live Queue Dashboard
             </button>
           )}
-          <button
-            onClick={handleResetForm}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-2xl bg-[#174C40] hover:bg-[#123B32] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2 ml-auto"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            <span>Register Another Patient</span>
-          </button>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto ml-auto">
+            <button
+              onClick={() => setVisitTargetPatient(registeredPatient)}
+              className="w-full sm:w-auto px-6 py-2.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
+            >
+              <Ticket className="h-4 w-4" />
+              <span>Generate OPD Token &amp; Visit</span>
+            </button>
+
+            <button
+              onClick={handleResetForm}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-[#174C40] hover:bg-[#123B32] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>Register Another Patient</span>
+            </button>
+          </div>
         </div>
+
+        {/* Modal for Visit Creation directly from Success Card */}
+        {visitTargetPatient && (
+          <CreateVisitModal
+            patient={visitTargetPatient}
+            onClose={() => setVisitTargetPatient(null)}
+            onVisitCreated={() => {
+              setVisitTargetPatient(null);
+              if (onCancel) onCancel();
+            }}
+          />
+        )}
       </div>
     );
   }
