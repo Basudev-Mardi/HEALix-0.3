@@ -753,33 +753,61 @@ router.post(
     const { role, email, password, staff_id } = req.body || {};
 
     if (!role) {
-      return res.status(400).json({ error: 'Please select a hospital staff role to sign in.' });
-    }
-
-    const normalizedRole = String(role).trim().toLowerCase();
-    const staffEntry = STAFF_ROSTER[normalizedRole];
-
-    if (!staffEntry) {
-      return res.status(400).json({ error: `Unrecognized staff role: ${role}` });
+      return res.status(400).json({ error: 'Please select your hospital staff role.' });
     }
 
     const inputIdent = (email || staff_id || '').trim().toLowerCase();
-    if (inputIdent && inputIdent !== staffEntry.email.toLowerCase() && inputIdent !== staffEntry.staffId.toLowerCase()) {
+    if (!inputIdent) {
+      return res.status(400).json({ error: 'Staff ID or email address is required.' });
+    }
+
+    if (!password) {
+      return res.status(400).json({ error: 'Staff password is required.' });
+    }
+
+    // 1. Identify staff account across hospital roster by email or staffId
+    const matchedStaff = Object.values(STAFF_ROSTER).find(
+      (entry) =>
+        entry.email.toLowerCase() === inputIdent ||
+        entry.staffId.toLowerCase() === inputIdent
+    );
+
+    if (!matchedStaff) {
       return res.status(401).json({
-        error: `Staff credential mismatch for ${staffEntry.roleName}. Expected ${staffEntry.email} or ID ${staffEntry.staffId}`,
+        error: 'Invalid credentials: Staff member not found in hospital directory.',
       });
     }
 
-    if (password && password !== 'staff123') {
+    // 2. Validate password
+    if (password !== 'staff123') {
       return res.status(401).json({
-        error: 'Invalid password. (Use demo password: staff123)',
+        error: 'Invalid password. Access denied.',
+      });
+    }
+
+    // 3. Verify that the selected role in the form matches the user's actual assigned role
+    const normalizedRole = String(role).trim().toLowerCase();
+    const roleAliases = {
+      admin: 'hr-staff',
+      'hr-staff': 'hr-staff',
+      administrator: 'administrator',
+      'hospital administrator': 'administrator',
+      'hospital-administrator': 'administrator',
+    };
+
+    const requestedRoleKey = roleAliases[normalizedRole] || normalizedRole;
+    const actualRoleKey = roleAliases[matchedStaff.role] || matchedStaff.role;
+
+    if (actualRoleKey !== requestedRoleKey) {
+      return res.status(403).json({
+        error: `Role Mismatch Denied: The provided credentials belong to a ${matchedStaff.roleName} account, not ${role}. Please select your authorized role.`,
       });
     }
 
     const token = generateToken();
     const staffPayload = {
-      ...staffEntry,
-      id: `staff_${staffEntry.staffId}`,
+      ...matchedStaff,
+      id: `staff_${matchedStaff.staffId}`,
       token,
       loggedInAt: new Date().toISOString(),
     };
@@ -789,8 +817,8 @@ router.post(
         patientId: 0,
         action: 'STAFF_ROLE_LOGIN',
         entityType: 'staff_session',
-        entityId: staffEntry.staffId,
-        details: { role: staffEntry.role, department: staffEntry.department },
+        entityId: matchedStaff.staffId,
+        details: { role: matchedStaff.role, department: matchedStaff.department },
         req,
       });
     } catch {
@@ -799,7 +827,7 @@ router.post(
 
     res.json({
       data: {
-        message: `Welcome, ${staffEntry.name} (${staffEntry.roleName})`,
+        message: `Welcome, ${matchedStaff.name} (${matchedStaff.roleName})`,
         staff: staffPayload,
         token,
       },

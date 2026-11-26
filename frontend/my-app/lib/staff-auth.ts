@@ -154,7 +154,7 @@ export function clearStaffSession(): void {
 }
 
 /**
- * Authenticate staff member against API or demo credentials
+ * Authenticate staff member against API or demo credentials with strict role verification
  */
 export async function staffLogin({
   role,
@@ -165,51 +165,87 @@ export async function staffLogin({
   email: string;
   password?: string;
 }): Promise<{ ok: boolean; staff?: StaffUser; error?: string }> {
-  // Try backend staff auth endpoint first
+  const inputClean = email.trim().toLowerCase();
+  if (!inputClean) {
+    return { ok: false, error: 'Staff ID or email address is required.' };
+  }
+
+  if (!password) {
+    return { ok: false, error: 'Staff password is required.' };
+  }
+
+  // 1. Attempt backend API authentication first
   try {
     const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
     const res = await fetch(`${apiBase}/api/v1/auth/staff/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role, email, password }),
+      body: JSON.stringify({ role, email: inputClean, password }),
     });
 
-    if (res.ok) {
-      const payload = await res.json();
-      if (payload.data?.staff) {
-        saveStaffSession(payload.data.staff);
-        return { ok: true, staff: payload.data.staff };
-      }
+    const payload = await res.json().catch(() => null);
+
+    if (res.ok && payload?.data?.staff) {
+      saveStaffSession(payload.data.staff);
+      return { ok: true, staff: payload.data.staff };
+    }
+
+    // If server returned an explicit error (e.g. Role Mismatch or Invalid Credentials), respect it
+    if (payload?.error) {
+      return { ok: false, error: payload.error };
     }
   } catch {
-    // If backend is unreachable, proceed to fallback verification
+    // If backend is offline or network fails, proceed to resilient client-side verification
   }
 
-  // Fallback: Validate against role demo roster
-  const demo = DEMO_STAFF_CREDENTIALS[role];
-  if (!demo) {
-    return { ok: false, error: `Invalid role selected: ${role}` };
+  // 2. Client-side Verification across ALL staff roles in directory
+  const matchedStaff = Object.values(DEMO_STAFF_CREDENTIALS).find(
+    (entry) =>
+      entry.email.toLowerCase() === inputClean ||
+      entry.staffId.toLowerCase() === inputClean
+  );
+
+  if (!matchedStaff) {
+    return {
+      ok: false,
+      error: 'Invalid credentials: Staff ID or email not found in hospital directory.',
+    };
   }
 
-  // Verify email matches or staff ID matches
-  const inputClean = email.trim().toLowerCase();
-  const emailMatches = inputClean === demo.email.toLowerCase() || inputClean === demo.staffId.toLowerCase();
+  // Verify password
+  if (password.trim() !== 'staff123' && password.trim() !== matchedStaff.password) {
+    return { ok: false, error: 'Invalid password. Access denied. (Hint: Use demo password "staff123")' };
+  }
 
-  // If password provided and incorrect
-  if (password && password.trim() !== 'staff123' && password.trim() !== demo.password) {
-    return { ok: false, error: 'Invalid password. (Hint: Use demo password "staff123")' };
+  // Verify selected role matches the user's actual assigned role
+  const roleAliases: Record<string, string> = {
+    admin: 'hr-staff',
+    'hr-staff': 'hr-staff',
+    administrator: 'administrator',
+    'hospital administrator': 'administrator',
+    'hospital-administrator': 'administrator',
+  };
+
+  const requestedRoleKey = roleAliases[role.trim().toLowerCase()] || role.trim().toLowerCase();
+  const actualRoleKey = roleAliases[matchedStaff.role.toLowerCase()] || matchedStaff.role.toLowerCase();
+
+  if (actualRoleKey !== requestedRoleKey) {
+    return {
+      ok: false,
+      error: `Access Denied: The provided credentials belong to a ${matchedStaff.roleName} account, not ${role}. Please select your authorized role.`,
+    };
   }
 
   const staffUser: StaffUser = {
-    id: `staff_${demo.role}_${Date.now()}`,
-    staffId: demo.staffId,
-    name: demo.name,
-    email: demo.email,
-    role: demo.role,
-    roleName: demo.roleName,
-    department: demo.department,
-    shift: demo.shift,
-    token: `hx_staff_${Buffer.from(demo.staffId).toString('base64')}_${Date.now()}`,
+    id: `staff_${matchedStaff.staffId}`,
+    staffId: matchedStaff.staffId,
+    name: matchedStaff.name,
+    email: matchedStaff.email,
+    role: matchedStaff.role,
+    roleName: matchedStaff.roleName,
+    department: matchedStaff.department,
+    shift: matchedStaff.shift,
+    token: `hx_staff_${Buffer.from(matchedStaff.staffId).toString('base64')}_${Date.now()}`,
     loggedInAt: new Date().toISOString(),
   };
 
