@@ -534,7 +534,7 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
           <div className="flex items-center gap-3">
             {/* Quick Switch to Reception Portal */}
             <a
-              href="/staff/receptionist"
+              href="/reception"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/10 text-xs font-medium transition-colors"
               title="Switch to Reception Portal"
             >

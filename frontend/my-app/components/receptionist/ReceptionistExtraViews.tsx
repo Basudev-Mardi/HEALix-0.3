@@ -334,7 +334,7 @@ export function DoctorAvailabilityView({
 
                   {/* Connect to Doctor Consultation Desk Button */}
                   <a
-                    href={`/staff/doctor?doctor_id=${doc.id}`}
+                    href={`/doctor?doctor_id=${doc.id}`}
                     className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#174C40] hover:bg-[#123830] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                   >
                     <Stethoscope className="h-3.5 w-3.5 text-emerald-300" />

@@ -309,7 +309,7 @@ export default function ReceptionistSidebar({
           {!isCollapsed ? (
             <div className="mb-3">
               <a
-                href="/staff/doctor"
+                href="/doctor"
                 className="w-full flex items-center justify-between p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 text-emerald-900 transition-colors text-xs font-medium group"
               >
                 <div className="flex items-center gap-2">
@@ -322,7 +322,7 @@ export default function ReceptionistSidebar({
           ) : (
             <div className="mb-2 flex justify-center">
               <a
-                href="/staff/doctor"
+                href="/doctor"
                 title="Go to Doctor Consultation Desk"
                 className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#174C40] transition-colors"
               >

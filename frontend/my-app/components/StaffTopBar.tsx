@@ -29,7 +29,14 @@ export default function StaffTopBar() {
   };
 
   // Remove top bar for dedicated full-workspace dashboards (Receptionist & Doctor)
-  if (pathname.startsWith('/staff/receptionist') || pathname.startsWith('/staff/doctor')) {
+  if (
+    pathname.startsWith('/staff/receptionist') ||
+    pathname.startsWith('/staff/doctor') ||
+    pathname === '/doctor' ||
+    pathname.startsWith('/doctor/') ||
+    pathname === '/reception' ||
+    pathname.startsWith('/reception/')
+  ) {
     return null;
   }
 
