@@ -1,13 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { getStaffSession, type StaffUser } from '@/lib/staff-auth';
 import StaffLoginForm from '@/components/StaffLoginForm';
 import StaffAuthorizedDashboard from '@/components/StaffAuthorizedDashboard';
 
 export default function StaffPage() {
-  const router = useRouter();
   const [currentStaff, setCurrentStaff] = useState<StaffUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -16,23 +14,16 @@ export default function StaffPage() {
     setCurrentStaff(session);
     setLoading(false);
 
-    if (session?.role === 'receptionist') {
-      router.push('/staff/receptionist');
-    }
-
     const handleAuthChange = (e: Event) => {
       const custom = e as CustomEvent<StaffUser | null>;
       setCurrentStaff(custom.detail);
-      if (custom.detail?.role === 'receptionist') {
-        router.push('/staff/receptionist');
-      }
     };
 
     window.addEventListener('healix_staff_auth_changed', handleAuthChange);
     return () => {
       window.removeEventListener('healix_staff_auth_changed', handleAuthChange);
     };
-  }, [router]);
+  }, []);
 
   if (loading) {
     return (
