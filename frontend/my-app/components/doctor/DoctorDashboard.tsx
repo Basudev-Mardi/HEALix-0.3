@@ -204,8 +204,15 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
           }
         }
         setActiveToken(data.active_token);
-        setStats(data.telemetry);
-        setUpcomingWaiting(data.upcoming_waiting || []);
+        setStats(data.stats || data.telemetry || {
+          waiting_count: 0,
+          consulting_count: 0,
+          completed_count: 0,
+          total_assigned_today: 0,
+          emergency_waiting_count: 0,
+          avg_consultation_mins: 10
+        });
+        setUpcomingWaiting(data.upcoming_queue || data.upcoming_waiting || []);
 
         // Pre-fill consultation form if active token exists
         if (data.active_token && data.active_token.token_id !== activeToken?.token_id) {

@@ -14,7 +14,7 @@ async function resolveDoctor(doctorIdOrEmail) {
   let docRes;
   if (!isNaN(Number(doctorIdOrEmail))) {
     docRes = await query(
-      `SELECT d.*, dept.name AS department_name, dept.prefix AS token_prefix
+      `SELECT d.*, dept.name AS department_name, dept.token_prefix
        FROM doctors d
        JOIN departments dept ON dept.id = d.department_id
        WHERE d.id = $1 LIMIT 1`,
@@ -22,7 +22,7 @@ async function resolveDoctor(doctorIdOrEmail) {
     );
   } else if (typeof doctorIdOrEmail === 'string' && doctorIdOrEmail.includes('@')) {
     docRes = await query(
-      `SELECT d.*, dept.name AS department_name, dept.prefix AS token_prefix
+      `SELECT d.*, dept.name AS department_name, dept.token_prefix
        FROM doctors d
        JOIN departments dept ON dept.id = d.department_id
        WHERE LOWER(d.slug) = LOWER($1) OR d.id = 1 LIMIT 1`,
@@ -36,7 +36,7 @@ async function resolveDoctor(doctorIdOrEmail) {
 
   // Default to Dr. Aris Thorne (Doctor #1)
   const defaultDoc = await query(
-    `SELECT d.*, dept.name AS department_name, dept.prefix AS token_prefix
+    `SELECT d.*, dept.name AS department_name, dept.token_prefix
      FROM doctors d
      JOIN departments dept ON dept.id = d.department_id
      WHERE d.id = 1 LIMIT 1`
