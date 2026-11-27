@@ -204,14 +204,17 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
           }
         }
         setActiveToken(data.active_token);
-        setStats(data.stats || data.telemetry || {
-          waiting_count: 0,
-          consulting_count: 0,
-          completed_count: 0,
-          total_assigned_today: 0,
-          emergency_waiting_count: 0,
-          avg_consultation_mins: 10
-        });
+        if (data.stats || data.telemetry) {
+          const rawStats = data.stats || data.telemetry;
+          setStats({
+            waiting_count: Number(rawStats.waiting_count) || 0,
+            consulting_count: Number(rawStats.consulting_count) || 0,
+            completed_count: Number(rawStats.completed_count) || 0,
+            total_assigned_today: Number(rawStats.total_assigned_today) || 0,
+            emergency_waiting_count: Number(rawStats.emergency_waiting_count) || 0,
+            avg_consultation_mins: Number(rawStats.avg_consultation_mins) || 10,
+          });
+        }
         setUpcomingWaiting(data.upcoming_queue || data.upcoming_waiting || []);
 
         // Pre-fill consultation form if active token exists
@@ -600,7 +603,7 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
           >
             <Users className="h-3.5 w-3.5" />
             <span>Cabin OPD Queue</span>
-            {stats.waiting_count > 0 && (
+            {(stats?.waiting_count ?? 0) > 0 && (
               <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-emerald-400 text-[#174C40] font-bold">
                 {stats.waiting_count}
               </span>
@@ -656,7 +659,7 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
             <History className="h-3.5 w-3.5" />
             <span>Consultation History</span>
             <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/20 text-white">
-              {stats.completed_count}
+              {stats?.completed_count ?? 0}
             </span>
           </button>
         </div>
@@ -703,11 +706,11 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
                 </span>
                 <div className="flex items-baseline gap-2">
                   <span className="font-editorial text-3xl font-semibold text-[#174C40]">
-                    {stats.waiting_count}
+                    {stats?.waiting_count ?? 0}
                   </span>
-                  {stats.emergency_waiting_count > 0 && (
+                  {(stats?.emergency_waiting_count ?? 0) > 0 && (
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-rose-100 text-rose-700 font-bold animate-pulse">
-                      {stats.emergency_waiting_count} Emergency
+                      {stats?.emergency_waiting_count} Emergency
                     </span>
                   )}
                 </div>
@@ -719,7 +722,7 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
                 </span>
                 <div className="flex items-baseline gap-2">
                   <span className="font-editorial text-3xl font-semibold text-[#242A28]">
-                    {stats.consulting_count}
+                    {stats?.consulting_count ?? 0}
                   </span>
                   <span className="text-xs text-[#77817C]">Active Session</span>
                 </div>
@@ -731,7 +734,7 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
                 </span>
                 <div className="flex items-baseline gap-2">
                   <span className="font-editorial text-3xl font-semibold text-emerald-700">
-                    {stats.completed_count}
+                    {stats?.completed_count ?? 0}
                   </span>
                   <span className="text-xs text-[#77817C]">Consulted</span>
                 </div>
@@ -743,7 +746,7 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
                 </span>
                 <div className="flex items-baseline gap-2">
                   <span className="font-editorial text-3xl font-semibold text-[#242A28]">
-                    {stats.avg_consultation_mins}
+                    {stats?.avg_consultation_mins ?? 10}
                   </span>
                   <span className="text-xs text-[#77817C]">mins / visit</span>
                 </div>
