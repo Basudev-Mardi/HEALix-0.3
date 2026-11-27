@@ -17,7 +17,7 @@ export default function DoctorPage() {
       return;
     }
 
-    if (session.role !== 'doctor') {
+    if (session.role !== 'doctor' && session.role !== 'administrator' && session.role !== 'receptionist') {
       router.push('/staff');
       return;
     }

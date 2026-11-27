@@ -305,6 +305,32 @@ export default function ReceptionistSidebar({
             3. USER PERMISSIONS & STATION IDENTITY FOOTER
         ========================================================== */}
         <div className="p-3.5 border-t border-[#F0F2F0] bg-[#FAFAF7]">
+          {/* Quick Doctor Consultation Link / Switcher */}
+          {!isCollapsed ? (
+            <div className="mb-3">
+              <a
+                href="/staff/doctor"
+                className="w-full flex items-center justify-between p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 text-emerald-900 transition-colors text-xs font-medium group"
+              >
+                <div className="flex items-center gap-2">
+                  <Stethoscope className="h-4 w-4 text-[#174C40]" />
+                  <span>Doctor Desk (Cabin 1)</span>
+                </div>
+                <ExternalLink className="h-3 w-3 text-emerald-600 group-hover:translate-x-0.5 transition-transform" />
+              </a>
+            </div>
+          ) : (
+            <div className="mb-2 flex justify-center">
+              <a
+                href="/staff/doctor"
+                title="Go to Doctor Consultation Desk"
+                className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#174C40] transition-colors"
+              >
+                <Stethoscope className="h-4 w-4" />
+              </a>
+            </div>
+          )}
+
           {/* Permission Badge */}
           {!isCollapsed ? (
             <div className="space-y-3">

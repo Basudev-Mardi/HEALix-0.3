@@ -17,7 +17,7 @@ export default function ReceptionistPage() {
       return;
     }
 
-    if (session.role !== 'receptionist') {
+    if (session.role !== 'receptionist' && session.role !== 'administrator' && session.role !== 'doctor') {
       router.push('/staff');
       return;
     }

@@ -109,6 +109,9 @@ interface LabOrderItem {
 }
 
 export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardProps) {
+  const [selectedDoctorId, setSelectedDoctorId] = useState<number>(1);
+  const [availableDoctorsList, setAvailableDoctorsList] = useState<any[]>([]);
+  const [currentDoctorProfile, setCurrentDoctorProfile] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'queue' | 'consultation' | 'appointments' | 'history'>('queue');
   const [availability, setAvailability] = useState<'Available' | 'Busy' | 'On Break' | 'Unavailable'>('Available');
   const [activeToken, setActiveToken] = useState<ActiveToken | null>(null);
@@ -164,15 +167,41 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
   // Search in History
   const [historySearch, setHistorySearch] = useState('');
 
+  // Parse doctor_id from URL query if available
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const docIdParam = urlParams.get('doctor_id');
+      if (docIdParam && !isNaN(Number(docIdParam))) {
+        setSelectedDoctorId(Number(docIdParam));
+      }
+    }
+  }, []);
+
+  // Fetch list of doctors from reception directory for seamless cabin switching
+  useEffect(() => {
+    fetch('/api/v1/reception/doctors')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.doctors) {
+          setAvailableDoctorsList(data.doctors);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const fetchDashboardData = useCallback(async (isSilent = false) => {
     if (!isSilent) setRefreshing(true);
     setActionError(null);
     try {
-      const res = await fetch('/api/v1/doctor/dashboard?doctor_id=1');
+      const res = await fetch(`/api/v1/doctor/dashboard?doctor_id=${selectedDoctorId}`);
       const data = await res.json();
       if (data.success) {
-        if (data.doctor?.availability_status) {
-          setAvailability(data.doctor.availability_status);
+        if (data.doctor) {
+          setCurrentDoctorProfile(data.doctor);
+          if (data.doctor.availability_status) {
+            setAvailability(data.doctor.availability_status);
+          }
         }
         setActiveToken(data.active_token);
         setStats(data.telemetry);
@@ -194,11 +223,11 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
       setLoading(false);
       setRefreshing(false);
     }
-  }, [activeToken?.token_id]);
+  }, [selectedDoctorId, activeToken?.token_id]);
 
   const fetchAppointments = useCallback(async () => {
     try {
-      const res = await fetch('/api/v1/doctor/appointments?doctor_id=1');
+      const res = await fetch(`/api/v1/doctor/appointments?doctor_id=${selectedDoctorId}`);
       const data = await res.json();
       if (data.success) {
         setTodayAppointments(data.appointments || []);
@@ -206,11 +235,11 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
     } catch {
       // Ignore background error
     }
-  }, []);
+  }, [selectedDoctorId]);
 
   const fetchHistory = useCallback(async () => {
     try {
-      const res = await fetch('/api/v1/doctor/history?doctor_id=1');
+      const res = await fetch(`/api/v1/doctor/history?doctor_id=${selectedDoctorId}`);
       const data = await res.json();
       if (data.success) {
         setCompletedHistory(data.history || []);
@@ -218,7 +247,7 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
     } catch {
       // Ignore background error
     }
-  }, []);
+  }, [selectedDoctorId]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -255,7 +284,7 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
       const res = await fetch('/api/v1/doctor/availability', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ doctor_id: 1, availability_status: newStatus })
+        body: JSON.stringify({ doctor_id: selectedDoctorId, availability_status: newStatus })
       });
       const data = await res.json();
       if (data.success) {
@@ -273,15 +302,16 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
   const handleCallNext = async () => {
     setActionError(null);
     setActionSuccess(null);
+    const cabinLabel = currentDoctorProfile?.room_or_cabin || `Cabin ${selectedDoctorId}`;
     try {
       const res = await fetch('/api/v1/doctor/call-next', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ doctor_id: 1, cabin: 'Cabin 1' })
+        body: JSON.stringify({ doctor_id: selectedDoctorId, cabin: cabinLabel })
       });
       const data = await res.json();
       if (data.success) {
-        setActionSuccess(`Calling ${data.token.token_display} (${data.token.patient_name}) to Cabin 1.`);
+        setActionSuccess(`Calling ${data.token.token_display} (${data.token.patient_name}) to ${cabinLabel}.`);
         setActiveToken(data.token);
         fetchDashboardData(true);
         setActiveTab('queue');
@@ -301,7 +331,7 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
       const res = await fetch(`/api/v1/doctor/tokens/${tokenId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ doctor_id: 1, status: newStatus })
+        body: JSON.stringify({ doctor_id: selectedDoctorId, status: newStatus })
       });
       const data = await res.json();
       if (data.success) {
@@ -378,7 +408,7 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
     followUpDate.setDate(followUpDate.getDate() + (parseInt(followUpDays, 10) || 7));
 
     const payload = {
-      doctor_id: 1,
+      doctor_id: selectedDoctorId,
       token_id: activeToken.token_id,
       visit_id: activeToken.visit_id,
       patient_id: activeToken.patient_id,
@@ -455,23 +485,53 @@ export default function DoctorDashboard({ doctor, onLogout }: DoctorDashboardPro
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-editorial text-xl font-semibold tracking-wide text-white">
-                  {doctor?.name || 'Dr. Aris Thorne, MD'}
+                  {currentDoctorProfile?.name || doctor?.name || 'Dr. Aris Thorne, MD'}
                 </h1>
                 <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30">
-                  Doctor &bull; Cabin 1
+                  {currentDoctorProfile?.room_or_cabin || `Cabin ${selectedDoctorId}`}
                 </span>
+
+                {/* Doctor Switcher Dropdown */}
+                {availableDoctorsList.length > 0 && (
+                  <select
+                    value={selectedDoctorId}
+                    onChange={(e) => {
+                      const newId = Number(e.target.value);
+                      setSelectedDoctorId(newId);
+                      setActiveToken(null);
+                    }}
+                    className="ml-2 text-[11px] font-mono bg-white/10 text-white rounded-lg px-2 py-0.5 border border-white/20 focus:outline-hidden cursor-pointer"
+                    title="Switch doctor profile or cabin"
+                  >
+                    {availableDoctorsList.map((doc) => (
+                      <option key={doc.id} value={doc.id} className="text-zinc-900">
+                        {doc.name} ({doc.room_or_cabin || `Cabin ${doc.id}`})
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
               <p className="text-xs text-emerald-100/80 font-light flex items-center gap-2 mt-0.5">
-                <span>Cardiology &amp; Internal Medicine</span>
+                <span>{currentDoctorProfile?.department_name || currentDoctorProfile?.specialty || 'Cardiology & Internal Medicine'}</span>
                 <span>&bull;</span>
-                <span>OPD Cabin 1</span>
+                <span>{currentDoctorProfile?.room_or_cabin || `Cabin ${selectedDoctorId}`}</span>
                 <span>&bull;</span>
-                <span className="font-mono text-emerald-200">ID: {doctor?.staffId || 'DOC-001'}</span>
+                <span className="font-mono text-emerald-200">ID: {doctor?.staffId || `DOC-${selectedDoctorId.toString().padStart(3, '0')}`}</span>
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Quick Switch to Reception Portal */}
+            <a
+              href="/staff/receptionist"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/10 text-xs font-medium transition-colors"
+              title="Switch to Reception Portal"
+            >
+              <Users className="h-3.5 w-3.5 text-emerald-300" />
+              <span className="hidden md:inline">Reception Front Desk</span>
+            </a>
+
             {/* Availability Selector */}
             <div className="flex items-center bg-white/10 rounded-xl p-1 border border-white/10">
               <label htmlFor="availability-select" className="text-[11px] font-mono text-emerald-200 px-2 uppercase tracking-wider">
