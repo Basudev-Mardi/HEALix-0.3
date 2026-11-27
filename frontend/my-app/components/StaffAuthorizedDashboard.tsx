@@ -29,6 +29,7 @@ import {
 import { STAFF_ROLES } from '@/lib/staff-roles';
 import { clearStaffSession, type StaffUser } from '@/lib/staff-auth';
 import ReceptionistDashboard from '@/components/receptionist/ReceptionistDashboard';
+import DoctorDashboard from '@/components/doctor/DoctorDashboard';
 
 const ROLE_ICONS = {
   ConciergeBell,
@@ -65,6 +66,11 @@ export default function StaffAuthorizedDashboard({
   // Reset Receptionist Dashboard UI: display clean, empty dashboard content area
   if (roleConfig.id === 'receptionist') {
     return <ReceptionistDashboard />;
+  }
+
+  // Doctor Clinical Consultation Workspace
+  if (roleConfig.id === 'doctor') {
+    return <DoctorDashboard doctor={staff} onLogout={onLogout} />;
   }
 
   return (

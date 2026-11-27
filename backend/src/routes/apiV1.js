@@ -8,6 +8,7 @@ import publicRoutes from './public.js';
 import privacyRoutes from './privacy.js';
 import integrationRoutes from './integrations.js';
 import receptionRoutes from './reception.js';
+import doctorRoutes from './doctor.js';
 import { query } from '../db.js';
 
 const router = Router();
@@ -21,6 +22,9 @@ router.use('/auth', authRoutes);
 
 // Reception module: /api/v1/reception/*
 router.use('/reception', receptionRoutes);
+
+// Doctor clinical module: /api/v1/doctor/*
+router.use('/doctor', doctorRoutes);
 
 // Hospital Settings & Institutional Information: /api/v1/hospital/settings
 router.get(
