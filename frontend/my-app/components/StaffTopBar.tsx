@@ -28,8 +28,8 @@ export default function StaffTopBar() {
     setCurrentStaff(null);
   };
 
-  // Completely remove navbar for receptionist dashboard (after all hooks have been invoked)
-  if (pathname.startsWith('/staff/receptionist')) {
+  // Remove top bar for dedicated full-workspace dashboards (Receptionist & Doctor)
+  if (pathname.startsWith('/staff/receptionist') || pathname.startsWith('/staff/doctor')) {
     return null;
   }
 

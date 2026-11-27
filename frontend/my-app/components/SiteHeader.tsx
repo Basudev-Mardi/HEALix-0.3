@@ -54,8 +54,8 @@ export default function SiteHeader() {
     pathname === '/terms' ||
     pathname === '/patient-rights';
 
-  // Completely remove navbar for receptionist dashboard
-  if (pathname.startsWith('/staff/receptionist')) {
+  // Completely remove public navbar for staff portals (Doctor, Receptionist, etc.)
+  if (pathname.startsWith('/staff')) {
     return null;
   }
 
