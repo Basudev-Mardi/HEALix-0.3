@@ -32,6 +32,7 @@ import ReceptionistDashboard from '@/components/receptionist/ReceptionistDashboa
 import DoctorDashboard from '@/components/doctor/DoctorDashboard';
 import NurseDashboard from '@/components/nurse/NurseDashboard';
 import LabStaffDashboard from '@/components/lab/LabStaffDashboard';
+import PharmacistDashboard from '@/components/pharmacy/PharmacistDashboard';
 
 const ROLE_ICONS = {
   ConciergeBell,
@@ -83,6 +84,11 @@ export default function StaffAuthorizedDashboard({
   // Diagnostic Pathology & Laboratory Workspace
   if (roleConfig.id === 'lab-staff') {
     return <LabStaffDashboard labStaff={staff} onLogout={onLogout} />;
+  }
+
+  // Central Pharmacy Dispensary & Formulary Workspace
+  if (roleConfig.id === 'pharmacist') {
+    return <PharmacistDashboard pharmacist={staff} onLogout={onLogout} />;
   }
 
   return (

@@ -64,7 +64,9 @@ export default function SiteHeader() {
     pathname === '/nurse' ||
     pathname.startsWith('/nurse/') ||
     pathname === '/lab' ||
-    pathname.startsWith('/lab/')
+    pathname.startsWith('/lab/') ||
+    pathname === '/pharmacy' ||
+    pathname.startsWith('/pharmacy/')
   ) {
     return null;
   }

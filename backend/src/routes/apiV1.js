@@ -11,6 +11,7 @@ import receptionRoutes from './reception.js';
 import doctorRoutes from './doctor.js';
 import nurseRoutes from './nurse.js';
 import labRoutes from './lab.js';
+import pharmacyRoutes from './pharmacy.js';
 import { query } from '../db.js';
 
 const router = Router();
@@ -33,6 +34,9 @@ router.use('/nurse', nurseRoutes);
 
 // Diagnostic laboratory module: /api/v1/lab/*
 router.use('/lab', labRoutes);
+
+// Central Pharmacy Dispensary & Inventory: /api/v1/pharmacy/*
+router.use('/pharmacy', pharmacyRoutes);
 
 // Hospital Settings & Institutional Information: /api/v1/hospital/settings
 router.get(
