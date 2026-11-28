@@ -123,7 +123,7 @@ export default function StaffLoginForm({
     setLoading(true);
     try {
       const res = await staffLogin({
-        role: currentRoleMeta.label,
+        role: currentRoleMeta.value,
         email: identifier.trim(),
         password,
       });

@@ -218,16 +218,36 @@ export async function staffLogin({
   }
 
   // Verify selected role matches the user's actual assigned role
-  const roleAliases: Record<string, string> = {
-    admin: 'hr-staff',
-    'hr-staff': 'hr-staff',
-    administrator: 'administrator',
-    'hospital administrator': 'administrator',
-    'hospital-administrator': 'administrator',
+  const normalizeRoleKey = (r?: string) => {
+    if (!r) return '';
+    const clean = String(r).trim().toLowerCase().replace(/[\s_]+/g, '-');
+    const aliases: Record<string, string> = {
+      admin: 'hr-staff',
+      'hr-staff': 'hr-staff',
+      'human-resources': 'hr-staff',
+      administrator: 'administrator',
+      'hospital-administrator': 'administrator',
+      'hospital-admin': 'administrator',
+      receptionist: 'receptionist',
+      reception: 'receptionist',
+      doctor: 'doctor',
+      physician: 'doctor',
+      nurse: 'nurse',
+      'lab-staff': 'lab-staff',
+      lab: 'lab-staff',
+      laboratory: 'lab-staff',
+      'laboratory-staff': 'lab-staff',
+      pathologist: 'lab-staff',
+      'billing-staff': 'billing-staff',
+      billing: 'billing-staff',
+      pharmacist: 'pharmacist',
+      pharmacy: 'pharmacist',
+    };
+    return aliases[clean] || clean;
   };
 
-  const requestedRoleKey = roleAliases[role.trim().toLowerCase()] || role.trim().toLowerCase();
-  const actualRoleKey = roleAliases[matchedStaff.role.toLowerCase()] || matchedStaff.role.toLowerCase();
+  const requestedRoleKey = normalizeRoleKey(role);
+  const actualRoleKey = normalizeRoleKey(matchedStaff.role);
 
   if (actualRoleKey !== requestedRoleKey) {
     return {
