@@ -16,16 +16,24 @@ export default function StaffPage() {
     setCurrentStaff(session);
     setLoading(false);
 
+    // If already authenticated, redirect directly to their role-specific URL (e.g. /staff/doctor, /staff/receptionist)
+    if (session?.role) {
+      router.replace(`/staff/${session.role}`);
+    }
+
     const handleAuthChange = (e: Event) => {
       const custom = e as CustomEvent<StaffUser | null>;
       setCurrentStaff(custom.detail);
+      if (custom.detail?.role) {
+        router.replace(`/staff/${custom.detail.role}`);
+      }
     };
 
     window.addEventListener('healix_staff_auth_changed', handleAuthChange);
     return () => {
       window.removeEventListener('healix_staff_auth_changed', handleAuthChange);
     };
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (
