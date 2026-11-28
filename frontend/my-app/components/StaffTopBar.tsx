@@ -33,12 +33,15 @@ export default function StaffTopBar() {
     pathname.startsWith('/staff/receptionist') ||
     pathname.startsWith('/staff/doctor') ||
     pathname.startsWith('/staff/nurse') ||
+    pathname.startsWith('/staff/lab-staff') ||
     pathname === '/doctor' ||
     pathname.startsWith('/doctor/') ||
     pathname === '/reception' ||
     pathname.startsWith('/reception/') ||
     pathname === '/nurse' ||
-    pathname.startsWith('/nurse/')
+    pathname.startsWith('/nurse/') ||
+    pathname === '/lab' ||
+    pathname.startsWith('/lab/')
   ) {
     return null;
   }

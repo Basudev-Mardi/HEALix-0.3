@@ -62,7 +62,9 @@ export default function SiteHeader() {
     pathname === '/reception' ||
     pathname.startsWith('/reception/') ||
     pathname === '/nurse' ||
-    pathname.startsWith('/nurse/')
+    pathname.startsWith('/nurse/') ||
+    pathname === '/lab' ||
+    pathname.startsWith('/lab/')
   ) {
     return null;
   }

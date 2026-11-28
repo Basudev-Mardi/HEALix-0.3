@@ -31,6 +31,7 @@ import { clearStaffSession, type StaffUser } from '@/lib/staff-auth';
 import ReceptionistDashboard from '@/components/receptionist/ReceptionistDashboard';
 import DoctorDashboard from '@/components/doctor/DoctorDashboard';
 import NurseDashboard from '@/components/nurse/NurseDashboard';
+import LabStaffDashboard from '@/components/lab/LabStaffDashboard';
 
 const ROLE_ICONS = {
   ConciergeBell,
@@ -77,6 +78,11 @@ export default function StaffAuthorizedDashboard({
   // Nurse Inpatient & Ward Care Workspace
   if (roleConfig.id === 'nurse') {
     return <NurseDashboard nurse={staff} onLogout={onLogout} />;
+  }
+
+  // Diagnostic Pathology & Laboratory Workspace
+  if (roleConfig.id === 'lab-staff') {
+    return <LabStaffDashboard labStaff={staff} onLogout={onLogout} />;
   }
 
   return (
