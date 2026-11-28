@@ -54,13 +54,15 @@ export default function SiteHeader() {
     pathname === '/terms' ||
     pathname === '/patient-rights';
 
-  // Completely remove public navbar for staff portals (Doctor, Receptionist, etc.)
+  // Completely remove public navbar for staff portals (Doctor, Receptionist, Nurse, etc.)
   if (
     pathname.startsWith('/staff') ||
     pathname === '/doctor' ||
     pathname.startsWith('/doctor/') ||
     pathname === '/reception' ||
-    pathname.startsWith('/reception/')
+    pathname.startsWith('/reception/') ||
+    pathname === '/nurse' ||
+    pathname.startsWith('/nurse/')
   ) {
     return null;
   }

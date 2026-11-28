@@ -28,14 +28,17 @@ export default function StaffTopBar() {
     setCurrentStaff(null);
   };
 
-  // Remove top bar for dedicated full-workspace dashboards (Receptionist & Doctor)
+  // Remove top bar for dedicated full-workspace dashboards (Receptionist, Doctor & Nurse)
   if (
     pathname.startsWith('/staff/receptionist') ||
     pathname.startsWith('/staff/doctor') ||
+    pathname.startsWith('/staff/nurse') ||
     pathname === '/doctor' ||
     pathname.startsWith('/doctor/') ||
     pathname === '/reception' ||
-    pathname.startsWith('/reception/')
+    pathname.startsWith('/reception/') ||
+    pathname === '/nurse' ||
+    pathname.startsWith('/nurse/')
   ) {
     return null;
   }
