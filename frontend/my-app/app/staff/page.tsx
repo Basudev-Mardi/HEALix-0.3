@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { getStaffSession, type StaffUser } from '@/lib/staff-auth';
 import StaffLoginForm from '@/components/StaffLoginForm';
 import StaffAuthorizedDashboard from '@/components/StaffAuthorizedDashboard';
 
 export default function StaffPage() {
+  const router = useRouter();
   const [currentStaff, setCurrentStaff] = useState<StaffUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -37,12 +39,17 @@ export default function StaffPage() {
   }
 
   // If NOT authenticated: Show ONLY the centered HEALIX Staff Login Portal interface
+  // When a user selects a role, dynamically update URL to /staff/[role]
   if (!currentStaff) {
     return (
       <div className="container-editorial py-8 sm:py-12">
         <StaffLoginForm
+          onRoleChange={(role) => {
+            router.push(`/staff/${role}`);
+          }}
           onLoginSuccess={(staff) => {
             setCurrentStaff(staff);
+            router.push(`/staff/${staff.role}`);
           }}
         />
       </div>

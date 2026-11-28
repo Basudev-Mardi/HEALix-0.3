@@ -39,20 +39,44 @@ const STAFF_ROLE_OPTIONS = [
 ];
 
 export default function StaffLoginForm({
+  initialRole,
+  onRoleChange,
   onLoginSuccess,
 }: {
+  initialRole?: string;
+  onRoleChange?: (role: string) => void;
   onLoginSuccess?: (staff: StaffUser) => void;
 }) {
   const router = useRouter();
-  const [selectedRole, setSelectedRole] = useState<string>('receptionist');
-  const [identifier, setIdentifier] = useState<string>('reception@healix.org');
-  const [password, setPassword] = useState<string>('staff123');
+  const [selectedRole, setSelectedRole] = useState<string>(() => {
+    if (initialRole && STAFF_ROLE_OPTIONS.some((r) => r.value === initialRole)) {
+      return initialRole;
+    }
+    return 'receptionist';
+  });
+
+  const initialDemo = DEMO_STAFF_CREDENTIALS[initialRole || 'receptionist'] || DEMO_STAFF_CREDENTIALS['receptionist'];
+
+  const [identifier, setIdentifier] = useState<string>(initialDemo ? initialDemo.email : 'reception@healix.org');
+  const [password, setPassword] = useState<string>(initialDemo ? initialDemo.password : 'staff123');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [successMsg, setSuccessMsg] = useState<string>('');
   const [forgotModalOpen, setForgotModalOpen] = useState<boolean>(false);
+
+  // Sync if initialRole prop changes
+  React.useEffect(() => {
+    if (initialRole && STAFF_ROLE_OPTIONS.some((r) => r.value === initialRole)) {
+      setSelectedRole(initialRole);
+      const demo = DEMO_STAFF_CREDENTIALS[initialRole];
+      if (demo) {
+        setIdentifier(demo.email);
+        setPassword(demo.password);
+      }
+    }
+  }, [initialRole]);
 
   const currentRoleMeta =
     STAFF_ROLE_OPTIONS.find((r) => r.value === selectedRole) || STAFF_ROLE_OPTIONS[0];
@@ -68,6 +92,8 @@ export default function StaffLoginForm({
       setIdentifier(demo.email);
       setPassword(demo.password);
     }
+
+    onRoleChange?.(newRole);
   };
 
   const handleQuickFill = () => {
@@ -105,11 +131,7 @@ export default function StaffLoginForm({
       if (res.ok && res.staff) {
         setSuccessMsg(`Welcome, ${res.staff.name}! Authorized for ${res.staff.roleName} dashboard.`);
         setTimeout(() => {
-          if (res.staff?.role === 'receptionist') {
-            router.push('/staff/receptionist');
-          } else {
-            onLoginSuccess?.(res.staff!);
-          }
+          onLoginSuccess?.(res.staff!);
         }, 400);
       } else {
         setError(res.error || 'Authentication denied. Please verify your credentials and selected role.');

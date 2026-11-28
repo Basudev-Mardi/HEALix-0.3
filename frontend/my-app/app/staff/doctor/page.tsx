@@ -4,27 +4,47 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getStaffSession, type StaffUser } from '@/lib/staff-auth';
 import DoctorDashboard from '@/components/doctor/DoctorDashboard';
+import StaffLoginForm from '@/components/StaffLoginForm';
+import SignOutConfirmModal from '@/components/SignOutConfirmModal';
+import { useStaffSignOutGuard } from '@/hooks/useStaffSignOutGuard';
 
 export default function DoctorPage() {
   const router = useRouter();
   const [authorizedStaff, setAuthorizedStaff] = useState<StaffUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Hook to handle Browser Back button confirmation
+  const { showConfirmDialog, handleCancel, handleConfirmSignOut } = useStaffSignOutGuard({
+    enabled: true,
+    onConfirmSignOut: () => {
+      setAuthorizedStaff(null);
+      router.push('/staff');
+    },
+  });
+
   useEffect(() => {
     const session = getStaffSession();
-    if (!session) {
-      router.push('/staff');
-      return;
+    if (session && (session.role === 'doctor' || session.role === 'administrator')) {
+      setAuthorizedStaff(session);
+    } else {
+      setAuthorizedStaff(null);
     }
-
-    if (session.role !== 'doctor' && session.role !== 'administrator' && session.role !== 'receptionist') {
-      router.push('/staff');
-      return;
-    }
-
-    setAuthorizedStaff(session);
     setLoading(false);
-  }, [router]);
+
+    const handleAuthChange = (e: Event) => {
+      const custom = e as CustomEvent<StaffUser | null>;
+      if (custom.detail && (custom.detail.role === 'doctor' || custom.detail.role === 'administrator')) {
+        setAuthorizedStaff(custom.detail);
+      } else {
+        setAuthorizedStaff(null);
+      }
+    };
+
+    window.addEventListener('healix_staff_auth_changed', handleAuthChange);
+    return () => {
+      window.removeEventListener('healix_staff_auth_changed', handleAuthChange);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -37,12 +57,46 @@ export default function DoctorPage() {
     );
   }
 
+  // If authenticated as Doctor: Show Doctor Consultation & EHR Desk
+  if (authorizedStaff) {
+    return (
+      <>
+        <DoctorDashboard
+          doctor={authorizedStaff}
+          onLogout={() => {
+            setAuthorizedStaff(null);
+            router.push('/staff');
+          }}
+        />
+        <SignOutConfirmModal
+          isOpen={showConfirmDialog}
+          onCancel={handleCancel}
+          onConfirm={handleConfirmSignOut}
+        />
+      </>
+    );
+  }
+
+  // If not authenticated: Show Doctor-specific authentication flow
   return (
-    <DoctorDashboard
-      doctor={authorizedStaff}
-      onLogout={() => {
-        router.push('/staff');
-      }}
-    />
+    <div className="container-editorial py-8 sm:py-12">
+      <StaffLoginForm
+        initialRole="doctor"
+        onRoleChange={(newRole) => {
+          router.push(`/staff/${newRole}`);
+        }}
+        onLoginSuccess={(staff) => {
+          setAuthorizedStaff(staff);
+          if (staff.role !== 'doctor') {
+            router.push(`/staff/${staff.role}`);
+          }
+        }}
+      />
+      <SignOutConfirmModal
+        isOpen={showConfirmDialog}
+        onCancel={handleCancel}
+        onConfirm={handleConfirmSignOut}
+      />
+    </div>
   );
 }
