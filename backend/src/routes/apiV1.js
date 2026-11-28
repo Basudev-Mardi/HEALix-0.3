@@ -12,6 +12,7 @@ import doctorRoutes from './doctor.js';
 import nurseRoutes from './nurse.js';
 import labRoutes from './lab.js';
 import pharmacyRoutes from './pharmacy.js';
+import billingRoutes from './billing.js';
 import { query } from '../db.js';
 
 const router = Router();
@@ -37,6 +38,9 @@ router.use('/lab', labRoutes);
 
 // Central Pharmacy Dispensary & Inventory: /api/v1/pharmacy/*
 router.use('/pharmacy', pharmacyRoutes);
+
+// Billing, Invoicing & Cashless TPA Claims: /api/v1/billing/*
+router.use('/billing', billingRoutes);
 
 // Hospital Settings & Institutional Information: /api/v1/hospital/settings
 router.get(

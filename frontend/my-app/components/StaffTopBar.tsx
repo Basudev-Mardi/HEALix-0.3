@@ -35,6 +35,7 @@ export default function StaffTopBar() {
     pathname.startsWith('/staff/nurse') ||
     pathname.startsWith('/staff/lab-staff') ||
     pathname.startsWith('/staff/pharmacist') ||
+    pathname.startsWith('/staff/billing-staff') ||
     pathname === '/doctor' ||
     pathname.startsWith('/doctor/') ||
     pathname === '/reception' ||
@@ -44,7 +45,9 @@ export default function StaffTopBar() {
     pathname === '/lab' ||
     pathname.startsWith('/lab/') ||
     pathname === '/pharmacy' ||
-    pathname.startsWith('/pharmacy/')
+    pathname.startsWith('/pharmacy/') ||
+    pathname === '/billing' ||
+    pathname.startsWith('/billing/')
   ) {
     return null;
   }

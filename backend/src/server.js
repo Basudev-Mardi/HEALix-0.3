@@ -19,6 +19,7 @@ import doctorRoutes from './routes/doctor.js';
 import nurseRoutes from './routes/nurse.js';
 import labRoutes from './routes/lab.js';
 import pharmacyRoutes from './routes/pharmacy.js';
+import billingRoutes from './routes/billing.js';
 import apiV1Routes from './routes/apiV1.js';
 
 const app = express();
@@ -57,6 +58,7 @@ app.use('/api/doctor', doctorRoutes);
 app.use('/api/nurse', nurseRoutes);
 app.use('/api/lab', labRoutes);
 app.use('/api/pharmacy', pharmacyRoutes);
+app.use('/api/billing', billingRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api', publicRoutes);
 
